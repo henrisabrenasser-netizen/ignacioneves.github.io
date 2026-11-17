@@ -218,6 +218,26 @@
     .botoes-save button { background: var(--painel-2); border: 1px solid var(--linha); font-size: .82rem; padding: 6px 10px; font-weight: 600; font-family: inherit; }
     .botoes-save button:hover { background: #313642; }
 
+    /* ---------- Painel de cheats ---------- */
+    .btn-cheats { background: #3b1f4a; border: 1px solid #7e22ce; color: #e9d5ff; font-family: "Cinzel", serif; font-size: .85rem; padding: 6px 12px; }
+    .btn-cheats:hover { background: #4c1d63; }
+    .btn-cheats.ativos { box-shadow: 0 0 12px rgba(168,85,247,.7); }
+    .cheats-fundo { position: fixed; inset: 0; z-index: 80; background: rgba(0,0,0,.65); display: grid; place-items: center; padding: 16px; }
+    .cheats-fundo[hidden] { display: none; }
+    .cheats { width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; background: #1a1424; border: 2px solid #7e22ce; border-radius: 12px; padding: 18px; box-shadow: 0 0 40px rgba(168,85,247,.35); }
+    .cheats h2 { color: #e9d5ff; font-size: 1.15rem; text-align: center; margin-bottom: 4px; }
+    .cheats h3 { color: #c4b5fd; font-size: .9rem; margin: 16px 0 8px; }
+    .cheats .grade-c { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; }
+    .cheats label { display: grid; gap: 4px; font-size: .9rem; color: var(--texto-m); margin: 0; }
+    .cheats select { margin: 0; padding: 6px 8px; background: #241b33; border-color: #4c3d78; color: var(--texto-m); font-size: .95rem; }
+    .cheats select.mudado { border-color: #a855f7; color: #e9d5ff; font-weight: 700; }
+    .cheats .botoes-c { display: flex; flex-wrap: wrap; gap: 6px; }
+    .cheats .botoes-c button { background: #2e2342; border: 1px solid #4c3d78; color: var(--texto-m); font-size: .85rem; padding: 7px 10px; font-family: inherit; font-weight: 600; }
+    .cheats .botoes-c button:hover:not(:disabled) { background: #3d2e58; border-color: #a855f7; }
+    .cheats .chave-c { display: flex; align-items: center; gap: 8px; font-size: .92rem; }
+    .cheats .rodape-c { display: flex; justify-content: space-between; gap: 8px; margin-top: 18px; }
+    @media (max-width: 560px) { .cheats .grade-c { grid-template-columns: 1fr; } }
+
     /* ---------- Efeitos ---------- */
     .flutua {
       position: fixed; pointer-events: none; z-index: 60; transform: translateX(-50%);
@@ -271,12 +291,17 @@
       <div class="item esc">💠 <b id="b-escamas">0</b> escamas</div>
       <div class="item">🏔️ Recorde: <b id="b-recorde">1</b></div>
       <div class="item">🐲 Dragões: <b id="b-dragoes">0</b></div>
+      <button class="btn-cheats" id="btn-cheats" data-cheats-abrir="1">🧪 Cheats</button>
     </div>
 
     <div class="mesa">
       <aside class="painel" id="p-heroi"></aside>
       <main class="painel centro" id="p-centro"></main>
       <aside class="painel" id="p-lado"></aside>
+    </div>
+
+    <div class="cheats-fundo" id="cheats-fundo" hidden>
+      <div class="cheats" id="cheats" role="dialog" aria-label="Cheats"></div>
     </div>
   </div>
 
@@ -416,15 +441,18 @@
       { id: "mapa",      emoji: "🗺️", nome: "Mapa da Masmorra", desc: "Comece após um dragão já derrotado.", custo: 80, max: 1 },
       { id: "batedor",   emoji: "🧭", nome: "Batedor",          desc: "Libera a exploração automática (modo ocioso).", custo: 150, max: 1 },
     ];
-    const custoGuilda = u => Math.ceil(u.custo * Math.pow(1.4, nivelG(u.id)));
+    const custoGuilda = u => Math.ceil(u.custo * Math.pow(1.4, nivelG(u.id)) * meta.cheats.precoGuilda);
 
     // ========================================================
     // 5. ESTADO
     // ========================================================
     const CHAVE = "cacador-dragoes-v1";
+    // Cheats: multiplicadores que você pode mudar no painel 🧪
+    const novosCheats = () => ({ escamas: 1, ouro: 1, xp: 1, vidaInimigo: 1, danoInimigo: 1, danoHeroi: 1, precoGuilda: 1, deus: false });
     const novaMeta = () => ({
       escamas: 0, totalEscamas: 0, guilda: {}, recorde: 1, dragoes: 0, expedicoes: 0, abates: 0, checkpoint: 0,
       auto: { combate: false, explorar: false, reiniciar: false }, vel: 1,
+      cheats: novosCheats(),
     });
     let meta = novaMeta();
     let run = null;          // a expedição atual (null = no acampamento)
@@ -434,9 +462,10 @@
 
     const nivelG = id => meta.guilda[id] || 0;
     const tem = id => run && run.reliquias.includes(id);
-    const multOuro = () => (1 + 0.15 * nivelG("ganancia")) * (tem("bolsa") ? 1.5 : 1);
-    const multXp = () => (1 + 0.10 * nivelG("sabedoria")) * (tem("tomo") ? 1.3 : 1);
-    const multEscamas = () => 1 + 0.10 * nivelG("saque");
+    const C = () => meta.cheats;
+    const multOuro = () => (1 + 0.15 * nivelG("ganancia")) * (tem("bolsa") ? 1.5 : 1) * C().ouro;
+    const multXp = () => (1 + 0.10 * nivelG("sabedoria")) * (tem("tomo") ? 1.3 : 1) * C().xp;
+    const multEscamas = () => (1 + 0.10 * nivelG("saque")) * C().escamas;
     const xpProx = n => Math.round(15 * Math.pow(1.28, n - 1));
 
     // Atributos atuais do herói (base da expedição + relíquias)
@@ -536,7 +565,7 @@
 
     function criarInimigo(tpl, rank) {
       const m = escala(run.andar);
-      let hp = tpl.hp * m, atk = tpl.atk * m;
+      let hp = tpl.hp * m * C().vidaInimigo, atk = tpl.atk * m * C().danoInimigo;
       if (rank === "elite") { hp *= 1.7; atk *= 1.25; }
       return {
         nome: tpl.nome + (rank === "elite" ? " Campeão" : ""), emoji: tpl.emoji, filtro: tpl.filtro || "",
@@ -638,6 +667,7 @@
       const h = H();
       let d = h.atk * mult;
       if (tem("olho") && run.inimigo && run.inimigo.rank === "chefe") d *= 2;
+      d *= C().danoHeroi;
       return Math.round(d);
     }
 
@@ -650,6 +680,7 @@
       const crit = Math.random() < h.crit;
       if (crit) d *= h.critMult;
       if (tem("olho") && e.rank === "chefe") d *= 2;
+      d *= C().danoHeroi;
       d = Math.max(1, Math.round(d));
       const abs = Math.min(e.bloqueio, d);
       e.bloqueio -= abs;
@@ -704,6 +735,7 @@
       e.primeiroAtaque = false;
       if (Math.random() < h.esq) { log("💨 Você se esquiva!", "bom"); fx("heroi", "Esquivou", "miss"); return false; }
       let d = ignoraDef ? dano : Math.max(1, dano - h.def);
+      if (C().deus) d = 0;
       const abs = Math.min(run.bloqueio, d);
       run.bloqueio -= abs;
       d -= abs;
@@ -758,7 +790,8 @@
       // Fim do turno
       run.bloqueio = 0;
       if (run.veneno > 0) {
-        run.hp -= run.veneno; fx("heroi", `-${run.veneno} ☠️`, "ven");
+        if (!C().deus) run.hp -= run.veneno;
+        fx("heroi", `-${run.veneno} ☠️`, "ven");
         log(`☠️ O veneno queima: -${run.veneno}.`, "dano");
         run.veneno--;
         verificarFenix();
@@ -824,6 +857,7 @@
       if (run.niveisPend > 0) { run.fase = "nivel"; run.cartas = gerarCartas(); tela(); salvar(); return; }
       if (run.escolhaReliq && run.escolhaReliq.length) { run.fase = "reliquia"; tela(); salvar(); return; }
       run.escolhaReliq = null;
+      if (run.voltarEscolha) { run.opcoes = run.voltarEscolha; run.voltarEscolha = null; run.fase = "escolha"; tela(); salvar(); return; }
       descer();
     }
     function descer() {
@@ -1031,6 +1065,9 @@
     // 10. TELAS
     // ========================================================
     function tela() {
+      const c = meta.cheats, padrao = novosCheats();
+      $("btn-cheats").classList.toggle("ativos", Object.keys(padrao).some(k => c[k] !== padrao[k]));
+      if (!$("cheats-fundo").hidden) $("cheats").innerHTML = htmlCheats();
       $("b-escamas").textContent = fmt(meta.escamas);
       $("b-recorde").textContent = meta.recorde;
       $("b-dragoes").textContent = meta.dragoes;
@@ -1217,6 +1254,77 @@
       return `<h2>📜 Diário</h2><ul class="registro">${registro.map(r => `<li class="${r.tipo}">${r.texto}</li>`).join("")}</ul>`;
     }
 
+    // ---- Painel de cheats ----
+    const OPCOES_MULT = [0, 0.25, 0.5, 1, 2, 3, 5, 10, 25, 100];
+    const CAMPOS_CHEAT = [
+      ["escamas", "💠 Escamas ganhas"], ["ouro", "💰 Ouro ganho"],
+      ["xp", "⭐ Experiência"], ["danoHeroi", "⚔️ Seu dano"],
+      ["vidaInimigo", "❤️ Vida dos monstros"], ["danoInimigo", "👹 Dano dos monstros"],
+      ["precoGuilda", "🏷️ Preço da Guilda"],
+    ];
+    function htmlCheats() {
+      const c = meta.cheats;
+      const selects = CAMPOS_CHEAT.map(([k, nome]) => {
+        const ops = (k === "precoGuilda" ? [0, 0.1, 0.25, 0.5, 1, 2] : OPCOES_MULT.filter(v => v > 0 || k === "danoInimigo"))
+          .map(v => `<option value="${v}" ${c[k] === v ? "selected" : ""}>×${String(v).replace(".", ",")}</option>`).join("");
+        return `<label>${nome}<select data-cheat="${k}" class="${c[k] !== 1 ? "mudado" : ""}">${ops}</select></label>`;
+      }).join("");
+      const emRun = !!run && run.fase !== "morto";
+      const dis = emRun ? "" : "disabled";
+      return `
+        <h2>🧪 Painel de Cheats</h2>
+        <p class="fraco pequeno" style="text-align:center">As mudanças valem na hora. Vida e dano dos monstros afetam os próximos monstros que aparecerem.</p>
+        <h3>Multiplicadores</h3>
+        <div class="grade-c">${selects}</div>
+        <label class="chave-c" style="margin-top:12px"><input type="checkbox" data-cheat-deus="1" ${c.deus ? "checked" : ""}> 😇 Modo deus (não perde vida)</label>
+        <h3>Guilda</h3>
+        <div class="botoes-c">
+          <button data-cheat-acao="esc100">+100 💠</button>
+          <button data-cheat-acao="esc1000">+1.000 💠</button>
+          <button data-cheat-acao="esc100k">+100.000 💠</button>
+          <button data-cheat-acao="checkpoints">🗺️ Liberar atalhos (andar 41)</button>
+        </div>
+        <h3>Expedição atual ${emRun ? "" : '<span class="fraco">(comece uma expedição para usar)</span>'}</h3>
+        <div class="botoes-c">
+          <button data-cheat-acao="ouro" ${dis}>+500 💰</button>
+          <button data-cheat-acao="curar" ${dis}>💖 Curar tudo</button>
+          <button data-cheat-acao="pocoes" ${dis}>+3 🧪</button>
+          <button data-cheat-acao="nivel" ${dis}>⭐ Subir de nível</button>
+          <button data-cheat-acao="reliquia" ${dis}>🎁 Relíquia aleatória</button>
+          <button data-cheat-acao="todas" ${dis}>👑 Todas as relíquias</button>
+          <button data-cheat-acao="matar" ${emRun && run.fase === "combate" && !ocupado ? "" : "disabled"}>☠️ Matar inimigo</button>
+          <button data-cheat-acao="pular" ${emRun && run.fase === "escolha" ? "" : "disabled"}>⬇️ Pular andar</button>
+        </div>
+        <div class="rodape-c">
+          <button class="chave" data-cheat-acao="resetar">↺ Voltar ao normal</button>
+          <button class="botao-tocha" data-cheats-fechar="1">Fechar</button>
+        </div>`;
+    }
+    function acaoCheat(a) {
+      if (a === "esc100") meta.escamas += 100;
+      if (a === "esc1000") meta.escamas += 1000;
+      if (a === "esc100k") meta.escamas += 100000;
+      if (a === "checkpoints") meta.checkpoint = Math.max(meta.checkpoint, 40);
+      if (a === "resetar") meta.cheats = novosCheats();
+      if (run && run.fase !== "morto") {
+        if (a === "ouro") run.ouro += 500;
+        if (a === "curar") { run.hp = H().hpMax; run.veneno = 0; }
+        if (a === "pocoes") run.pocoes += 3;
+        if (a === "reliquia") ganharReliquia(reliquiaAleatoria(), "Um cheat concede");
+        if (a === "todas") Object.keys(RELIQUIAS).forEach(id => { if (!tem(id)) ganharReliquia(id, "Um cheat concede"); });
+        if (a === "nivel") { ganharXp(xpProx(run.nivel) - run.xp); if (run.fase === "escolha") { $("cheats-fundo").hidden = true; return proxFaseNivel(); } }
+        if (a === "matar" && run.fase === "combate" && !ocupado) { run.inimigo.hp = 0; $("cheats-fundo").hidden = true; return vitoria(); }
+        if (a === "pular" && run.fase === "escolha") { descer(); return; }
+      }
+      tela(); salvar();
+    }
+    // Subir de nível fora do combate: mostra as cartas e depois volta para as portas
+    function proxFaseNivel() {
+      const opcoes = run.opcoes;
+      run.fase = "nivel"; run.cartas = gerarCartas(); run.voltarEscolha = opcoes;
+      tela(); salvar();
+    }
+
     // ---- Acampamento (entre expedições) ----
     function telaAcampamento() {
       document.documentElement.style.setProperty("--bioma", "#b45309");
@@ -1311,9 +1419,23 @@
       else if (d.vel) { meta.vel = meta.vel >= 4 ? 1 : meta.vel * 2; tela(); salvar(); }
       else if (d.reliq) { const r = RELIQUIAS[d.reliq]; $("reliq-info").innerHTML = `<b>${r.emoji} ${r.nome}:</b> ${r.desc}`; }
       else if (d.save) gerenciarSave(d.save);
+      else if (d.cheatsAbrir) { $("cheats-fundo").hidden = false; tela(); }
+      else if (d.cheatsFechar) { $("cheats-fundo").hidden = true; }
+      else if (d.cheatAcao) acaoCheat(d.cheatAcao);
     });
 
+    $("jogo").addEventListener("change", e => {
+      const t = e.target;
+      if (t.dataset.cheat) meta.cheats[t.dataset.cheat] = parseFloat(t.value);
+      else if (t.dataset.cheatDeus) meta.cheats.deus = t.checked;
+      else return;
+      tela(); salvar();
+    });
+    $("cheats-fundo").addEventListener("click", e => { if (e.target.id === "cheats-fundo") e.target.hidden = true; });
+
     document.addEventListener("keydown", e => {
+      if (e.key === "Escape") $("cheats-fundo").hidden = true;
+      if (!$("cheats-fundo").hidden) return;
       if (!run || e.ctrlKey || e.metaKey || e.altKey) return;
       const n = parseInt(e.key, 10);
       if (!n) return;
@@ -1390,6 +1512,7 @@
     function aplicar(dados) {
       meta = Object.assign(novaMeta(), dados.meta || {});
       meta.auto = Object.assign({ combate: false, explorar: false, reiniciar: false }, meta.auto);
+      meta.cheats = Object.assign(novosCheats(), meta.cheats);
       run = dados.run || null;
       registro = dados.registro || [];
       if (run && run.fase === "combate" && run.inimigo && !run.inimigo.intencao) escolherIntencao(run.inimigo);
