@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reino Ocioso — Canivete Suíço</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    /* ==========================================================
+       REINO OCIOSO — um jogo idle/incremental medieval
+       Tudo deste jogo (estilo e lógica) mora neste arquivo.
+       ========================================================== */
+    :root {
+      --madeira: #1d130b;
+      --pergaminho: #efe0bd;
+      --pergaminho-2: #e4cf9f;
+      --tinta: #3a2716;
+      --tinta-clara: #6e5233;
+      --ouro: #e9b53a;
+      --ouro-escuro: #a8740f;
+      --borda-p: #9c7a4a;
+      --vinho: #7a1f1f;
+      --musgo: #3f6b2a;
+    }
+
+    body.medieval {
+      background:
+        repeating-linear-gradient(90deg, rgba(0,0,0,.18) 0 2px, transparent 2px 120px),
+        radial-gradient(ellipse at top, #3d2815, var(--madeira) 70%) fixed;
+      font-family: "EB Garamond", Georgia, serif;
+      font-size: 17px;
+      color: var(--pergaminho);
+    }
+    body.medieval .topo { position: static; background: #140d07; border-bottom: 2px solid var(--ouro-escuro); }
+    body.medieval .menu a.ativo { background: var(--vinho); }
+
+    h2, .cinzel { font-family: "Cinzel", Georgia, serif; }
+
+    #jogo { max-width: 1280px; margin: 0 auto; padding: 12px 16px 48px; }
+
+    /* ---------- Barra de recursos (sempre visível) ---------- */
+    .barra {
+      position: sticky; top: 0; z-index: 20;
+      display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+      background: linear-gradient(#2a1b0e, #1a1009);
+      border: 2px solid var(--ouro-escuro);
+      border-radius: 8px;
+      padding: 10px 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 6px 18px rgba(0,0,0,.45);
+    }
+    .barra .ouro-total { font-family: "Cinzel", serif; font-weight: 800; font-size: 1.6rem; color: var(--ouro); line-height: 1.1; }
+    .barra .por-seg { color: #d8c08a; }
+    .barra .titulo-reino { margin-left: auto; text-align: right; font-family: "Cinzel", serif; color: #d8c08a; font-size: .95rem; }
+    .barra .titulo-reino b { color: var(--pergaminho); }
+
+    /* ---------- Mesa: as colunas do jogo ---------- */
+    .mesa {
+      display: grid;
+      grid-template-columns: 300px 1fr 360px;
+      grid-template-areas: "reino edif melh" "reino edif mais";
+      gap: 16px;
+      align-items: start;
+    }
+    #p-reino { grid-area: reino; position: sticky; top: 86px; }
+    #p-edif  { grid-area: edif; }
+    #p-melh  { grid-area: melh; }
+    #p-mais  { grid-area: mais; }
+
+    .painel {
+      background:
+        radial-gradient(ellipse at center, var(--pergaminho) 55%, var(--pergaminho-2) 100%);
+      color: var(--tinta);
+      border: 4px double var(--borda-p);
+      border-radius: 6px;
+      padding: 16px;
+      box-shadow: inset 0 0 40px rgba(120, 80, 30, .25), 0 8px 20px rgba(0,0,0,.4);
+    }
+    .painel h2 {
+      font-size: 1.1rem; letter-spacing: .04em; color: var(--vinho);
+      text-align: center; margin-bottom: 10px;
+      border-bottom: 1px solid var(--borda-p); padding-bottom: 6px;
+    }
+    .painel h2::before { content: "❦ "; color: var(--ouro-escuro); }
+    .painel h2::after  { content: " ❦"; color: var(--ouro-escuro); }
+    .painel h3 { font-family: "Cinzel", serif; font-size: .95rem; color: var(--vinho); margin: 16px 0 8px; }
+    .painel small, .painel .fraco { color: var(--tinta-clara); }
+
+    /* ---------- Painel do reino: a grande moeda ---------- */
+    .nome-reino {
+      display: block; width: 100%; background: none; color: var(--tinta);
+      font-family: "Cinzel", serif; font-weight: 800; font-size: 1.25rem;
+      padding: 0; text-align: center; border-radius: 4px;
+    }
+    .nome-reino:hover { background: rgba(156,122,74,.2); }
+    .rank { text-align: center; font-style: italic; color: var(--tinta-clara); }
+
+    .moeda {
+      width: 190px; height: 190px; border-radius: 50%;
+      margin: 18px auto 10px; display: grid; place-items: center;
+      font-size: 84px; padding: 0;
+      background: radial-gradient(circle at 35% 30%, #fff4b8, #f2c443 30%, #c58a12 70%, #8a5a07);
+      border: 6px solid #8a5a07;
+      box-shadow: 0 8px 0 #5c3b04, 0 14px 26px rgba(0,0,0,.4), inset 0 0 0 7px rgba(255,255,255,.22);
+      transition: transform .08s, box-shadow .08s;
+      user-select: none; -webkit-tap-highlight-color: transparent;
+    }
+    .moeda:hover { background: radial-gradient(circle at 35% 30%, #fffad0, #f7cd52 30%, #cf9418 70%, #8a5a07); transform: scale(1.03); }
+    .moeda:active { transform: scale(.96) translateY(5px); box-shadow: 0 3px 0 #5c3b04, 0 6px 12px rgba(0,0,0,.4), inset 0 0 0 7px rgba(255,255,255,.22); }
+    .valor-clique { text-align: center; margin-bottom: 8px; }
+
+    .efeitos { display: grid; gap: 6px; margin: 8px 0; }
+    .efeito { background: var(--vinho); color: #ffe7b0; border-radius: 6px; padding: 6px 10px; font-weight: 600; text-align: center; animation: pulsa 1s infinite alternate; }
+    .efeito.furia { background: var(--musgo); }
+
+    .cronicas { list-style: none; max-height: 210px; overflow-y: auto; font-size: .95rem; }
+    .cronicas li { padding: 5px 0; border-bottom: 1px dotted var(--borda-p); }
+    .cronicas li:first-child { font-weight: 600; }
+
+    /* ---------- Construções ---------- */
+    .seletor { display: flex; gap: 6px; justify-content: center; margin-bottom: 12px; }
+    .seletor button {
+      background: transparent; color: var(--tinta); border: 1px solid var(--borda-p);
+      padding: 4px 12px; font-family: "Cinzel", serif; font-size: .85rem; border-radius: 6px;
+    }
+    .seletor button:hover { background: rgba(156,122,74,.25); }
+    .seletor button.ativo { background: var(--vinho); color: #ffe7b0; border-color: var(--vinho); }
+
+    .edif {
+      display: grid; grid-template-columns: 52px 1fr auto; gap: 12px; align-items: center;
+      width: 100%; text-align: left; margin-bottom: 8px; padding: 10px 12px;
+      background: rgba(255,255,255,.35); color: var(--tinta);
+      border: 1px solid var(--borda-p); border-radius: 6px;
+      font-family: inherit; font-weight: 400; font-size: 1rem;
+      transition: transform .1s, box-shadow .1s, background .1s;
+    }
+    .edif:hover:not(:disabled) { background: rgba(255,255,255,.6); transform: translateX(3px); }
+    .edif.pode { border-color: var(--ouro-escuro); box-shadow: inset 4px 0 0 var(--ouro); }
+    .edif:disabled { opacity: .6; cursor: default; }
+    .edif .e-emoji { font-size: 2.2rem; text-align: center; }
+    .edif .e-nome { font-family: "Cinzel", serif; font-weight: 800; font-size: 1.02rem; }
+    .edif .e-desc { display: block; font-style: italic; font-size: .9rem; color: var(--tinta-clara); }
+    .edif .e-prod { display: block; font-size: .88rem; color: var(--musgo); }
+    .edif .e-lado { text-align: right; }
+    .edif .e-qtd { display: block; font-family: "Cinzel", serif; font-weight: 800; font-size: 1.7rem; color: var(--tinta-clara); line-height: 1; }
+    .edif .e-custo { display: block; font-weight: 600; white-space: nowrap; }
+    .edif .e-custo.caro { color: var(--vinho); }
+    .edif.misterio { filter: grayscale(1); }
+
+    /* ---------- Melhorias ---------- */
+    .melhorias { display: grid; gap: 8px; max-height: 380px; overflow-y: auto; padding-right: 2px; }
+    .melh {
+      display: grid; grid-template-columns: 36px 1fr; gap: 10px; align-items: center; text-align: left;
+      background: rgba(255,255,255,.35); color: var(--tinta);
+      border: 1px solid var(--borda-p); border-radius: 6px; padding: 8px 10px;
+      font-family: inherit; font-weight: 400; font-size: .95rem;
+    }
+    .melh:hover:not(:disabled) { background: rgba(255,255,255,.6); }
+    .melh.pode { border-color: var(--ouro-escuro); box-shadow: inset 4px 0 0 var(--ouro); }
+    .melh:disabled { opacity: .6; cursor: default; }
+    .melh .m-emoji { font-size: 1.7rem; text-align: center; }
+    .melh b { font-family: "Cinzel", serif; }
+    .melh .m-custo { font-weight: 600; }
+    .vazio-m { text-align: center; font-style: italic; color: var(--tinta-clara); padding: 10px; }
+
+    .conquistas { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 6px; }
+    .conq {
+      aspect-ratio: 1; display: grid; place-items: center; font-size: 1.4rem;
+      background: rgba(255,255,255,.35); border: 1px solid var(--borda-p); border-radius: 6px;
+      cursor: help; padding: 0;
+    }
+    .conq.bloq { filter: grayscale(1); opacity: .35; }
+    .conq-info { min-height: 2.6em; margin-top: 8px; font-size: .92rem; }
+
+    /* ---------- Mais: estatísticas e dinastia ---------- */
+    .stats { display: grid; grid-template-columns: 1fr auto; gap: 3px 12px; font-size: .95rem; }
+    .stats dd { text-align: right; font-weight: 600; }
+    .coroa-box { background: rgba(122,31,31,.1); border: 1px solid var(--vinho); border-radius: 6px; padding: 12px; }
+    .painel button.acao { background: var(--vinho); color: #ffe7b0; font-family: "Cinzel", serif; font-size: .9rem; padding: 9px 14px; width: 100%; margin-top: 8px; }
+    .painel button.acao:hover { background: #942828; }
+    .painel button.leve { background: transparent; color: var(--tinta); border: 1px solid var(--borda-p); font-size: .85rem; padding: 6px 10px; font-family: inherit; }
+    .painel button.leve:hover { background: rgba(156,122,74,.25); }
+    .botoes-save { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+
+    /* ---------- Efeitos visuais ---------- */
+    .flutua {
+      position: fixed; pointer-events: none; z-index: 60;
+      font-family: "Cinzel", serif; font-weight: 800; font-size: 1.3rem;
+      color: #ffe08a; text-shadow: 0 2px 0 #000, 0 0 8px rgba(0,0,0,.6);
+      animation: sobe .9s ease-out forwards;
+    }
+    .caravana {
+      position: fixed; z-index: 50; padding: 4px 8px; font-size: 3rem; line-height: 1;
+      background: rgba(255, 220, 120, .15); border: 2px solid var(--ouro); border-radius: 50px;
+      filter: drop-shadow(0 0 14px rgba(255, 200, 60, .9));
+      animation: balanca .6s infinite alternate ease-in-out;
+    }
+    .caravana:hover { background: rgba(255, 220, 120, .35); }
+
+    .toasts { position: fixed; right: 16px; bottom: 16px; z-index: 70; display: grid; gap: 8px; max-width: 320px; }
+    .toast {
+      background: var(--pergaminho); color: var(--tinta);
+      border: 3px double var(--ouro-escuro); border-radius: 6px; padding: 10px 14px;
+      box-shadow: 0 8px 20px rgba(0,0,0,.5); animation: entra .3s ease-out;
+    }
+    .toast b { font-family: "Cinzel", serif; color: var(--vinho); display: block; }
+
+    @keyframes sobe { to { transform: translateY(-70px); opacity: 0; } }
+    @keyframes balanca { from { transform: rotate(-6deg) translateY(0); } to { transform: rotate(6deg) translateY(-8px); } }
+    @keyframes pulsa { to { filter: brightness(1.25); } }
+    @keyframes entra { from { transform: translateX(40px); opacity: 0; } }
+
+    @media (prefers-reduced-motion: reduce) {
+      .caravana, .efeito { animation: none; }
+      .flutua { animation-duration: .4s; }
+    }
+
+    /* ---------- Abas (só no celular) ---------- */
+    .abas { display: none; }
+
+    @media (max-width: 960px) {
+      .mesa { grid-template-columns: 1fr; grid-template-areas: none; }
+      .painel { display: none; grid-area: auto !important; position: static !important; }
+      .painel.ativa { display: block; }
+      #jogo { padding-bottom: 90px; }
+      .barra .titulo-reino { display: none; }
+      .abas {
+        display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+        background: #140d07; border-top: 2px solid var(--ouro-escuro);
+      }
+      .abas button {
+        flex: 1; background: none; border-radius: 0; color: #d8c08a;
+        font-family: "Cinzel", serif; font-size: .78rem; padding: 8px 2px 10px;
+        display: grid; justify-items: center; gap: 2px;
+      }
+      .abas button span { font-size: 1.4rem; }
+      .abas button.ativo { color: var(--ouro); background: #2a1b0e; }
+      .abas button:hover { background: #2a1b0e; }
+      .toasts { bottom: 80px; left: 16px; right: 16px; max-width: none; }
+      .melhorias { max-height: none; }
+    }
+  </style>
+</head>
+<body class="medieval">
+  <header class="topo" id="topo"></header>
+  <script src="menu.js"></script>
+
+  <div id="jogo">
+    <div class="barra">
+      <div>
+        <div class="ouro-total">🪙 <span id="ouro">0</span></div>
+        <div class="por-seg"><span id="gps">0</span> de ouro por segundo</div>
+      </div>
+      <div class="titulo-reino"><span id="rank-barra">Acampamento</span> de <b id="nome-barra">—</b><br><span id="dinastia-barra"></span></div>
+    </div>
+
+    <div class="mesa">
+      <!-- REINO: clique para cobrar impostos -->
+      <section class="painel ativa" id="p-reino">
+        <button class="nome-reino" id="nome-reino" title="Clique para renomear seu reino">—</button>
+        <div class="rank" id="rank">Acampamento</div>
+        <button class="moeda" id="moeda" aria-label="Cobrar impostos">👑</button>
+        <div class="valor-clique">Cobrar impostos: <b>+<span id="valor-clique">1</span></b> por clique</div>
+        <div class="efeitos" id="efeitos"></div>
+        <h3>📜 Crônicas do Reino</h3>
+        <ul class="cronicas" id="cronicas"></ul>
+      </section>
+
+      <!-- CONSTRUÇÕES -->
+      <section class="painel" id="p-edif">
+        <h2>Construções</h2>
+        <div class="seletor" id="seletor">
+          <button data-qtd="1">×1</button>
+          <button data-qtd="10">×10</button>
+          <button data-qtd="100">×100</button>
+          <button data-qtd="max">Máx</button>
+        </div>
+        <div id="lista-edif"></div>
+      </section>
+
+      <!-- MELHORIAS E CONQUISTAS -->
+      <section class="painel" id="p-melh">
+        <h2>Melhorias</h2>
+        <div class="melhorias" id="lista-melh"></div>
+        <h3>🏆 Conquistas <span class="fraco" id="conq-cont"></span></h3>
+        <div class="conquistas" id="lista-conq"></div>
+        <div class="conq-info" id="conq-info"><span class="fraco">Toque numa conquista para ver o que ela pede.</span></div>
+      </section>
+
+      <!-- ESTATÍSTICAS, DINASTIA, SAVE -->
+      <section class="painel" id="p-mais">
+        <h2>Dinastia</h2>
+        <div class="coroa-box">
+          <div>Legado: <b id="legado">0</b> 👑 <span class="fraco">(+<span id="legado-bonus">0</span>% de produção)</span></div>
+          <div class="fraco" style="margin-top:4px">Passe a coroa ao seu herdeiro: o reino recomeça do zero, mas você ganha Legado, que aumenta a produção para sempre.</div>
+          <div style="margin-top:6px">Ao passar a coroa: <b>+<span id="legado-ganho">0</span></b> de Legado</div>
+          <div class="fraco" id="legado-prox"></div>
+          <button class="acao" id="btn-coroa" disabled>👑 Passar a coroa</button>
+        </div>
+
+        <h3>📊 Estatísticas</h3>
+        <dl class="stats" id="stats"></dl>
+
+        <h3>💾 Progresso</h3>
+        <div class="fraco" style="font-size:.9rem">O jogo salva sozinho neste navegador. Fechado, o reino continua rendendo (metade, até 8 horas).</div>
+        <div class="botoes-save">
+          <button class="leve" id="btn-salvar">Salvar agora</button>
+          <button class="leve" id="btn-exportar">Exportar</button>
+          <button class="leve" id="btn-importar">Importar</button>
+          <button class="leve" id="btn-apagar">Apagar tudo</button>
+        </div>
+        <div class="fraco" id="salvo-msg" style="font-size:.85rem;margin-top:6px"></div>
+      </section>
+    </div>
+  </div>
+
+  <nav class="abas" id="abas">
+    <button data-aba="p-reino" class="ativo"><span>🏰</span>Reino</button>
+    <button data-aba="p-edif"><span>🔨</span>Construir</button>
+    <button data-aba="p-melh"><span>📜</span>Melhorias</button>
+    <button data-aba="p-mais"><span>👑</span>Dinastia</button>
+  </nav>
+
+  <div class="toasts" id="toasts"></div>
+
+  <script>
+  (() => {
+    // ========================================================
+    // 1. DADOS DO JOGO
+    // ========================================================
+
+    // Construções: custo inicial e quanto ouro cada uma rende por segundo.
+    // O preço sobe 15% a cada unidade comprada.
+    const EDIFICIOS = [
+      { id: "campones", emoji: "🧑‍🌾", nome: "Camponês",       plural: "Camponeses",       custo: 15,     prod: 0.1,   desc: "Trabalha a terra e paga seus tributos.",       primeira: "Um camponês jurou lealdade à sua bandeira." },
+      { id: "fazenda",  emoji: "🌾",   nome: "Fazenda",         plural: "Fazendas",         custo: 100,    prod: 1,     desc: "Campos de trigo que alimentam o reino.",       primeira: "Os primeiros campos de trigo dourado foram semeados." },
+      { id: "serraria", emoji: "🪓",   nome: "Serraria",        plural: "Serrarias",        custo: 1100,   prod: 8,     desc: "Madeira para erguer casas e muralhas.",        primeira: "O som das serras ecoa pela floresta." },
+      { id: "ferraria", emoji: "⚒️",   nome: "Ferraria",        plural: "Ferrarias",        custo: 12000,  prod: 47,    desc: "Espadas, ferraduras e arados de aço.",         primeira: "A primeira forja foi acesa. Faíscas por toda parte!" },
+      { id: "feira",    emoji: "⚖️",   nome: "Feira",           plural: "Feiras",           custo: 130000, prod: 260,   desc: "Mercadores de longe vendem (e pagam taxas).",  primeira: "Mercadores de terras distantes chegam para a feira." },
+      { id: "mina",     emoji: "⛏️",   nome: "Mina",            plural: "Minas",            custo: 1.4e6,  prod: 1400,  desc: "Prata e ouro arrancados da montanha.",         primeira: "Mineiros abriram o primeiro túnel na montanha." },
+      { id: "castelo",  emoji: "🏰",   nome: "Castelo",         plural: "Castelos",         custo: 2e7,    prod: 7800,  desc: "Protege as terras e cobra pedágio.",           primeira: "Um castelo de pedra ergue-se sobre a colina." },
+      { id: "catedral", emoji: "⛪",   nome: "Catedral",        plural: "Catedrais",        custo: 3.3e8,  prod: 44000, desc: "Peregrinos vêm de longe trazer oferendas.",    primeira: "Os sinos da catedral tocam pela primeira vez." },
+      { id: "mago",     emoji: "🧙",   nome: "Torre do Mago",   plural: "Torres do Mago",   custo: 5.1e9,  prod: 260000, desc: "Alquimia: transforma chumbo em ouro.",        primeira: "Um mago misterioso se instalou na torre." },
+      { id: "dragao",   emoji: "🐉",   nome: "Covil do Dragão", plural: "Covis do Dragão",  custo: 7.5e10, prod: 1.6e6, desc: "Um dragão guarda seu tesouro... e o aumenta.", primeira: "Um dragão aceitou guardar seu tesouro!" },
+    ];
+
+    // Cada construção tem 5 melhorias que dobram sua produção.
+    // Aparecem quando você tem 1, 5, 25, 50 e 100 unidades.
+    const NIVEIS = [
+      { qtd: 1, mult: 10 }, { qtd: 5, mult: 50 }, { qtd: 25, mult: 500 }, { qtd: 50, mult: 50000 }, { qtd: 100, mult: 5e6 },
+    ];
+    const NOMES_MELH = {
+      campones: ["Enxadas de ferro", "Botas de couro", "Sopa quente", "Canções de colheita", "Dia santo de folga"],
+      fazenda:  ["Rotação de culturas", "Arado pesado", "Bois fortes", "Celeiros grandes", "Irrigação dos monges"],
+      serraria: ["Machados afiados", "Serra de dois homens", "Carroças reforçadas", "Roda d'água", "Floresta real"],
+      ferraria: ["Fole duplo", "Aço temperado", "Guilda dos ferreiros", "Martelo hidráulico", "Forja dos anões"],
+      feira:    ["Balanças honestas", "Pedágio da ponte", "Mercadores estrangeiros", "Feira anual", "Rota das especiarias"],
+      mina:     ["Picaretas reforçadas", "Lamparinas", "Trilhos de madeira", "Veio de prata", "Coração da montanha"],
+      castelo:  ["Muralhas altas", "Fosso com crocodilos", "Cavaleiros leais", "Torre de menagem", "Fortaleza inexpugnável"],
+      catedral: ["Vitrais coloridos", "Sinos de bronze", "Dízimo", "Relíquia sagrada", "Grande peregrinação"],
+      mago:     ["Grimório antigo", "Bola de cristal", "Aprendizes", "Pedra filosofal", "Alquimia perfeita"],
+      dragao:   ["Ovo de dragão", "Montanha de tesouros", "Sela de dragão", "Fogo dourado", "Pacto ancestral"],
+    };
+
+    const MELHORIAS = [];
+    EDIFICIOS.forEach(b => NOMES_MELH[b.id].forEach((nome, t) => MELHORIAS.push({
+      id: `${b.id}-${t}`, emoji: b.emoji, nome, tipo: "edif", alvo: b.id,
+      desc: `${b.plural} produzem o dobro.`,
+      custo: b.custo * NIVEIS[t].mult,
+      req: () => qtd(b.id) >= NIVEIS[t].qtd,
+    })));
+    [
+      { id: "clique-0", emoji: "🧤", nome: "Luvas de couro",       tipo: "cliqueX",   val: 2,    custo: 100,  desc: "Cada clique rende o dobro." },
+      { id: "clique-1", emoji: "💰", nome: "Bolsa do coletor",     tipo: "cliqueX",   val: 2,    custo: 600,  desc: "Cada clique rende o dobro." },
+      { id: "clique-2", emoji: "🔏", nome: "Selo real",            tipo: "clique%",   val: 0.01, custo: 1e4,  desc: "Cliques rendem +1% do seu ouro por segundo." },
+      { id: "clique-3", emoji: "📜", nome: "Decreto do rei",       tipo: "clique%",   val: 0.01, custo: 1e6,  desc: "Cliques rendem +1% do seu ouro por segundo." },
+      { id: "clique-4", emoji: "🗡️", nome: "Espada lendária",      tipo: "clique%",   val: 0.02, custo: 1e8,  desc: "Cliques rendem +2% do seu ouro por segundo." },
+      { id: "clique-5", emoji: "💎", nome: "Coroa cravejada",      tipo: "clique%",   val: 0.02, custo: 1e10, desc: "Cliques rendem +2% do seu ouro por segundo." },
+      { id: "clique-6", emoji: "🔱", nome: "Cetro do imperador",   tipo: "clique%",   val: 0.03, custo: 1e12, desc: "Cliques rendem +3% do seu ouro por segundo." },
+      { id: "global-0", emoji: "🛤️", nome: "Estradas de pedra",    tipo: "global",    val: 0.10, custo: 5e4,  desc: "Toda a produção +10%." },
+      { id: "global-1", emoji: "🪙", nome: "Moeda cunhada",        tipo: "global",    val: 0.15, custo: 5e6,  desc: "Toda a produção +15%." },
+      { id: "global-2", emoji: "🕊️", nome: "Tratado de paz",       tipo: "global",    val: 0.20, custo: 5e8,  desc: "Toda a produção +20%." },
+      { id: "global-3", emoji: "🌅", nome: "Era de ouro",          tipo: "global",    val: 0.25, custo: 5e10, desc: "Toda a produção +25%." },
+      { id: "global-4", emoji: "🏛️", nome: "Império eterno",       tipo: "global",    val: 0.50, custo: 5e12, desc: "Toda a produção +50%." },
+      { id: "car-0",    emoji: "🍺", nome: "Estalagens na estrada", tipo: "caravana", custo: 7.7e4, desc: "Caravanas aparecem com o dobro de frequência." },
+      { id: "car-1",    emoji: "🛡️", nome: "Escolta armada",       tipo: "caravana",  custo: 7.7e6, desc: "Caravanas ficam o dobro do tempo na tela." },
+    ].forEach(m => { m.req = () => S.totalRun >= m.custo * 0.4; MELHORIAS.push(m); });
+
+    const CONQUISTAS = [
+      { id: "o1",  emoji: "🪙", nome: "Primeira moeda",          desc: "Junte 1 de ouro.",                ok: () => S.totalEver >= 1 },
+      { id: "o3",  emoji: "👛", nome: "Bolso cheio",             desc: "Junte 1 mil de ouro.",            ok: () => S.totalEver >= 1e3 },
+      { id: "o6",  emoji: "💰", nome: "Cofre do barão",          desc: "Junte 1 milhão de ouro.",         ok: () => S.totalEver >= 1e6 },
+      { id: "o9",  emoji: "🏦", nome: "Tesouro real",            desc: "Junte 1 bilhão de ouro.",         ok: () => S.totalEver >= 1e9 },
+      { id: "o12", emoji: "💎", nome: "Riqueza de lenda",        desc: "Junte 1 trilhão de ouro.",        ok: () => S.totalEver >= 1e12 },
+      { id: "o15", emoji: "🐲", nome: "Mais rico que um dragão", desc: "Junte 1 quatrilhão de ouro.",     ok: () => S.totalEver >= 1e15 },
+      { id: "g1",  emoji: "🌱", nome: "Pequena renda",           desc: "Produza 10 de ouro por segundo.", ok: () => gpsAtual >= 10 },
+      { id: "g2",  emoji: "⚙️", nome: "Economia em marcha",      desc: "Produza 1 mil por segundo.",      ok: () => gpsAtual >= 1e3 },
+      { id: "g3",  emoji: "🏭", nome: "Máquina de ouro",         desc: "Produza 1 milhão por segundo.",   ok: () => gpsAtual >= 1e6 },
+      { id: "g4",  emoji: "🌟", nome: "Fortuna sem fim",         desc: "Produza 1 bilhão por segundo.",   ok: () => gpsAtual >= 1e9 },
+      { id: "k1",  emoji: "👆", nome: "Dedo calejado",           desc: "Clique 100 vezes.",               ok: () => S.cliques >= 100 },
+      { id: "k2",  emoji: "✊", nome: "Mão de ferro",            desc: "Clique 1.000 vezes.",             ok: () => S.cliques >= 1000 },
+      { id: "k3",  emoji: "🔨", nome: "Martelo de guerra",       desc: "Clique 10.000 vezes.",            ok: () => S.cliques >= 10000 },
+      { id: "e1",  emoji: "🏘️", nome: "Vilarejo",                desc: "Tenha 25 construções.",           ok: () => totalEdif() >= 25 },
+      { id: "e2",  emoji: "🏯", nome: "Cidade murada",           desc: "Tenha 100 construções.",          ok: () => totalEdif() >= 100 },
+      { id: "e3",  emoji: "🌆", nome: "Metrópole",               desc: "Tenha 400 construções.",          ok: () => totalEdif() >= 400 },
+      { id: "d1",  emoji: "🐉", nome: "Domador de dragões",      desc: "Tenha um Covil do Dragão.",       ok: () => qtd("dragao") >= 1 },
+      { id: "v1",  emoji: "🐎", nome: "Bons negócios",           desc: "Clique em 1 caravana.",           ok: () => S.caravanas >= 1 },
+      { id: "v2",  emoji: "🛒", nome: "Rota movimentada",        desc: "Clique em 10 caravanas.",         ok: () => S.caravanas >= 10 },
+      { id: "v3",  emoji: "🗺️", nome: "Senhor das estradas",     desc: "Clique em 50 caravanas.",         ok: () => S.caravanas >= 50 },
+      { id: "u1",  emoji: "📘", nome: "Inovador",                desc: "Compre 10 melhorias.",            ok: () => S.melh.length >= 10 },
+      { id: "u2",  emoji: "📚", nome: "Visionário",              desc: "Compre 40 melhorias.",            ok: () => S.melh.length >= 40 },
+      { id: "p1",  emoji: "👑", nome: "Nova dinastia",           desc: "Passe a coroa uma vez.",          ok: () => S.dinastia >= 2 },
+      { id: "p2",  emoji: "🌳", nome: "Linhagem antiga",         desc: "Chegue à 5ª dinastia.",           ok: () => S.dinastia >= 5 },
+    ];
+
+    // O título do reino cresce conforme o ouro juntado nesta dinastia
+    const RANKS = [[0, "Acampamento"], [1e3, "Aldeia"], [1e5, "Vila"], [1e7, "Burgo"], [1e9, "Cidade"], [1e11, "Ducado"], [1e13, "Reino"], [1e15, "Império"]];
+    const NOMES_REINO = ["Valdoria", "Pedra Alta", "Corválio", "Montebranco", "Rocaverde", "Lisarna", "Altafonte", "Brumália", "Ferrovale", "Torre Velha"];
+    const ORDINAIS = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
+
+    // ========================================================
+    // 2. ESTADO (o que é salvo)
+    // ========================================================
+    const CHAVE = "reino-ocioso-v1";
+    const novoEstado = () => ({
+      ouro: 0, totalRun: 0, totalEver: 0,
+      cliques: 0, ouroCliques: 0, caravanas: 0,
+      edif: {}, melh: [], conq: [],
+      legado: 0, dinastia: 1,
+      nome: NOMES_REINO[Math.floor(Math.random() * NOMES_REINO.length)],
+      inicio: Date.now(), ultimo: Date.now(),
+      compra: 1, cronicas: [],
+      bencaoAte: 0, furiaAte: 0,
+    });
+    let S = novoEstado();
+    let temMelh = new Set();
+    let gpsAtual = 0;
+
+    // ========================================================
+    // 3. CÁLCULOS
+    // ========================================================
+    const qtd = id => S.edif[id] || 0;
+    const totalEdif = () => EDIFICIOS.reduce((s, b) => s + qtd(b.id), 0);
+    const MELH_POR_ID = Object.fromEntries(MELHORIAS.map(m => [m.id, m]));
+
+    function multEdif(id) {
+      let m = 1;
+      for (let t = 0; t < NIVEIS.length; t++) if (temMelh.has(`${id}-${t}`)) m *= 2;
+      return m;
+    }
+    function multGlobal() {
+      let m = (1 + 0.10 * S.legado) * (1 + 0.01 * S.conq.length);
+      temMelh.forEach(id => { const u = MELH_POR_ID[id]; if (u && u.tipo === "global") m *= 1 + u.val; });
+      if (Date.now() < S.bencaoAte) m *= 7;
+      return m;
+    }
+    const prodUnidade = b => b.prod * multEdif(b.id) * multGlobal();
+    const calcGps = () => EDIFICIOS.reduce((s, b) => s + qtd(b.id) * b.prod * multEdif(b.id), 0) * multGlobal();
+
+    function valorClique() {
+      let base = 1, pct = 0;
+      temMelh.forEach(id => {
+        const u = MELH_POR_ID[id];
+        if (!u) return;
+        if (u.tipo === "cliqueX") base *= u.val;
+        if (u.tipo === "clique%") pct += u.val;
+      });
+      let v = base * (1 + 0.10 * S.legado) + gpsAtual * pct;
+      if (Date.now() < S.furiaAte) v *= 10;
+      return v;
+    }
+
+    const custoLote = (b, k) => b.custo * Math.pow(1.15, qtd(b.id)) * (Math.pow(1.15, k) - 1) / 0.15;
+    function maxCompravel(b) {
+      const c0 = b.custo * Math.pow(1.15, qtd(b.id));
+      let k = Math.floor(Math.log(S.ouro * 0.15 / c0 + 1) / Math.log(1.15));
+      while (k > 0 && custoLote(b, k) > S.ouro) k--;
+      return k;
+    }
+    const qtdCompra = b => S.compra === "max" ? Math.max(1, maxCompravel(b)) : S.compra;
+
+    const legadoPotencial = () => Math.floor(Math.cbrt(S.totalEver / 1e8));
+    const legadoGanho = () => Math.max(0, legadoPotencial() - S.legado);
+
+    function rankAtual() {
+      let r = RANKS[0][1];
+      for (const [min, nome] of RANKS) if (S.totalRun >= min) r = nome;
+      return r;
+    }
+
+    // ========================================================
+    // 4. FORMATAÇÃO
+    // ========================================================
+    const SUFIXOS = ["", "mil", "mi", "bi", "tri", "quatri", "quinti", "sexti", "septi", "octi", "noni", "deci"];
+    function fmt(n) {
+      if (!isFinite(n)) return "∞";
+      if (n < 10) return (Math.floor(n * 10) / 10).toLocaleString("pt-BR");
+      if (n < 1e6) return Math.floor(n).toLocaleString("pt-BR");
+      let i = Math.floor(Math.log10(n) / 3);
+      let v = n / Math.pow(10, 3 * i);
+      if (v >= 999.995) { i++; v /= 1000; }
+      if (i >= SUFIXOS.length) return n.toExponential(2).replace(".", ",");
+      return v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " " + SUFIXOS[i];
+    }
+    function tempo(seg) {
+      seg = Math.floor(seg);
+      const d = Math.floor(seg / 86400), h = Math.floor(seg % 86400 / 3600), m = Math.floor(seg % 3600 / 60), s = seg % 60;
+      if (d) return `${d}d ${h}h`;
+      if (h) return `${h}h ${m}min`;
+      if (m) return `${m}min ${s}s`;
+      return `${s}s`;
+    }
+    const $ = id => document.getElementById(id);
+
+    // ========================================================
+    // 5. AÇÕES DO JOGADOR
+    // ========================================================
+    function ganhar(v) { S.ouro += v; S.totalRun += v; S.totalEver += v; }
+
+    $("moeda").addEventListener("click", e => {
+      const v = valorClique();
+      ganhar(v);
+      S.cliques++;
+      S.ouroCliques += v;
+      let x = e.clientX, y = e.clientY;
+      if (!e.detail) { const r = e.currentTarget.getBoundingClientRect(); x = r.left + r.width / 2; y = r.top + r.height / 3; }
+      flutuar(x, y, "+" + fmt(v));
+      atualizarTopo();
+    });
+
+    function comprarEdif(id) {
+      const b = EDIFICIOS.find(e => e.id === id);
+      const k = qtdCompra(b);
+      const c = custoLote(b, k);
+      if (c > S.ouro) return;
+      const antes = qtd(id);
+      S.ouro -= c;
+      S.edif[id] = antes + k;
+      if (antes === 0) cronica(`${b.emoji} ${b.primeira}`);
+      renderEdif();
+    }
+
+    function comprarMelh(id) {
+      const m = MELH_POR_ID[id];
+      if (!m || temMelh.has(id) || S.ouro < m.custo) return;
+      S.ouro -= m.custo;
+      S.melh.push(id);
+      temMelh.add(id);
+      cronica(`${m.emoji} Melhoria adquirida: <b>${m.nome}</b>.`);
+      renderMelh(true);
+      renderEdif();
+    }
+
+    function passarCoroa() {
+      const g = legadoGanho();
+      if (g < 1) return;
+      if (!confirm(`Passar a coroa ao herdeiro?\n\nSeu ouro, construções e melhorias serão perdidos.\nVocê ganha +${g} de Legado (+${g * 10}% de produção para sempre).`)) return;
+      const manter = {
+        totalEver: S.totalEver, cliques: S.cliques, ouroCliques: S.ouroCliques, caravanas: S.caravanas,
+        conq: S.conq, legado: S.legado + g, dinastia: S.dinastia + 1,
+        nome: S.nome, inicio: S.inicio, compra: S.compra, cronicas: S.cronicas,
+      };
+      S = Object.assign(novoEstado(), manter);
+      temMelh = new Set();
+      cronica(`👑 O rei se retira. Começa a <b>${ordinal(S.dinastia)} dinastia</b>, com ${S.legado} de Legado!`);
+      toast("👑 Nova dinastia!", `+${g} de Legado. Seu reino recomeça mais forte.`);
+      renderTudo();
+      salvar();
+    }
+    const ordinal = n => n + "ª";
+
+    // ========================================================
+    // 6. CARAVANAS (evento aleatório)
+    // ========================================================
+    const rand = (a, b) => a + Math.random() * (b - a);
+    let proxCaravana = Date.now() + rand(40, 80) * 1000;
+    let caravanaEl = null, caravanaFim = 0;
+
+    function mostrarCaravana() {
+      caravanaEl = document.createElement("button");
+      caravanaEl.className = "caravana";
+      caravanaEl.textContent = "🐎📦";
+      caravanaEl.title = "Uma caravana de mercadores! Clique nela!";
+      caravanaEl.setAttribute("aria-label", "Caravana de mercadores: clique para uma recompensa");
+      caravanaEl.style.left = rand(5, 75) + "vw";
+      caravanaEl.style.top = rand(20, 70) + "vh";
+      caravanaEl.addEventListener("click", clicarCaravana);
+      document.body.appendChild(caravanaEl);
+      caravanaFim = Date.now() + 13000 * (temMelh.has("car-1") ? 2 : 1);
+    }
+    function esconderCaravana() {
+      if (caravanaEl) caravanaEl.remove();
+      caravanaEl = null;
+      proxCaravana = Date.now() + rand(90, 240) * 1000 / (temMelh.has("car-0") ? 2 : 1);
+    }
+    function clicarCaravana(e) {
+      const r = Math.random();
+      const agora = Date.now();
+      S.caravanas++;
+      if (r < 0.5) {
+        const v = Math.min(S.ouro * 0.15, gpsAtual * 900) + 13;
+        ganhar(v);
+        flutuar(e.clientX, e.clientY, "+" + fmt(v));
+        toast("🐎 Mercador generoso!", `Pagou ${fmt(v)} de ouro em tributos.`);
+        cronica(`🐎 Um mercador generoso pagou <b>${fmt(v)}</b> de ouro.`);
+      } else if (r < 0.85) {
+        S.bencaoAte = agora + 30000;
+        toast("✨ Bênção Real!", "Toda a produção ×7 por 30 segundos.");
+        cronica("✨ A caravana trouxe uma <b>Bênção Real</b>: produção ×7!");
+      } else {
+        S.furiaAte = agora + 15000;
+        toast("🔥 Fúria do Povo!", "Cliques valem ×10 por 15 segundos. Clique sem parar!");
+        cronica("🔥 O povo está animado: <b>cliques ×10</b>!");
+      }
+      esconderCaravana();
+    }
+
+    // ========================================================
+    // 7. TELA
+    // ========================================================
+    function flutuar(x, y, texto) {
+      const el = document.createElement("div");
+      el.className = "flutua";
+      el.textContent = texto;
+      el.style.left = (x - 30 + rand(-15, 15)) + "px";
+      el.style.top = (y - 20) + "px";
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 900);
+    }
+
+    function toast(titulo, texto) {
+      const el = document.createElement("div");
+      el.className = "toast";
+      el.innerHTML = `<b></b><span></span>`;
+      el.querySelector("b").textContent = titulo;
+      el.querySelector("span").textContent = texto;
+      const caixa = $("toasts");
+      caixa.appendChild(el);
+      while (caixa.children.length > 3) caixa.firstChild.remove();
+      setTimeout(() => el.remove(), 5000);
+    }
+
+    // As mensagens das crônicas são escritas pelo próprio jogo (nunca pelo jogador)
+    function cronica(html) {
+      S.cronicas.unshift(html);
+      S.cronicas.length = Math.min(S.cronicas.length, 30);
+      $("cronicas").innerHTML = S.cronicas.map(c => `<li>${c}</li>`).join("");
+    }
+
+    // ---- Construções ----
+    let edifVisiveis = -1;
+    function quantasVisiveis() {
+      let n = 1;
+      for (let i = 1; i < EDIFICIOS.length; i++) {
+        if (qtd(EDIFICIOS[i - 1].id) > 0 || S.totalRun >= EDIFICIOS[i].custo * 0.5) n = i + 1; else break;
+      }
+      return n;
+    }
+    function renderEdif() {
+      edifVisiveis = quantasVisiveis();
+      let html = EDIFICIOS.slice(0, edifVisiveis).map(b => `
+        <button class="edif" data-id="${b.id}">
+          <span class="e-emoji">${b.emoji}</span>
+          <span>
+            <span class="e-nome">${b.nome}</span>
+            <span class="e-desc">${b.desc}</span>
+            <span class="e-prod"></span>
+          </span>
+          <span class="e-lado"><span class="e-qtd"></span><span class="e-custo"></span></span>
+        </button>`).join("");
+      const prox = EDIFICIOS[edifVisiveis];
+      if (prox) html += `
+        <button class="edif misterio" disabled>
+          <span class="e-emoji">❔</span>
+          <span><span class="e-nome">???</span><span class="e-desc">Algo grandioso aguarda o seu reino...</span></span>
+          <span class="e-lado"><span class="e-custo">🪙 ${fmt(Math.ceil(prox.custo))}</span></span>
+        </button>`;
+      $("lista-edif").innerHTML = html;
+      atualizarEdif();
+    }
+    function atualizarEdif() {
+      if (quantasVisiveis() !== edifVisiveis) return renderEdif();
+      document.querySelectorAll("#lista-edif .edif[data-id]").forEach(el => {
+        const b = EDIFICIOS.find(e => e.id === el.dataset.id);
+        const n = qtd(b.id);
+        const k = qtdCompra(b);
+        const c = custoLote(b, k);
+        const pode = c <= S.ouro;
+        el.disabled = !pode;
+        el.classList.toggle("pode", pode);
+        el.querySelector(".e-qtd").textContent = n;
+        const custoEl = el.querySelector(".e-custo");
+        custoEl.textContent = `${k > 1 ? "×" + k + " " : ""}🪙 ${fmt(Math.ceil(c))}`;
+        custoEl.classList.toggle("caro", !pode);
+        const pu = prodUnidade(b);
+        let txt = `+${fmt(pu)}/s cada`;
+        if (n > 0 && gpsAtual > 0) txt += ` · total ${fmt(pu * n)}/s (${Math.round(pu * n / gpsAtual * 100)}%)`;
+        el.querySelector(".e-prod").textContent = txt;
+      });
+    }
+
+    // ---- Melhorias ----
+    let chaveMelh = "";
+    function renderMelh(forcar) {
+      const disp = MELHORIAS.filter(m => !temMelh.has(m.id) && m.req()).sort((a, b) => a.custo - b.custo);
+      const chave = disp.map(m => m.id).join(",");
+      if (chave !== chaveMelh || forcar) {
+        chaveMelh = chave;
+        $("lista-melh").innerHTML = disp.length ? disp.map(m => `
+          <button class="melh" data-id="${m.id}">
+            <span class="m-emoji">${m.emoji}</span>
+            <span><b>${m.nome}</b><br><small>${m.desc}</small><br><span class="m-custo">🪙 ${fmt(m.custo)}</span></span>
+          </button>`).join("")
+          : `<div class="vazio-m">Nenhuma melhoria disponível ainda.<br>Continue construindo!</div>`;
+      }
+      document.querySelectorAll("#lista-melh .melh").forEach(el => {
+        const pode = S.ouro >= MELH_POR_ID[el.dataset.id].custo;
+        el.disabled = !pode;
+        el.classList.toggle("pode", pode);
+      });
+    }
+
+    // ---- Conquistas ----
+    function renderConq() {
+      $("lista-conq").innerHTML = CONQUISTAS.map(c => {
+        const tem = S.conq.includes(c.id);
+        return `<button class="conq ${tem ? "" : "bloq"}" data-id="${c.id}" aria-label="${c.nome}">${c.emoji}</button>`;
+      }).join("");
+      $("conq-cont").textContent = `${S.conq.length}/${CONQUISTAS.length} · +${S.conq.length}% produção`;
+    }
+    function verificarConq() {
+      let nova = false;
+      CONQUISTAS.forEach(c => {
+        if (!S.conq.includes(c.id) && c.ok()) {
+          S.conq.push(c.id);
+          nova = true;
+          toast(`🏆 ${c.nome}`, c.desc + " (+1% de produção)");
+          cronica(`🏆 Conquista: <b>${c.nome}</b>.`);
+        }
+      });
+      if (nova) renderConq();
+    }
+
+    // ---- Topo, reino, dinastia e estatísticas ----
+    function atualizarTopo() {
+      $("ouro").textContent = fmt(S.ouro);
+      $("gps").textContent = fmt(gpsAtual);
+    }
+    function atualizarReino() {
+      const rank = rankAtual();
+      $("rank").textContent = `${rank} · ${ordinal(S.dinastia)} dinastia`;
+      $("rank-barra").textContent = rank;
+      $("nome-reino").textContent = S.nome;
+      $("nome-barra").textContent = S.nome;
+      $("dinastia-barra").textContent = S.legado ? `👑 ${S.legado} de Legado` : "";
+      $("valor-clique").textContent = fmt(valorClique());
+      const agora = Date.now();
+      let ef = "";
+      if (agora < S.bencaoAte) ef += `<div class="efeito">✨ Bênção Real ×7 · ${Math.ceil((S.bencaoAte - agora) / 1000)}s</div>`;
+      if (agora < S.furiaAte)  ef += `<div class="efeito furia">🔥 Fúria do Povo ×10 · ${Math.ceil((S.furiaAte - agora) / 1000)}s</div>`;
+      $("efeitos").innerHTML = ef;
+    }
+    function atualizarMais() {
+      const g = legadoGanho();
+      $("legado").textContent = S.legado;
+      $("legado-bonus").textContent = S.legado * 10;
+      $("legado-ganho").textContent = g;
+      const prox = legadoPotencial() + 1;
+      const falta = prox ** 3 * 1e8 - S.totalEver;
+      $("legado-prox").textContent = `Próximo ponto de Legado em mais ${fmt(Math.max(0, falta))} de ouro.`;
+      $("btn-coroa").disabled = g < 1;
+      const linhas = [
+        ["Ouro nesta dinastia", fmt(S.totalRun)],
+        ["Ouro de todos os tempos", fmt(S.totalEver)],
+        ["Construções", totalEdif()],
+        ["Melhorias", `${S.melh.length}/${MELHORIAS.length}`],
+        ["Cliques", S.cliques.toLocaleString("pt-BR")],
+        ["Ouro vindo de cliques", fmt(S.ouroCliques)],
+        ["Caravanas", S.caravanas],
+        ["Dinastia", ordinal(S.dinastia)],
+        ["Tempo de reinado", tempo((Date.now() - S.inicio) / 1000)],
+      ];
+      $("stats").innerHTML = linhas.map(([a, b]) => `<dt>${a}</dt><dd>${b}</dd>`).join("");
+    }
+
+    function renderTudo() {
+      gpsAtual = calcGps();
+      document.querySelectorAll("#seletor button").forEach(b => b.classList.toggle("ativo", String(S.compra) === b.dataset.qtd));
+      $("cronicas").innerHTML = S.cronicas.map(c => `<li>${c}</li>`).join("");
+      renderEdif();
+      renderMelh(true);
+      renderConq();
+      atualizarTopo();
+      atualizarReino();
+      atualizarMais();
+    }
+
+    // ---- Cliques nas listas e botões ----
+    $("lista-edif").addEventListener("click", e => {
+      const el = e.target.closest(".edif[data-id]");
+      if (el && !el.disabled) comprarEdif(el.dataset.id);
+    });
+    $("lista-melh").addEventListener("click", e => {
+      const el = e.target.closest(".melh");
+      if (el && !el.disabled) comprarMelh(el.dataset.id);
+    });
+    $("lista-conq").addEventListener("click", e => {
+      const el = e.target.closest(".conq");
+      if (!el) return;
+      const c = CONQUISTAS.find(x => x.id === el.dataset.id);
+      const tem = S.conq.includes(c.id);
+      $("conq-info").innerHTML = `<b>${c.emoji} ${c.nome}</b> ${tem ? "✅" : "🔒"}<br><span class="fraco">${c.desc}</span>`;
+    });
+    $("seletor").addEventListener("click", e => {
+      const b = e.target.closest("button");
+      if (!b) return;
+      S.compra = b.dataset.qtd === "max" ? "max" : Number(b.dataset.qtd);
+      document.querySelectorAll("#seletor button").forEach(x => x.classList.toggle("ativo", x === b));
+      atualizarEdif();
+    });
+    $("nome-reino").addEventListener("click", () => {
+      const n = prompt("Qual o nome do seu reino?", S.nome);
+      if (n && n.trim()) { S.nome = n.trim().slice(0, 24); atualizarReino(); salvar(); }
+    });
+    $("btn-coroa").addEventListener("click", passarCoroa);
+    $("abas").addEventListener("click", e => {
+      const b = e.target.closest("button");
+      if (!b) return;
+      document.querySelectorAll("#abas button").forEach(x => x.classList.toggle("ativo", x === b));
+      document.querySelectorAll(".painel").forEach(p => p.classList.toggle("ativa", p.id === b.dataset.aba));
+      window.scrollTo({ top: 0 });
+    });
+
+    // ========================================================
+    // 8. SALVAR E CARREGAR
+    // ========================================================
+    function salvar() {
+      S.ultimo = Date.now();
+      try {
+        localStorage.setItem(CHAVE, JSON.stringify(S));
+        $("salvo-msg").textContent = "Salvo às " + new Date().toLocaleTimeString("pt-BR");
+      } catch (e) {
+        $("salvo-msg").textContent = "Não foi possível salvar neste navegador.";
+      }
+    }
+    function aplicarSave(dados) {
+      S = Object.assign(novoEstado(), dados);
+      S.melh = S.melh.filter(id => MELH_POR_ID[id]);
+      temMelh = new Set(S.melh);
+    }
+    function carregar() {
+      try {
+        const txt = localStorage.getItem(CHAVE);
+        if (txt) { aplicarSave(JSON.parse(txt)); return true; }
+      } catch (e) { /* save corrompido ou bloqueado: começa do zero */ }
+      return false;
+    }
+
+    $("btn-salvar").addEventListener("click", salvar);
+    $("btn-exportar").addEventListener("click", () => {
+      salvar();
+      const codigo = btoa(unescape(encodeURIComponent(JSON.stringify(S))));
+      if (navigator.clipboard) navigator.clipboard.writeText(codigo).then(() => toast("💾 Exportado", "Código copiado para a área de transferência."), () => prompt("Copie seu código:", codigo));
+      else prompt("Copie seu código:", codigo);
+    });
+    $("btn-importar").addEventListener("click", () => {
+      const codigo = prompt("Cole aqui o código exportado:");
+      if (!codigo) return;
+      try {
+        aplicarSave(JSON.parse(decodeURIComponent(escape(atob(codigo.trim())))));
+        renderTudo(); salvar();
+        toast("💾 Importado", "Seu reino foi restaurado!");
+      } catch (e) { alert("Código inválido."); }
+    });
+    $("btn-apagar").addEventListener("click", () => {
+      if (!confirm("Apagar TODO o progresso, incluindo Legado e conquistas? Não dá para desfazer.")) return;
+      S = novoEstado(); temMelh = new Set();
+      try { localStorage.removeItem(CHAVE); } catch (e) {}
+      cronica(`🏕️ Um pequeno acampamento é fundado em <b>${S.nome}</b>. Clique na coroa para cobrar impostos!`);
+      renderTudo(); salvar();
+    });
+    window.addEventListener("beforeunload", salvar);
+    document.addEventListener("visibilitychange", () => { if (document.hidden) salvar(); });
+
+    // ========================================================
+    // 9. INÍCIO E LAÇO PRINCIPAL
+    // ========================================================
+    if (carregar()) {
+      gpsAtual = calcGps();
+      const fora = (Date.now() - S.ultimo) / 1000;
+      if (fora > 60 && gpsAtual > 0) {
+        const seg = Math.min(fora, 8 * 3600);
+        const g = gpsAtual * seg * 0.5;
+        ganhar(g);
+        toast("🏰 Bem-vindo de volta!", `Em ${tempo(fora)} fora, seu reino rendeu ${fmt(g)} de ouro.`);
+        cronica(`🌙 Enquanto o soberano esteve fora (${tempo(fora)}), o reino rendeu <b>${fmt(g)}</b> de ouro.`);
+      }
+    } else {
+      cronica(`🏕️ Um pequeno acampamento é fundado em <b>${S.nome}</b>. Clique na coroa para cobrar impostos!`);
+    }
+    renderTudo();
+
+    let ultimoTick = Date.now(), contador = 0;
+    setInterval(() => {
+      const agora = Date.now();
+      const dt = (agora - ultimoTick) / 1000;
+      ultimoTick = agora;
+      gpsAtual = calcGps();
+      ganhar(gpsAtual * dt);
+
+      if (!caravanaEl && agora >= proxCaravana) mostrarCaravana();
+      if (caravanaEl && agora > caravanaFim) esconderCaravana();
+
+      atualizarTopo();
+      atualizarEdif();
+      contador++;
+      if (contador % 3 === 0) { renderMelh(); atualizarReino(); }
+      if (contador % 10 === 0) { verificarConq(); atualizarMais(); }
+      if (contador % 100 === 0) salvar();
+    }, 100);
+  })();
+  </script>
+</body>
+</html>
