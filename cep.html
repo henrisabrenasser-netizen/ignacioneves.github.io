@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consulta de CEP — Canivete Suíço</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topo">
+    <div class="topo-dentro">
+      <a href="index.html" class="logo">🔧 Canivete Suíço</a>
+      <nav class="menu">
+        <a href="index.html">Início</a>
+        <a href="cotacoes.html">Cotações</a>
+        <a href="clima.html">Clima</a>
+        <a href="cep.html" class="ativo">CEP</a>
+        <a href="feriados.html">Feriados</a>
+        <a href="senha.html">Senhas</a>
+        <a href="conta.html">Dividir conta</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <h1>📮 Consulta de CEP</h1>
+    <p class="subtitulo">Digite os 8 números do CEP.</p>
+
+    <div class="cartao" style="max-width:520px">
+      <label for="cep">CEP</label>
+      <div class="linha">
+        <input id="cep" placeholder="00000-000" maxlength="9" inputmode="numeric">
+        <button onclick="buscarCep()">Buscar</button>
+      </div>
+      <div id="resultado" class="resultado escondido"></div>
+    </div>
+  </main>
+
+  <footer class="rodape">Fonte: ViaCEP</footer>
+
+  <script>
+    const campo = document.getElementById("cep");
+    const caixa = document.getElementById("resultado");
+
+    // Enquanto digita: tira o que não é número e coloca o traço (01001000 → 01001-000)
+    campo.addEventListener("input", () => {
+      let numeros = campo.value.replace(/\D/g, "").slice(0, 8);
+      if (numeros.length > 5) numeros = numeros.slice(0, 5) + "-" + numeros.slice(5);
+      campo.value = numeros;
+      if (numeros.length === 9) buscarCep(); // busca sozinho ao completar
+    });
+
+    async function buscarCep() {
+      const cep = campo.value.replace(/\D/g, "");
+      caixa.classList.remove("escondido");
+
+      if (cep.length !== 8) {
+        caixa.innerHTML = "<p class='erro'>O CEP precisa ter 8 números.</p>";
+        return;
+      }
+
+      caixa.innerHTML = "<p class='apagado'>Buscando…</p>";
+      try {
+        const resposta = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+        const d = await resposta.json();
+
+        // A ViaCEP responde {"erro": true} quando o CEP não existe
+        if (d.erro) {
+          caixa.innerHTML = "<p class='erro'>CEP não encontrado.</p>";
+          return;
+        }
+
+        const mapa = encodeURIComponent(`${d.logradouro}, ${d.bairro}, ${d.localidade} - ${d.uf}`);
+        caixa.innerHTML = `
+          <div class="grande" style="font-size:1.4rem">${d.logradouro || "(CEP geral da cidade)"}</div>
+          <p>${d.bairro ? d.bairro + " · " : ""}${d.localidade} - ${d.uf}</p>
+          <p class="apagado">CEP ${d.cep}${d.ddd ? " · DDD " + d.ddd : ""}</p>
+          <p style="margin-top:10px"><a href="https://www.google.com/maps/search/?api=1&query=${mapa}" target="_blank">Ver no mapa ↗</a></p>
+        `;
+      } catch (erro) {
+        caixa.innerHTML = "<p class='erro'>Erro ao consultar. Tente novamente.</p>";
+      }
+    }
+  </script>
+</body>
+</html>

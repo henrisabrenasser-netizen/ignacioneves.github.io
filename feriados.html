@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Feriados — Canivete Suíço</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .lista { list-style: none; margin-top: 8px; }
+    .lista li {
+      display: flex; justify-content: space-between; gap: 12px;
+      padding: 10px 0; border-bottom: 1px solid var(--borda);
+    }
+    .lista li.passou { opacity: 0.45; }
+    .lista li.proximo { color: var(--verde); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <header class="topo">
+    <div class="topo-dentro">
+      <a href="index.html" class="logo">🔧 Canivete Suíço</a>
+      <nav class="menu">
+        <a href="index.html">Início</a>
+        <a href="cotacoes.html">Cotações</a>
+        <a href="clima.html">Clima</a>
+        <a href="cep.html">CEP</a>
+        <a href="feriados.html" class="ativo">Feriados</a>
+        <a href="senha.html">Senhas</a>
+        <a href="conta.html">Dividir conta</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <h1>📅 Feriados nacionais</h1>
+    <p class="subtitulo">Quanto falta para a próxima folga?</p>
+
+    <div class="grade">
+      <div class="cartao">
+        <div class="apagado">Próximo feriado</div>
+        <div class="grande" id="contagem">…</div>
+        <div id="proximo-nome"></div>
+      </div>
+
+      <div class="cartao">
+        <div class="apagado">Contador personalizado</div>
+        <label for="data-alvo" style="margin-top:8px">Escolha uma data (férias, aniversário…)</label>
+        <input type="date" id="data-alvo">
+        <div class="grande" id="contagem-livre">—</div>
+      </div>
+    </div>
+
+    <div class="cartao" style="margin-top:18px">
+      <label for="ano">Ano</label>
+      <select id="ano" style="max-width:160px"></select>
+      <ul class="lista" id="lista"></ul>
+    </div>
+  </main>
+
+  <footer class="rodape">Fonte: BrasilAPI</footer>
+
+  <script>
+    // "Hoje" à meia-noite, para contar dias inteiros
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+
+    // Diferença em dias entre hoje e uma data
+    function diasAte(data) {
+      return Math.round((data - hoje) / (1000 * 60 * 60 * 24));
+    }
+
+    // "2026-12-25" → objeto Date (sem problema de fuso horário)
+    function lerData(texto) {
+      const [a, m, d] = texto.split("-").map(Number);
+      return new Date(a, m - 1, d);
+    }
+
+    // Preenche a caixa de anos: ano atual e o próximo
+    const seletor = document.getElementById("ano");
+    [hoje.getFullYear(), hoje.getFullYear() + 1].forEach(a => {
+      seletor.innerHTML += `<option value="${a}">${a}</option>`;
+    });
+    seletor.addEventListener("change", () => carregarFeriados(seletor.value));
+
+    async function buscarAno(ano) {
+      const resposta = await fetch(`https://brasilapi.com.br/api/feriados/v1/${ano}`);
+      if (!resposta.ok) throw new Error("HTTP " + resposta.status);
+      return resposta.json(); // lista de { date, name, type }
+    }
+
+    async function carregarFeriados(ano) {
+      const lista = document.getElementById("lista");
+      lista.innerHTML = "<li class='apagado'>Carregando…</li>";
+      try {
+        const feriados = await buscarAno(ano);
+        let marcouProximo = false;
+
+        lista.innerHTML = feriados.map(f => {
+          const data = lerData(f.date);
+          const faltam = diasAte(data);
+          let classe = "";
+          if (faltam < 0) classe = "passou";
+          else if (!marcouProximo) { classe = "proximo"; marcouProximo = true; }
+
+          const dataBonita = data.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "short" });
+          const quando = faltam < 0 ? "já passou" : faltam === 0 ? "é hoje! 🎉" : `em ${faltam} dia${faltam > 1 ? "s" : ""}`;
+          return `<li class="${classe}"><span>${dataBonita} — ${f.name}</span><span>${quando}</span></li>`;
+        }).join("");
+      } catch (erro) {
+        lista.innerHTML = "<li class='erro'>Não consegui carregar os feriados.</li>";
+      }
+    }
+
+    // Acha o próximo feriado (olha este ano e, se preciso, o próximo)
+    async function mostrarProximo() {
+      try {
+        const todos = [...await buscarAno(hoje.getFullYear()), ...await buscarAno(hoje.getFullYear() + 1)];
+        const proximo = todos.find(f => diasAte(lerData(f.date)) >= 0);
+        const faltam = diasAte(lerData(proximo.date));
+        document.getElementById("contagem").textContent =
+          faltam === 0 ? "É hoje! 🎉" : `${faltam} dia${faltam > 1 ? "s" : ""}`;
+        document.getElementById("proximo-nome").textContent =
+          `${proximo.name} · ${lerData(proximo.date).toLocaleDateString("pt-BR")}`;
+      } catch (erro) {
+        document.getElementById("contagem").textContent = "—";
+        document.getElementById("proximo-nome").innerHTML = "<span class='erro'>Erro ao carregar.</span>";
+      }
+    }
+
+    // Contador livre: recalcula sempre que a data muda
+    document.getElementById("data-alvo").addEventListener("change", e => {
+      const saida = document.getElementById("contagem-livre");
+      if (!e.target.value) { saida.textContent = "—"; return; }
+      const faltam = diasAte(lerData(e.target.value));
+      saida.textContent = faltam > 0 ? `faltam ${faltam} dias`
+                        : faltam === 0 ? "É hoje! 🎉"
+                        : `foi há ${-faltam} dias`;
+    });
+
+    carregarFeriados(hoje.getFullYear());
+    mostrarProximo();
+  </script>
+</body>
+</html>

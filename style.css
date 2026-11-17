@@ -1,0 +1,152 @@
+/* ==========================================================
+   style.css — ESTILO COMPARTILHADO POR TODAS AS PÁGINAS
+   Mudou algo aqui? Muda no site inteiro de uma vez.
+   ========================================================== */
+
+/* Variáveis: as cores do site num lugar só */
+:root {
+  --fundo: #0f172a;
+  --cartao: #1e293b;
+  --borda: #334155;
+  --texto: #e2e8f0;
+  --apagado: #94a3b8;
+  --destaque: #3b82f6;
+  --destaque-hover: #2563eb;
+  --verde: #4ade80;
+  --vermelho: #f87171;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--fundo);
+  color: var(--texto);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+a { color: var(--destaque); }
+
+/* ---------- Menu do topo ---------- */
+.topo {
+  background: var(--cartao);
+  border-bottom: 1px solid var(--borda);
+  padding: 12px 16px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.topo-dentro {
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.logo {
+  font-weight: 800;
+  font-size: 1.15rem;
+  color: var(--texto);
+  text-decoration: none;
+  margin-right: auto;
+}
+.menu { display: flex; gap: 4px; flex-wrap: wrap; }
+.menu a {
+  color: var(--apagado);
+  text-decoration: none;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+.menu a:hover { background: var(--borda); color: var(--texto); }
+.menu a.ativo { background: var(--destaque); color: white; }
+
+/* ---------- Conteúdo ---------- */
+main {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 32px 16px 48px;
+}
+h1 { font-size: 1.9rem; margin-bottom: 4px; }
+.subtitulo { color: var(--apagado); margin-bottom: 28px; }
+
+.grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 18px;
+}
+
+.cartao {
+  background: var(--cartao);
+  border: 1px solid var(--borda);
+  border-radius: 16px;
+  padding: 22px;
+}
+
+/* Cartões clicáveis da página inicial */
+a.cartao {
+  color: var(--texto);
+  text-decoration: none;
+  transition: transform 0.15s, border-color 0.15s;
+}
+a.cartao:hover { transform: translateY(-3px); border-color: var(--destaque); }
+.emoji { font-size: 2rem; margin-bottom: 8px; }
+.cartao h2 { font-size: 1.15rem; margin-bottom: 4px; }
+.cartao p { color: var(--apagado); font-size: 0.92rem; }
+
+/* ---------- Formulários ---------- */
+label { display: block; font-size: 0.9rem; color: var(--apagado); margin-bottom: 6px; }
+
+input, select {
+  width: 100%;
+  background: var(--fundo);
+  color: var(--texto);
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  padding: 11px 13px;
+  font-size: 1rem;
+  margin-bottom: 14px;
+}
+input:focus, select:focus { outline: 2px solid var(--destaque); border-color: transparent; }
+
+input[type="checkbox"], input[type="range"] { width: auto; margin: 0; }
+input[type="range"] { width: 100%; }
+
+button {
+  background: var(--destaque);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 11px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+button:hover { background: var(--destaque-hover); }
+button.secundario { background: var(--borda); }
+button.secundario:hover { background: #475569; }
+
+.linha { display: flex; gap: 10px; align-items: flex-start; }
+.linha input { flex: 1; }
+
+.resultado {
+  margin-top: 18px;
+  padding: 18px;
+  border-radius: 12px;
+  background: var(--fundo);
+  border: 1px solid var(--borda);
+}
+.grande { font-size: 2rem; font-weight: 700; }
+.apagado { color: var(--apagado); }
+.sobe { color: var(--verde); }
+.desce, .erro { color: var(--vermelho); }
+.escondido { display: none; }
+
+.rodape {
+  text-align: center;
+  color: #64748b;
+  font-size: 0.85rem;
+  padding: 24px 16px 40px;
+}

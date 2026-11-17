@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cotações — Canivete Suíço</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Estilo que só esta página usa */
+    .moeda { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .icone {
+      width: 40px; height: 40px; border-radius: 50%;
+      display: grid; place-items: center; font-weight: 700;
+    }
+    .usd .icone { background: #14532d; color: #4ade80; }
+    .eur .icone { background: #1e3a8a; color: #93c5fd; }
+    .btc .icone { background: #78350f; color: #fbbf24; }
+  </style>
+</head>
+<body>
+  <header class="topo">
+    <div class="topo-dentro">
+      <a href="index.html" class="logo">🔧 Canivete Suíço</a>
+      <nav class="menu">
+        <a href="index.html">Início</a>
+        <a href="cotacoes.html" class="ativo">Cotações</a>
+        <a href="clima.html">Clima</a>
+        <a href="cep.html">CEP</a>
+        <a href="feriados.html">Feriados</a>
+        <a href="senha.html">Senhas</a>
+        <a href="conta.html">Dividir conta</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <h1>💵 Cotações</h1>
+    <p class="subtitulo">Dólar, Euro e Bitcoin em reais · atualiza sozinho a cada 60 segundos</p>
+
+    <div class="grade">
+      <div class="cartao usd">
+        <div class="moeda"><div class="icone">$</div><div><b>Dólar</b><div class="apagado">USD → BRL</div></div></div>
+        <div class="grande" id="usd-valor">…</div>
+        <div id="usd-var"></div>
+        <div class="apagado" id="usd-det"></div>
+      </div>
+      <div class="cartao eur">
+        <div class="moeda"><div class="icone">€</div><div><b>Euro</b><div class="apagado">EUR → BRL</div></div></div>
+        <div class="grande" id="eur-valor">…</div>
+        <div id="eur-var"></div>
+        <div class="apagado" id="eur-det"></div>
+      </div>
+      <div class="cartao btc">
+        <div class="moeda"><div class="icone">₿</div><div><b>Bitcoin</b><div class="apagado">BTC → BRL</div></div></div>
+        <div class="grande" id="btc-valor">…</div>
+        <div id="btc-var"></div>
+        <div class="apagado" id="btc-det"></div>
+      </div>
+    </div>
+
+    <p class="apagado" style="margin-top:20px" id="atualizado">Buscando cotações…</p>
+    <button style="margin-top:10px" onclick="buscarCotacoes()">Atualizar agora</button>
+  </main>
+
+  <footer class="rodape">Fonte: AwesomeAPI</footer>
+
+  <script>
+    const URL_API = "https://economia.awesomeapi.com.br/json/last/USD-BRL,EUR-BRL,BTC-BRL";
+
+    // 5.4321 → "R$ 5,43"
+    function reais(n) {
+      return Number(n).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    }
+
+    function preencherCartao(prefixo, dados) {
+      const variacao = Number(dados.pctChange);
+      document.getElementById(prefixo + "-valor").textContent = reais(dados.bid);
+
+      const elVar = document.getElementById(prefixo + "-var");
+      elVar.textContent = `${variacao >= 0 ? "▲" : "▼"} ${variacao.toFixed(2).replace(".", ",")}% hoje`;
+      elVar.className = variacao >= 0 ? "sobe" : "desce";
+
+      document.getElementById(prefixo + "-det").innerHTML =
+        `Máx: ${reais(dados.high)} · Mín: ${reais(dados.low)}`;
+    }
+
+    async function buscarCotacoes() {
+      const status = document.getElementById("atualizado");
+      try {
+        const resposta = await fetch(URL_API);
+        if (!resposta.ok) throw new Error("HTTP " + resposta.status);
+        const dados = await resposta.json();
+
+        preencherCartao("usd", dados.USDBRL);
+        preencherCartao("eur", dados.EURBRL);
+        preencherCartao("btc", dados.BTCBRL);
+
+        status.textContent = "Atualizado às " + new Date().toLocaleTimeString("pt-BR");
+        status.className = "apagado";
+      } catch (erro) {
+        status.textContent = "Não consegui buscar as cotações agora. Tente de novo em instantes.";
+        status.className = "erro";
+        console.error(erro);
+      }
+    }
+
+    buscarCotacoes();
+    setInterval(buscarCotacoes, 60000);
+  </script>
+</body>
+</html>

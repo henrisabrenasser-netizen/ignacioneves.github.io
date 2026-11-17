@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerador de senhas — Canivete Suíço</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .senha {
+      font-family: ui-monospace, Consolas, monospace;
+      font-size: 1.4rem; word-break: break-all;
+    }
+    .opcao { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; color: var(--texto); }
+    .barra { height: 8px; border-radius: 4px; background: var(--borda); margin-top: 12px; overflow: hidden; }
+    .barra div { height: 100%; transition: width 0.2s; }
+  </style>
+</head>
+<body>
+  <header class="topo">
+    <div class="topo-dentro">
+      <a href="index.html" class="logo">🔧 Canivete Suíço</a>
+      <nav class="menu">
+        <a href="index.html">Início</a>
+        <a href="cotacoes.html">Cotações</a>
+        <a href="clima.html">Clima</a>
+        <a href="cep.html">CEP</a>
+        <a href="feriados.html">Feriados</a>
+        <a href="senha.html" class="ativo">Senhas</a>
+        <a href="conta.html">Dividir conta</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <h1>🔐 Gerador de senhas</h1>
+    <p class="subtitulo">A senha é criada no seu navegador. Nada é enviado para a internet.</p>
+
+    <div class="cartao" style="max-width:560px">
+      <div class="resultado" style="margin-top:0">
+        <div class="senha" id="senha">…</div>
+        <div class="barra"><div id="barra-forca"></div></div>
+        <div class="apagado" id="texto-forca" style="margin-top:6px"></div>
+      </div>
+
+      <div class="linha" style="margin:14px 0 20px">
+        <button onclick="gerar()">🔄 Gerar outra</button>
+        <button class="secundario" onclick="copiar()" id="botao-copiar">📋 Copiar</button>
+      </div>
+
+      <label for="tamanho">Tamanho: <b id="tamanho-valor">16</b> caracteres</label>
+      <input type="range" id="tamanho" min="6" max="40" value="16" style="margin-bottom:16px">
+
+      <label class="opcao"><input type="checkbox" id="maiusculas" checked> Letras maiúsculas (A-Z)</label>
+      <label class="opcao"><input type="checkbox" id="minusculas" checked> Letras minúsculas (a-z)</label>
+      <label class="opcao"><input type="checkbox" id="numeros" checked> Números (0-9)</label>
+      <label class="opcao"><input type="checkbox" id="simbolos" checked> Símbolos (!@#$…)</label>
+    </div>
+  </main>
+
+  <footer class="rodape">Usa crypto.getRandomValues, o sorteio seguro do navegador</footer>
+
+  <script>
+    const GRUPOS = {
+      maiusculas: "ABCDEFGHJKLMNPQRSTUVWXYZ",   // sem I e O para não confundir com 1 e 0
+      minusculas: "abcdefghijkmnopqrstuvwxyz",  // sem l
+      numeros:    "23456789",                   // sem 0 e 1
+      simbolos:   "!@#$%&*?-_=+"
+    };
+
+    // Sorteia um número de 0 até max-1 de forma segura
+    function sortear(max) {
+      const n = new Uint32Array(1);
+      crypto.getRandomValues(n);
+      return n[0] % max;
+    }
+
+    function gerar() {
+      const tamanho = Number(document.getElementById("tamanho").value);
+      document.getElementById("tamanho-valor").textContent = tamanho;
+
+      // Junta os caracteres das opções marcadas
+      let caracteres = "";
+      for (const nome in GRUPOS) {
+        if (document.getElementById(nome).checked) caracteres += GRUPOS[nome];
+      }
+      if (!caracteres) {
+        document.getElementById("senha").textContent = "Marque pelo menos uma opção";
+        return;
+      }
+
+      let senha = "";
+      for (let i = 0; i < tamanho; i++) {
+        senha += caracteres[sortear(caracteres.length)];
+      }
+      document.getElementById("senha").textContent = senha;
+      mostrarForca(tamanho, caracteres.length);
+    }
+
+    // Força ≈ quantas combinações possíveis existem (em "bits")
+    function mostrarForca(tamanho, variedade) {
+      const bits = tamanho * Math.log2(variedade);
+      let nivel, cor, largura;
+      if (bits < 40)      { nivel = "Fraca";       cor = "#f87171"; largura = 25; }
+      else if (bits < 60) { nivel = "Média";       cor = "#fbbf24"; largura = 50; }
+      else if (bits < 80) { nivel = "Forte";       cor = "#4ade80"; largura = 75; }
+      else                { nivel = "Muito forte"; cor = "#22c55e"; largura = 100; }
+      const barra = document.getElementById("barra-forca");
+      barra.style.width = largura + "%";
+      barra.style.background = cor;
+      document.getElementById("texto-forca").textContent = nivel;
+    }
+
+    async function copiar() {
+      await navigator.clipboard.writeText(document.getElementById("senha").textContent);
+      const botao = document.getElementById("botao-copiar");
+      botao.textContent = "✅ Copiada!";
+      setTimeout(() => botao.textContent = "📋 Copiar", 1500);
+    }
+
+    // Qualquer mudança nas opções gera uma senha nova
+    document.querySelectorAll("input").forEach(el => el.addEventListener("input", gerar));
+
+    gerar();
+  </script>
+</body>
+</html>

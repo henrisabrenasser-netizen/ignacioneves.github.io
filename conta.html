@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dividir a conta — Canivete Suíço</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topo">
+    <div class="topo-dentro">
+      <a href="index.html" class="logo">🔧 Canivete Suíço</a>
+      <nav class="menu">
+        <a href="index.html">Início</a>
+        <a href="cotacoes.html">Cotações</a>
+        <a href="clima.html">Clima</a>
+        <a href="cep.html">CEP</a>
+        <a href="feriados.html">Feriados</a>
+        <a href="senha.html">Senhas</a>
+        <a href="conta.html" class="ativo">Dividir conta</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <h1>🍻 Dividir a conta</h1>
+    <p class="subtitulo">Os números atualizam enquanto você digita.</p>
+
+    <div class="grade">
+      <div class="cartao">
+        <label for="valor">Valor da conta (R$)</label>
+        <input id="valor" type="number" min="0" step="0.01" placeholder="Ex.: 230,50" inputmode="decimal">
+
+        <label for="gorjeta">Gorjeta / serviço: <b id="gorjeta-valor">10</b>%</label>
+        <input id="gorjeta" type="range" min="0" max="25" value="10">
+
+        <label for="pessoas">Quantas pessoas?</label>
+        <input id="pessoas" type="number" min="1" value="2" inputmode="numeric">
+      </div>
+
+      <div class="cartao">
+        <div class="apagado">Cada pessoa paga</div>
+        <div class="grande" id="por-pessoa">R$ 0,00</div>
+        <div class="resultado">
+          <p>Conta: <b id="r-conta">R$ 0,00</b></p>
+          <p>Gorjeta: <b id="r-gorjeta">R$ 0,00</b></p>
+          <p>Total: <b id="r-total">R$ 0,00</b></p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="rodape">Dica: 10% é o padrão de serviço na maioria dos restaurantes</footer>
+
+  <script>
+    function reais(n) {
+      return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    }
+
+    function calcular() {
+      const valor   = Number(document.getElementById("valor").value) || 0;
+      const pct     = Number(document.getElementById("gorjeta").value);
+      const pessoas = Math.max(1, Number(document.getElementById("pessoas").value) || 1);
+
+      const gorjeta = valor * pct / 100;
+      const total   = valor + gorjeta;
+
+      document.getElementById("gorjeta-valor").textContent = pct;
+      document.getElementById("r-conta").textContent   = reais(valor);
+      document.getElementById("r-gorjeta").textContent = reais(gorjeta);
+      document.getElementById("r-total").textContent   = reais(total);
+      document.getElementById("por-pessoa").textContent = reais(total / pessoas);
+    }
+
+    // Recalcula a cada tecla ou movimento do controle
+    document.querySelectorAll("input").forEach(el => el.addEventListener("input", calcular));
+    calcular();
+  </script>
+</body>
+</html>

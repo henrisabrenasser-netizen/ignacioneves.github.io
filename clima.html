@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clima — Canivete Suíço</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .dias { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; margin-top: 16px; }
+    .dia { text-align: center; background: var(--cartao); border: 1px solid var(--borda); border-radius: 12px; padding: 12px; }
+    .dia .icone-tempo { font-size: 1.8rem; }
+  </style>
+</head>
+<body>
+  <header class="topo">
+    <div class="topo-dentro">
+      <a href="index.html" class="logo">🔧 Canivete Suíço</a>
+      <nav class="menu">
+        <a href="index.html">Início</a>
+        <a href="cotacoes.html">Cotações</a>
+        <a href="clima.html" class="ativo">Clima</a>
+        <a href="cep.html">CEP</a>
+        <a href="feriados.html">Feriados</a>
+        <a href="senha.html">Senhas</a>
+        <a href="conta.html">Dividir conta</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <h1>🌤️ Previsão do tempo</h1>
+    <p class="subtitulo">Digite uma cidade ou use sua localização.</p>
+
+    <div class="cartao">
+      <label for="cidade">Cidade</label>
+      <div class="linha">
+        <input id="cidade" placeholder="Ex.: São Paulo" value="São Paulo">
+        <button onclick="buscarPorNome()">Buscar</button>
+      </div>
+      <button class="secundario" onclick="usarMinhaLocalizacao()">📍 Usar minha localização</button>
+
+      <div id="resultado" class="resultado escondido"></div>
+    </div>
+  </main>
+
+  <footer class="rodape">Fonte: Open-Meteo</footer>
+
+  <script>
+    // A API devolve um "código do tempo" (número). Aqui traduzimos para emoji + texto.
+    function descreverTempo(codigo) {
+      if (codigo === 0) return ["☀️", "Céu limpo"];
+      if (codigo <= 2) return ["🌤️", "Poucas nuvens"];
+      if (codigo === 3) return ["☁️", "Nublado"];
+      if (codigo <= 48) return ["🌫️", "Neblina"];
+      if (codigo <= 57) return ["🌦️", "Garoa"];
+      if (codigo <= 67) return ["🌧️", "Chuva"];
+      if (codigo <= 77) return ["❄️", "Neve"];
+      if (codigo <= 82) return ["🌧️", "Pancadas de chuva"];
+      return ["⛈️", "Tempestade"];
+    }
+
+    const caixa = document.getElementById("resultado");
+
+    // Enter no campo também busca
+    document.getElementById("cidade").addEventListener("keydown", e => {
+      if (e.key === "Enter") buscarPorNome();
+    });
+
+    // Passo 1: transforma o nome da cidade em latitude/longitude
+    async function buscarPorNome() {
+      const nome = document.getElementById("cidade").value.trim();
+      if (!nome) return;
+      mostrar("<p class='apagado'>Procurando cidade…</p>");
+      try {
+        const url = "https://geocoding-api.open-meteo.com/v1/search?count=1&language=pt&format=json&name="
+                    + encodeURIComponent(nome);
+        const dados = await (await fetch(url)).json();
+        if (!dados.results || dados.results.length === 0) {
+          mostrar("<p class='erro'>Cidade não encontrada.</p>");
+          return;
+        }
+        const c = dados.results[0];
+        const local = [c.name, c.admin1, c.country].filter(Boolean).join(", ");
+        buscarPrevisao(c.latitude, c.longitude, local);
+      } catch (erro) {
+        mostrar("<p class='erro'>Erro ao buscar a cidade.</p>");
+      }
+    }
+
+    // Pede ao navegador a posição de quem está visitando (ele pergunta antes)
+    function usarMinhaLocalizacao() {
+      if (!navigator.geolocation) {
+        mostrar("<p class='erro'>Seu navegador não permite localização.</p>");
+        return;
+      }
+      mostrar("<p class='apagado'>Pegando sua localização…</p>");
+      navigator.geolocation.getCurrentPosition(
+        pos => buscarPrevisao(pos.coords.latitude, pos.coords.longitude, "Sua localização"),
+        () => mostrar("<p class='erro'>Não foi possível pegar sua localização.</p>")
+      );
+    }
+
+    // Passo 2: com latitude/longitude, busca a previsão
+    async function buscarPrevisao(lat, lon, nomeLocal) {
+      mostrar("<p class='apagado'>Buscando previsão…</p>");
+      try {
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}`
+          + "&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m"
+          + "&daily=weather_code,temperature_2m_max,temperature_2m_min"
+          + "&timezone=auto&forecast_days=6";
+        const d = await (await fetch(url)).json();
+
+        const agora = d.current;
+        const [emoji, texto] = descreverTempo(agora.weather_code);
+
+        // Monta os cartõezinhos dos próximos dias
+        let diasHtml = "";
+        for (let i = 1; i < d.daily.time.length; i++) {
+          const data = new Date(d.daily.time[i] + "T12:00");
+          const nomeDia = data.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit" });
+          const [em] = descreverTempo(d.daily.weather_code[i]);
+          diasHtml += `
+            <div class="dia">
+              <div class="apagado">${nomeDia}</div>
+              <div class="icone-tempo">${em}</div>
+              <div><b>${Math.round(d.daily.temperature_2m_max[i])}°</b>
+                <span class="apagado">${Math.round(d.daily.temperature_2m_min[i])}°</span></div>
+            </div>`;
+        }
+
+        mostrar(`
+          <div class="apagado">${nomeLocal}</div>
+          <div class="grande">${emoji} ${Math.round(agora.temperature_2m)}°C</div>
+          <div>${texto} · sensação de ${Math.round(agora.apparent_temperature)}°C</div>
+          <div class="apagado">Umidade ${agora.relative_humidity_2m}% · Vento ${Math.round(agora.wind_speed_10m)} km/h</div>
+          <div class="dias">${diasHtml}</div>
+        `);
+      } catch (erro) {
+        mostrar("<p class='erro'>Erro ao buscar a previsão.</p>");
+      }
+    }
+
+    function mostrar(html) {
+      caixa.innerHTML = html;
+      caixa.classList.remove("escondido");
+    }
+
+    buscarPorNome(); // já mostra São Paulo ao abrir
+  </script>
+</body>
+</html>
