@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Caçador de Dragões — Canivete Suíço</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Alegreya:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <style>
+    /* ==========================================================
+       CAÇADOR DE DRAGÕES — roguelike por turnos + incremental
+       Tudo deste jogo (estilo e lógica) mora neste arquivo.
+       ========================================================== */
+    :root {
+      --pedra: #121417;
+      --painel: #1c1f25;
+      --painel-2: #252932;
+      --linha: #3a404b;
+      --texto-m: #e7e2d6;
+      --fraco: #9aa0aa;
+      --tocha: #f59e0b;
+      --tocha-2: #fbbf24;
+      --sangue: #dc2626;
+      --escudo: #60a5fa;
+      --veneno: #4ade80;
+      --escama: #22d3ee;
+      --roxo: #a78bfa;
+      --bioma: #4b5563;
+    }
+
+    body.masmorra {
+      background:
+        linear-gradient(rgba(0,0,0,.35) 1px, transparent 1px) 0 0 / 64px 32px,
+        linear-gradient(90deg, rgba(0,0,0,.35) 1px, transparent 1px) 0 0 / 64px 64px,
+        radial-gradient(ellipse at 50% 0%, #2a2116 0%, var(--pedra) 60%) fixed;
+      background-color: var(--pedra);
+      font-family: "Alegreya", Georgia, serif;
+      font-size: 17px;
+      color: var(--texto-m);
+    }
+    body.masmorra .topo { position: static; background: #0b0c0e; border-bottom: 2px solid #5a3b10; }
+    body.masmorra .menu a.ativo { background: #7c2d12; }
+
+    h2, h3, .cinzel { font-family: "Cinzel", Georgia, serif; }
+
+    #jogo { max-width: 1280px; margin: 0 auto; padding: 14px 16px 48px; }
+
+    .barra {
+      display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+      background: linear-gradient(#1d1a15, #121110);
+      border: 1px solid #5a3b10; border-radius: 10px;
+      padding: 10px 16px; margin-bottom: 16px;
+      box-shadow: 0 0 30px rgba(245,158,11,.08);
+    }
+    .barra .titulo { font-family: "Cinzel", serif; font-weight: 800; font-size: 1.3rem; color: var(--tocha-2); margin-right: auto; text-shadow: 0 0 12px rgba(245,158,11,.45); }
+    .barra .item { color: var(--fraco); font-size: .95rem; }
+    .barra .item b { color: var(--texto-m); font-size: 1.1rem; }
+    .barra .item.esc b { color: var(--escama); }
+
+    .mesa { display: grid; grid-template-columns: 290px 1fr 300px; gap: 16px; align-items: start; }
+
+    .painel {
+      background: linear-gradient(180deg, var(--painel), #17191e);
+      border: 1px solid var(--linha); border-radius: 10px;
+      padding: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.45);
+    }
+    .painel h2 { font-size: 1.05rem; color: var(--tocha-2); letter-spacing: .05em; margin-bottom: 12px; text-align: center; }
+    .painel h3 { font-size: .9rem; color: var(--tocha); margin: 14px 0 8px; letter-spacing: .04em; }
+    .fraco { color: var(--fraco); }
+    .pequeno { font-size: .88rem; }
+
+    /* ---------- Herói ---------- */
+    .heroi-topo { display: flex; align-items: center; gap: 12px; }
+    .heroi-emoji { font-size: 3rem; line-height: 1; filter: drop-shadow(0 0 10px rgba(245,158,11,.35)); }
+    .heroi-nome { font-family: "Cinzel", serif; font-weight: 800; font-size: 1.1rem; }
+    .barra-vida { position: relative; height: 22px; background: #2b1416; border: 1px solid #5b1d1d; border-radius: 6px; overflow: hidden; margin: 10px 0 4px; }
+    .barra-vida > i { position: absolute; inset: 0 auto 0 0; background: linear-gradient(#ef4444, #b91c1c); transition: width .3s; }
+    .barra-vida > span { position: relative; display: block; text-align: center; font-weight: 700; font-size: .9rem; line-height: 20px; text-shadow: 0 1px 2px #000; }
+    .barra-xp { height: 8px; background: #1f2530; border-radius: 4px; overflow: hidden; }
+    .barra-xp > i { display: block; height: 100%; background: linear-gradient(90deg, #a78bfa, #7c3aed); transition: width .3s; }
+    .status { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; min-height: 24px; }
+    .tag { font-size: .82rem; font-weight: 700; padding: 2px 8px; border-radius: 20px; background: var(--painel-2); border: 1px solid var(--linha); }
+    .tag.bloq { color: var(--escudo); border-color: #1e3a5f; }
+    .tag.ven { color: var(--veneno); border-color: #14532d; }
+    .tag.fur { color: #f87171; border-color: #7f1d1d; }
+    .atributos { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 10px; }
+    .atributo { background: var(--painel-2); border: 1px solid var(--linha); border-radius: 8px; padding: 6px 8px; font-size: .9rem; }
+    .atributo b { display: block; font-size: 1.1rem; }
+    .reliquias { display: flex; flex-wrap: wrap; gap: 6px; }
+    .reliq-ico { width: 40px; height: 40px; display: grid; place-items: center; font-size: 1.4rem; padding: 0; background: var(--painel-2); border: 1px solid #5a3b10; border-radius: 8px; cursor: help; }
+    .reliq-ico:hover { background: #3a2f1c; }
+    .reliq-info { min-height: 1.4em; margin-top: 6px; font-size: .9rem; color: var(--fraco); }
+
+    /* ---------- Área central ---------- */
+    .centro { border-top: 3px solid var(--bioma); }
+    .andar-topo { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; border-bottom: 1px solid var(--linha); padding-bottom: 10px; }
+    .andar-topo .num { font-family: "Cinzel", serif; font-weight: 800; font-size: 1.35rem; color: var(--tocha-2); }
+    .andar-topo .bioma { font-style: italic; color: var(--fraco); }
+    .trilha { display: flex; gap: 3px; margin-top: 4px; }
+    .trilha i { width: 14px; height: 6px; border-radius: 2px; background: #2c313a; }
+    .trilha i.feito { background: var(--tocha); }
+    .trilha i.chefe { background: #7f1d1d; }
+    .trilha i.aqui { background: var(--tocha-2); box-shadow: 0 0 6px var(--tocha-2); }
+
+    .portas { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+    .porta {
+      display: grid; gap: 6px; justify-items: center; text-align: center;
+      background: linear-gradient(180deg, #2a2620, #1b1915);
+      border: 2px solid #4a3b22; border-radius: 80px 80px 10px 10px;
+      padding: 26px 12px 16px; color: var(--texto-m);
+      font-family: inherit; font-weight: 400; font-size: .95rem;
+      transition: transform .12s, border-color .12s, box-shadow .12s;
+    }
+    .porta:hover { background: linear-gradient(180deg, #332d24, #1f1c17); transform: translateY(-4px); border-color: var(--tocha); box-shadow: 0 0 22px rgba(245,158,11,.25); }
+    .porta .p-emoji { font-size: 2.6rem; }
+    .porta .p-nome { font-family: "Cinzel", serif; font-weight: 800; font-size: 1rem; color: var(--tocha-2); }
+    .porta.elite { border-color: #7c2d12; }
+    .porta.chefe { border-color: #b91c1c; box-shadow: 0 0 30px rgba(220,38,38,.3); grid-column: 1 / -1; max-width: 360px; justify-self: center; width: 100%; }
+    .porta .tecla { font-size: .75rem; color: var(--fraco); }
+
+    /* ---------- Combate ---------- */
+    .inimigo { text-align: center; padding: 6px 0 14px; }
+    .inimigo-emoji { font-size: 6rem; line-height: 1.1; display: inline-block; filter: drop-shadow(0 8px 14px rgba(0,0,0,.6)); }
+    .inimigo-emoji.chefe { font-size: 8rem; }
+    .inimigo-nome { font-family: "Cinzel", serif; font-weight: 800; font-size: 1.2rem; }
+    .inimigo-nome.elite { color: #fb923c; }
+    .inimigo-nome.chefe { color: #f87171; text-shadow: 0 0 10px rgba(220,38,38,.6); }
+    .inimigo .barra-vida { max-width: 360px; margin: 8px auto 4px; }
+    .inimigo .status { justify-content: center; }
+    .intencao {
+      display: inline-block; margin-top: 10px; padding: 8px 16px; border-radius: 8px;
+      background: var(--painel-2); border: 1px solid var(--linha); font-weight: 700;
+    }
+    .intencao.perigo { border-color: #b91c1c; background: #2a1414; color: #fca5a5; animation: alerta 1s infinite alternate; }
+    .intencao .rotulo { display: block; font-size: .75rem; font-weight: 400; color: var(--fraco); text-transform: uppercase; letter-spacing: .08em; }
+
+    .acoes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 8px; }
+    .acao {
+      display: grid; gap: 2px; justify-items: center; padding: 12px 6px;
+      background: linear-gradient(180deg, #2f3440, #232731); color: var(--texto-m);
+      border: 1px solid #4a5160; border-radius: 10px; font-family: inherit; font-size: .95rem;
+    }
+    .acao:hover:not(:disabled) { background: linear-gradient(180deg, #3a4150, #2a2f3a); border-color: var(--tocha); }
+    .acao .a-emoji { font-size: 1.8rem; }
+    .acao .a-nome { font-family: "Cinzel", serif; font-weight: 800; font-size: .85rem; }
+    .acao .a-info { font-size: .8rem; color: var(--fraco); font-weight: 400; }
+    .acao.especial { border-color: #7c2d12; }
+    .acao kbd { font-size: .7rem; color: var(--fraco); font-family: inherit; }
+
+    /* ---------- Escolhas (cartas, eventos, loja) ---------- */
+    .cartas { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+    .carta {
+      display: grid; gap: 6px; justify-items: center; text-align: center; padding: 18px 12px;
+      background: linear-gradient(180deg, #262236, #1a1824); color: var(--texto-m);
+      border: 2px solid #4c3d78; border-radius: 12px; font-family: inherit; font-weight: 400; font-size: .95rem;
+      transition: transform .12s, border-color .12s;
+    }
+    .carta:hover:not(:disabled) { transform: translateY(-4px); border-color: var(--roxo); background: linear-gradient(180deg, #2e2942, #1f1c2b); }
+    .carta .c-emoji { font-size: 2.4rem; }
+    .carta .c-nome { font-family: "Cinzel", serif; font-weight: 800; color: #ddd6fe; }
+    .carta.reliq { background: linear-gradient(180deg, #2c2416, #1c1810); border-color: #7a5a1c; }
+    .carta.reliq:hover { border-color: var(--tocha-2); background: linear-gradient(180deg, #382e1c, #221d13); }
+    .carta.reliq .c-nome { color: var(--tocha-2); }
+    .carta:disabled { opacity: .45; cursor: default; }
+    .carta .preco { font-weight: 700; color: var(--tocha-2); }
+
+    .cena { text-align: center; padding: 6px 0 14px; }
+    .cena .c-emoji { font-size: 4.5rem; }
+    .cena h3 { font-size: 1.15rem; margin: 6px 0; color: var(--tocha-2); }
+    .cena p { max-width: 520px; margin: 0 auto; color: #d1ccc0; }
+
+    .botao-tocha {
+      background: linear-gradient(180deg, #d97706, #92400e); color: #fff7e6;
+      border: 1px solid #f59e0b; font-family: "Cinzel", serif; font-weight: 800; letter-spacing: .03em;
+      padding: 12px 22px; border-radius: 10px;
+    }
+    .botao-tocha:hover { background: linear-gradient(180deg, #f59e0b, #b45309); }
+    .centralizar { text-align: center; margin-top: 16px; }
+
+    .auto-barra { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--linha); font-size: .9rem; }
+    .chave { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 20px; background: var(--painel-2); border: 1px solid var(--linha); cursor: pointer; color: var(--texto-m); font-family: inherit; font-size: .88rem; font-weight: 600; }
+    .chave:hover { background: #313642; }
+    .chave.on { border-color: var(--veneno); color: var(--veneno); }
+
+    /* ---------- Acampamento / Guilda ---------- */
+    .guilda { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+    .upg {
+      display: grid; grid-template-columns: 40px 1fr; gap: 10px; align-items: center; text-align: left;
+      background: var(--painel-2); color: var(--texto-m); border: 1px solid var(--linha); border-radius: 10px;
+      padding: 10px; font-family: inherit; font-weight: 400; font-size: .9rem;
+    }
+    .upg:hover:not(:disabled) { border-color: var(--escama); background: #283039; }
+    .upg.pode { border-color: #155e75; box-shadow: inset 3px 0 0 var(--escama); }
+    .upg:disabled { opacity: .55; cursor: default; }
+    .upg .u-emoji { font-size: 1.7rem; text-align: center; }
+    .upg b { font-family: "Cinzel", serif; font-size: .9rem; }
+    .upg .u-custo { color: var(--escama); font-weight: 700; }
+    .upg .u-niv { color: var(--fraco); font-size: .8rem; }
+    .upg.max .u-custo { color: var(--veneno); }
+
+    .partidas { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+
+    .registro { list-style: none; max-height: 560px; overflow-y: auto; font-size: .92rem; }
+    .registro li { padding: 5px 2px; border-bottom: 1px solid #262a31; }
+    .registro li.dano { color: #fca5a5; }
+    .registro li.bom { color: #86efac; }
+    .registro li.ouro { color: var(--tocha-2); }
+    .registro li.epico { color: #f0abfc; font-weight: 700; }
+    .registro li.sist { color: var(--fraco); font-style: italic; }
+
+    .stats { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; font-size: .93rem; }
+    .stats dd { text-align: right; font-weight: 700; }
+
+    .botoes-save { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+    .botoes-save button { background: var(--painel-2); border: 1px solid var(--linha); font-size: .82rem; padding: 6px 10px; font-weight: 600; font-family: inherit; }
+    .botoes-save button:hover { background: #313642; }
+
+    /* ---------- Efeitos ---------- */
+    .flutua {
+      position: fixed; pointer-events: none; z-index: 60; transform: translateX(-50%);
+      font-family: "Cinzel", serif; font-weight: 800; font-size: 1.5rem; text-shadow: 0 2px 0 #000, 0 0 8px #000;
+      animation: sobe 1s ease-out forwards;
+    }
+    .flutua.dano { color: #fecaca; }
+    .flutua.crit { color: #fde047; font-size: 2rem; }
+    .flutua.cura { color: #86efac; }
+    .flutua.miss { color: #cbd5e1; font-size: 1.1rem; }
+    .flutua.bloq { color: #93c5fd; }
+    .flutua.ven { color: var(--veneno); }
+    .treme { animation: treme .35s; }
+    .flash { animation: flash .4s; }
+
+    @keyframes sobe { from { transform: translate(-50%, 0); } to { transform: translate(-50%, -80px); opacity: 0; } }
+    @keyframes treme { 20% { transform: translateX(-8px) rotate(-4deg); } 40% { transform: translateX(8px) rotate(4deg); } 60% { transform: translateX(-5px); } 80% { transform: translateX(5px); } }
+    @keyframes flash { 0% { box-shadow: inset 0 0 0 200px rgba(220,38,38,.35); } 100% { box-shadow: inset 0 0 0 200px rgba(220,38,38,0); } }
+    @keyframes alerta { to { box-shadow: 0 0 16px rgba(220,38,38,.55); } }
+
+    @media (prefers-reduced-motion: reduce) {
+      .treme, .flash, .intencao.perigo { animation: none; }
+      .flutua { animation-duration: .5s; }
+    }
+
+    @media (max-width: 1060px) {
+      .mesa { grid-template-columns: 1fr; }
+      #p-heroi { order: 1; }
+      #p-centro { order: 2; }
+      #p-lado { order: 3; }
+      .registro { max-height: 260px; }
+    }
+    @media (max-width: 560px) {
+      .acoes { grid-template-columns: repeat(2, 1fr); }
+      .barra .titulo { width: 100%; }
+      .inimigo-emoji { font-size: 4.5rem; }
+      .inimigo-emoji.chefe { font-size: 6rem; }
+      .atributos { grid-template-columns: repeat(4, 1fr); }
+      .atributo { font-size: .78rem; padding: 4px 6px; }
+      .atributo b { font-size: .95rem; }
+    }
+  </style>
+</head>
+<body class="masmorra">
+  <header class="topo" id="topo"></header>
+  <script src="menu.js"></script>
+
+  <div id="jogo">
+    <div class="barra">
+      <div class="titulo">🐉 Caçador de Dragões</div>
+      <div class="item esc">💠 <b id="b-escamas">0</b> escamas</div>
+      <div class="item">🏔️ Recorde: <b id="b-recorde">1</b></div>
+      <div class="item">🐲 Dragões: <b id="b-dragoes">0</b></div>
+    </div>
+
+    <div class="mesa">
+      <aside class="painel" id="p-heroi"></aside>
+      <main class="painel centro" id="p-centro"></main>
+      <aside class="painel" id="p-lado"></aside>
+    </div>
+  </div>
+
+  <script>
+  (() => {
+    // ========================================================
+    // 1. UTILIDADES
+    // ========================================================
+    const R = (a, b) => a + Math.random() * (b - a);
+    const sortear = arr => arr[Math.floor(Math.random() * arr.length)];
+    const embaralhar = arr => arr.map(v => [Math.random(), v]).sort((a, b) => a[0] - b[0]).map(x => x[1]);
+    const $ = id => document.getElementById(id);
+    function sortearPeso(pesos) {
+      const total = Object.values(pesos).reduce((a, b) => a + b, 0);
+      let r = Math.random() * total;
+      for (const [k, v] of Object.entries(pesos)) { r -= v; if (r < 0) return k; }
+      return Object.keys(pesos)[0];
+    }
+    function fmt(n) {
+      n = Math.floor(n);
+      if (n < 1e6) return n.toLocaleString("pt-BR");
+      const suf = ["", "mil", "mi", "bi", "tri", "quatri"];
+      const i = Math.min(suf.length - 1, Math.floor(Math.log10(n) / 3));
+      return (n / 10 ** (3 * i)).toLocaleString("pt-BR", { maximumFractionDigits: 2 }) + " " + suf[i];
+    }
+    const pct = v => Math.round(v * 100) + "%";
+
+    // ========================================================
+    // 2. DADOS: biomas, inimigos e dragões
+    // ========================================================
+    // acoes: pesos das intenções que o inimigo pode escolher a cada turno
+    const BIOMAS = [
+      {
+        nome: "Catacumbas Esquecidas", cor: "#6b7280",
+        inimigos: [
+          { nome: "Rato Gigante",  emoji: "🐀", hp: 14, atk: 4, acoes: { atk: 6, multi: 2 } },
+          { nome: "Morcego",       emoji: "🦇", hp: 10, atk: 4, acoes: { multi: 5, atk: 2 }, esquiva: 0.15 },
+          { nome: "Esqueleto",     emoji: "💀", hp: 20, atk: 5, acoes: { atk: 5, defesa: 2, pesado: 2 } },
+          { nome: "Goblin",        emoji: "👺", hp: 16, atk: 5, acoes: { atk: 5, pesado: 2, furia: 1 } },
+          { nome: "Aranha",        emoji: "🕷️", hp: 15, atk: 4, acoes: { veneno: 4, atk: 3 } },
+        ],
+        chefe: { nome: "Morgrath, o Dragão Verde", emoji: "🐲", hp: 95, atk: 8, acoes: { atk: 3, veneno: 3, pesado: 2, multi: 2 }, filtro: "" },
+      },
+      {
+        nome: "Cavernas Fúngicas", cor: "#65a30d",
+        inimigos: [
+          { nome: "Cogumelo Tóxico", emoji: "🍄", hp: 22, atk: 4, acoes: { veneno: 5, cura: 1 } },
+          { nome: "Lobo das Cavernas", emoji: "🐺", hp: 18, atk: 6, acoes: { multi: 4, atk: 3 } },
+          { nome: "Orc",           emoji: "👹", hp: 28, atk: 6, acoes: { atk: 4, pesado: 3, furia: 1 } },
+          { nome: "Gosma",         emoji: "🦠", hp: 30, atk: 4, acoes: { atk: 4, cura: 2, defesa: 2 } },
+          { nome: "Troll",         emoji: "🧌", hp: 34, atk: 6, acoes: { atk: 4, pesado: 2, cura: 2 } },
+        ],
+        chefe: { nome: "Hrimvald, o Wyrm de Gelo", emoji: "🐉", hp: 115, atk: 9, acoes: { sopro: 2, multi: 2, defesa: 2, atk: 3 }, filtro: "hue-rotate(150deg) saturate(1.4)" },
+      },
+      {
+        nome: "Ruínas Submersas", cor: "#0e7490",
+        inimigos: [
+          { nome: "Serpente",      emoji: "🐍", hp: 22, atk: 6, acoes: { veneno: 4, multi: 2 } },
+          { nome: "Escorpião",     emoji: "🦂", hp: 24, atk: 6, acoes: { veneno: 3, pesado: 3 } },
+          { nome: "Fantasma",      emoji: "👻", hp: 18, atk: 7, acoes: { atk: 5, furia: 2 }, esquiva: 0.25 },
+          { nome: "Cavaleiro Afogado", emoji: "🧟", hp: 34, atk: 6, acoes: { atk: 4, defesa: 3, pesado: 2 } },
+          { nome: "Gárgula",       emoji: "🗿", hp: 30, atk: 6, acoes: { defesa: 3, pesado: 3 } },
+        ],
+        chefe: { nome: "Tempestra, a Dragoa do Trovão", emoji: "🐉", hp: 135, atk: 10, acoes: { sopro: 2, multi: 3, furia: 1, atk: 2 }, filtro: "hue-rotate(220deg) saturate(1.6)" },
+      },
+      {
+        nome: "Forja Abissal", cor: "#c2410c",
+        inimigos: [
+          { nome: "Diabrete",      emoji: "👿", hp: 20, atk: 7, acoes: { multi: 4, furia: 2 } },
+          { nome: "Elemental de Fogo", emoji: "🔥", hp: 26, atk: 8, acoes: { atk: 4, pesado: 3 } },
+          { nome: "Golem de Pedra", emoji: "🪨", hp: 44, atk: 7, acoes: { defesa: 3, pesado: 3 } },
+          { nome: "Demônio",       emoji: "😈", hp: 34, atk: 8, acoes: { atk: 4, furia: 2, pesado: 2 } },
+          { nome: "Cão Infernal",  emoji: "🐕", hp: 28, atk: 7, acoes: { multi: 4, atk: 2 } },
+        ],
+        chefe: { nome: "Ignaroth, o Ancião Rubro", emoji: "🐉", hp: 160, atk: 11, acoes: { sopro: 3, pesado: 2, multi: 2, furia: 1 }, filtro: "hue-rotate(-100deg) saturate(1.8)" },
+      },
+      {
+        nome: "Coração do Vazio", cor: "#7c3aed",
+        inimigos: [
+          { nome: "Olho do Vazio", emoji: "👁️", hp: 30, atk: 8, acoes: { atk: 4, veneno: 2, furia: 2 } },
+          { nome: "Espectro",      emoji: "🌫️", hp: 26, atk: 9, acoes: { atk: 5, multi: 3 }, esquiva: 0.25 },
+          { nome: "Abominação",    emoji: "🦑", hp: 46, atk: 8, acoes: { multi: 3, cura: 2, pesado: 2 } },
+          { nome: "Cavaleiro Sombrio", emoji: "🗡️", hp: 40, atk: 9, acoes: { atk: 3, defesa: 2, pesado: 3 } },
+          { nome: "Lich",          emoji: "☠️", hp: 34, atk: 9, acoes: { veneno: 3, cura: 2, pesado: 2 } },
+        ],
+        chefe: { nome: "Nihilux, o Dragão do Vazio", emoji: "🐲", hp: 200, atk: 13, acoes: { sopro: 3, multi: 2, cura: 1, furia: 1, pesado: 2 }, filtro: "grayscale(1) brightness(.7) drop-shadow(0 0 18px #a78bfa)" },
+      },
+    ];
+    const MIMICO = { nome: "Mímico", emoji: "📦", hp: 26, atk: 7, acoes: { multi: 2, pesado: 3 } };
+    const biomaDo = andar => BIOMAS[Math.min(BIOMAS.length - 1, Math.floor((andar - 1) / 10))];
+    // Os inimigos ficam mais fortes a cada andar
+    const escala = andar => (1 + 0.1 * (andar - 1)) * Math.pow(1.05, andar - 1);
+
+    // ========================================================
+    // 3. RELÍQUIAS (valem só durante a expedição)
+    // ========================================================
+    const RELIQUIAS = {
+      lamina:     { emoji: "🗡️", nome: "Lâmina Flamejante",     desc: "+4 de ataque.", mod: { atk: 4 } },
+      escudo:     { emoji: "🛡️", nome: "Escudo de Escamas",      desc: "Defender bloqueia 60% a mais." },
+      vampiro:    { emoji: "🧛", nome: "Amuleto Vampírico",      desc: "Cura 15% do dano que você causa." },
+      botas:      { emoji: "👢", nome: "Botas Silenciosas",      desc: "+10% de esquiva.", mod: { esquiva: 0.10 } },
+      anel:       { emoji: "💍", nome: "Anel do Olho Certeiro",  desc: "+12% de chance de crítico.", mod: { crit: 0.12 } },
+      troll:      { emoji: "💚", nome: "Coração de Troll",       desc: "Regenera 3% da vida a cada turno." },
+      elmo:       { emoji: "⛑️", nome: "Elmo do Cavaleiro",      desc: "+3 de defesa.", mod: { def: 3 } },
+      sangue:     { emoji: "🩸", nome: "Sangue de Dragão",       desc: "+30 de vida máxima.", mod: { hp: 30 } },
+      runa:       { emoji: "⚡", nome: "Runa do Trovão",         desc: "O Golpe do Caçador recarrega 1 turno mais rápido." },
+      bolsa:      { emoji: "👝", nome: "Bolsa do Ladrão",        desc: "+50% de ouro." },
+      espinhos:   { emoji: "🌵", nome: "Armadura de Espinhos",   desc: "Devolve 30% do dano recebido." },
+      berserker:  { emoji: "🪓", nome: "Fúria do Berserker",     desc: "+50% de ataque com menos de metade da vida." },
+      olho:       { emoji: "🎯", nome: "Olho do Caçador",        desc: "Dano dobrado contra dragões." },
+      fenix:      { emoji: "🪶", nome: "Pena de Fênix",          desc: "Uma vez por expedição, renasce com 50% da vida." },
+      adaga:      { emoji: "🔪", nome: "Adaga Envenenada",       desc: "Seus ataques envenenam o inimigo." },
+      alquimista: { emoji: "⚗️", nome: "Frasco do Alquimista",   desc: "Poções curam 60% em vez de 40%." },
+      gemea:      { emoji: "⚔️", nome: "Lâmina Gêmea",           desc: "25% de chance de atacar duas vezes." },
+      tomo:       { emoji: "📕", nome: "Tomo do Sábio",          desc: "+30% de experiência." },
+      cristal:    { emoji: "🔮", nome: "Cristal da Fúria",       desc: "O Golpe do Caçador causa 4× em vez de 2,5×." },
+      capa:       { emoji: "🧥", nome: "Capa das Sombras",       desc: "O primeiro golpe inimigo de cada combate sempre erra." },
+      coroa:      { emoji: "👑", nome: "Coroa do Rei Caído",     desc: "+2 de ataque, +2 de defesa e +15 de vida.", mod: { atk: 2, def: 2, hp: 15 } },
+      talisma:    { emoji: "🧿", nome: "Talismã Purificador",    desc: "Imunidade a veneno." },
+    };
+
+    // ========================================================
+    // 4. GUILDA DOS CAÇADORES (melhorias permanentes)
+    // ========================================================
+    const GUILDA = [
+      { id: "vigor",     emoji: "💗", nome: "Vigor",            desc: "+10 de vida máxima.",              custo: 5,   max: 50 },
+      { id: "forca",     emoji: "💪", nome: "Força",            desc: "+1 de ataque.",                    custo: 5,   max: 50 },
+      { id: "armadura",  emoji: "🛡️", nome: "Armadura",         desc: "+1 de defesa.",                    custo: 8,   max: 30 },
+      { id: "precisao",  emoji: "🎯", nome: "Precisão",         desc: "+2% de chance de crítico.",        custo: 10,  max: 20 },
+      { id: "agilidade", emoji: "💨", nome: "Agilidade",        desc: "+1,5% de esquiva.",                custo: 10,  max: 20 },
+      { id: "alquimia",  emoji: "🧪", nome: "Alquimia",         desc: "+1 poção no início.",              custo: 15,  max: 5 },
+      { id: "ganancia",  emoji: "💰", nome: "Ganância",         desc: "+15% de ouro.",                    custo: 8,   max: 20 },
+      { id: "sabedoria", emoji: "📖", nome: "Sabedoria",        desc: "+10% de experiência.",             custo: 12,  max: 20 },
+      { id: "saque",     emoji: "💠", nome: "Coletor de Escamas", desc: "+10% de escamas ao fim.",        custo: 20,  max: 25 },
+      { id: "bencao",    emoji: "✨", nome: "Bênção do Templo", desc: "Começa cada expedição com 1 relíquia.", custo: 40, max: 1 },
+      { id: "escudeiro", emoji: "🤖", nome: "Escudeiro",        desc: "Libera o combate automático.",     custo: 50,  max: 1 },
+      { id: "mapa",      emoji: "🗺️", nome: "Mapa da Masmorra", desc: "Comece após um dragão já derrotado.", custo: 80, max: 1 },
+      { id: "batedor",   emoji: "🧭", nome: "Batedor",          desc: "Libera a exploração automática (modo ocioso).", custo: 150, max: 1 },
+    ];
+    const custoGuilda = u => Math.ceil(u.custo * Math.pow(1.4, nivelG(u.id)));
+
+    // ========================================================
+    // 5. ESTADO
+    // ========================================================
+    const CHAVE = "cacador-dragoes-v1";
+    const novaMeta = () => ({
+      escamas: 0, totalEscamas: 0, guilda: {}, recorde: 1, dragoes: 0, expedicoes: 0, abates: 0, checkpoint: 0,
+      auto: { combate: false, explorar: false, reiniciar: false }, vel: 1,
+    });
+    let meta = novaMeta();
+    let run = null;          // a expedição atual (null = no acampamento)
+    let registro = [];       // mensagens do diário
+    let ocupado = false;     // true enquanto o inimigo "pensa"
+    let fila = [];           // efeitos visuais esperando a tela ser desenhada
+
+    const nivelG = id => meta.guilda[id] || 0;
+    const tem = id => run && run.reliquias.includes(id);
+    const multOuro = () => (1 + 0.15 * nivelG("ganancia")) * (tem("bolsa") ? 1.5 : 1);
+    const multXp = () => (1 + 0.10 * nivelG("sabedoria")) * (tem("tomo") ? 1.3 : 1);
+    const multEscamas = () => 1 + 0.10 * nivelG("saque");
+    const xpProx = n => Math.round(15 * Math.pow(1.28, n - 1));
+
+    // Atributos atuais do herói (base da expedição + relíquias)
+    function H() {
+      let atk = run.atk, hpMax = run.hpMax, def = run.def, crit = run.crit, esq = run.esquiva;
+      run.reliquias.forEach(id => {
+        const m = RELIQUIAS[id].mod;
+        if (!m) return;
+        atk += m.atk || 0; hpMax += m.hp || 0; def += m.def || 0; crit += m.crit || 0; esq += m.esquiva || 0;
+      });
+      if (tem("berserker") && run.hp < hpMax * 0.5) atk *= 1.5;
+      return { atk, hpMax, def, crit: Math.min(crit, 1), esq: Math.min(esq, 0.6), critMult: run.critMult };
+    }
+
+    // ========================================================
+    // 6. DIÁRIO E EFEITOS VISUAIS
+    // ========================================================
+    function log(texto, tipo = "") {
+      registro.unshift({ texto, tipo });
+      registro.length = Math.min(registro.length, 80);
+    }
+    const fx = (alvo, texto, tipo) => fila.push({ alvo, texto, tipo });
+
+    function processarFila() {
+      fila.forEach((f, i) => {
+        const el = f.alvo === "inimigo" ? document.querySelector(".inimigo-emoji") : document.querySelector(".heroi-emoji");
+        if (!el) return;
+        const r = el.getBoundingClientRect();
+        const d = document.createElement("div");
+        d.className = "flutua " + f.tipo;
+        d.textContent = f.texto;
+        d.style.left = (r.left + r.width / 2 + R(-30, 30)) + "px";
+        d.style.top = (r.top + r.height * 0.2 + i * 6) + "px";
+        document.body.appendChild(d);
+        setTimeout(() => d.remove(), 1000);
+        if (f.tipo === "dano" || f.tipo === "crit") {
+          el.classList.remove("treme"); void el.offsetWidth; el.classList.add("treme");
+          if (f.alvo === "heroi") { const p = $("p-heroi"); p.classList.remove("flash"); void p.offsetWidth; p.classList.add("flash"); }
+        }
+      });
+      fila = [];
+    }
+
+    // ========================================================
+    // 7. EXPEDIÇÃO
+    // ========================================================
+    function novaExpedicao(inicio = 1) {
+      run = {
+        andar: inicio, inicio,
+        hpMax: 50 + 10 * nivelG("vigor"), atk: 6 + nivelG("forca"), def: nivelG("armadura"),
+        crit: 0.05 + 0.02 * nivelG("precisao"), critMult: 1.75, esquiva: 0.03 + 0.015 * nivelG("agilidade"),
+        pocoes: 1 + nivelG("alquimia"), ouro: 0, nivel: 1, xp: 0,
+        reliquias: [], abates: 0, elites: 0, dragoes: 0, escamas: 0,
+        fase: "escolha", opcoes: [], inimigo: null, cd: 0, bloqueio: 0, veneno: 0,
+        fenixUsada: false, niveisPend: 0, cartas: null, escolhaReliq: null, evento: null, loja: null, resultado: null,
+      };
+      run.hp = run.hpMax;
+      registro = [];
+      log(`🔥 Você acende a tocha e desce à masmorra${inicio > 1 ? ` pelo atalho até o andar ${inicio}` : ""}.`, "sist");
+      if (nivelG("bencao")) ganharReliquia(reliquiaAleatoria(), "A Bênção do Templo concede");
+      // Atalho do mapa: compensa os andares pulados
+      const pulos = Math.floor((inicio - 1) / 10);
+      for (let i = 0; i < pulos; i++) {
+        ganharReliquia(reliquiaAleatoria(), "Você encontra no caminho");
+        for (let k = 0; k < 4; k++) { run.nivel++; aplicarCarta(sortear(["atk", "hp", "atk", "hp", "def"]), true); }
+        run.ouro += 60;
+      }
+      run.hp = H().hpMax;
+      gerarOpcoes();
+      meta.expedicoes++;
+      tela(); salvar();
+    }
+
+    function reliquiaAleatoria(qtd = 1) {
+      const livres = Object.keys(RELIQUIAS).filter(id => !run.reliquias.includes(id));
+      const lista = embaralhar(livres).slice(0, qtd);
+      return qtd === 1 ? lista[0] : lista;
+    }
+    function ganharReliquia(id, frase = "Você obtém") {
+      if (!id) return;
+      run.reliquias.push(id);
+      const r = RELIQUIAS[id];
+      if (r.mod && r.mod.hp) run.hp += r.mod.hp;
+      log(`${r.emoji} ${frase}: ${r.nome}!`, "epico");
+    }
+
+    // ---- Salas ----
+    const SALAS = {
+      combate:  { emoji: "⚔️", nome: "Combate" },
+      elite:    { emoji: "💀", nome: "Elite" },
+      tesouro:  { emoji: "💰", nome: "Tesouro" },
+      fogueira: { emoji: "🔥", nome: "Fogueira", dica: "Descanse ou prepare-se." },
+      mercador: { emoji: "🛒", nome: "Mercador", dica: "Gaste seu ouro." },
+      evento:   { emoji: "❓", nome: "Desconhecido", dica: "Algo estranho aguarda..." },
+      chefe:    { emoji: "🐉", nome: "Covil do Dragão" },
+    };
+
+    function criarInimigo(tpl, rank) {
+      const m = escala(run.andar);
+      let hp = tpl.hp * m, atk = tpl.atk * m;
+      if (rank === "elite") { hp *= 1.7; atk *= 1.25; }
+      return {
+        nome: tpl.nome + (rank === "elite" ? " Campeão" : ""), emoji: tpl.emoji, filtro: tpl.filtro || "",
+        hp: Math.round(hp), hpMax: Math.round(hp), atk: Math.max(1, Math.round(atk)),
+        acoes: tpl.acoes, esquiva: tpl.esquiva || 0, rank,
+        bloqueio: 0, veneno: 0, furia: 0, intencao: null, primeiroAtaque: true,
+      };
+    }
+    function criarSala(tipo) {
+      const b = biomaDo(run.andar);
+      const sala = { tipo };
+      if (tipo === "combate") sala.inimigo = criarInimigo(sortear(b.inimigos), "normal");
+      if (tipo === "elite") sala.inimigo = criarInimigo(sortear(b.inimigos), "elite");
+      if (tipo === "chefe") sala.inimigo = criarInimigo(b.chefe, "chefe");
+      return sala;
+    }
+    function gerarOpcoes() {
+      const f = run.andar;
+      run.fase = "escolha";
+      if (f % 10 === 0) { run.opcoes = [criarSala("chefe")]; return; }
+      const pesos = { combate: 45, evento: 15, tesouro: 9, fogueira: 10 };
+      if (f >= 2) pesos.mercador = 8;
+      if (f >= 3) pesos.elite = 13;
+      const ops = [];
+      let tentativas = 0;
+      while (ops.length < 3 && tentativas++ < 100) {
+        const t = sortearPeso(pesos);
+        if (ops.filter(o => o.tipo === t).length >= (t === "combate" ? 2 : 1)) continue;
+        ops.push(criarSala(t));
+      }
+      if (f % 10 === 9 && !ops.some(o => o.tipo === "fogueira")) ops[2] = criarSala("fogueira");
+      run.opcoes = ops;
+    }
+
+    function escolherSala(i) {
+      const s = run.opcoes[i];
+      if (!s || run.fase !== "escolha") return;
+      if (s.inimigo) return iniciarCombate(s.inimigo);
+      if (s.tipo === "tesouro") return abrirTesouro();
+      if (s.tipo === "fogueira") { run.fase = "fogueira"; log("🔥 Você encontra uma fogueira crepitante.", "sist"); }
+      if (s.tipo === "mercador") { run.loja = gerarLoja(); run.fase = "loja"; log("🛒 Um mercador encapuzado abre sua mochila.", "sist"); }
+      if (s.tipo === "evento") { run.evento = sortear(Object.keys(EVENTOS)); run.fase = "evento"; }
+      tela(); salvar();
+    }
+
+    // ========================================================
+    // 8. COMBATE POR TURNOS
+    // ========================================================
+    const atkInimigo = e => e.atk * (1 + 0.2 * e.furia);
+
+    function escolherIntencao(e) {
+      let t = sortearPeso(e.acoes);
+      if (t === "cura" && e.hp > e.hpMax * 0.6) t = "atk";
+      if (t === "defesa" && e.bloqueio > 0) t = "atk";
+      const a = atkInimigo(e);
+      const it = { tipo: t };
+      if (t === "atk") it.dano = Math.round(a);
+      if (t === "pesado") it.dano = Math.round(a * 2.2);
+      if (t === "multi") { it.golpes = Math.random() < 0.5 ? 2 : 3; it.dano = Math.max(1, Math.round(a * 0.6)); }
+      if (t === "defesa") it.bloq = Math.round(a * 1.5);
+      if (t === "veneno") { it.dano = Math.max(1, Math.round(a * 0.5)); it.pilhas = Math.max(2, Math.round(a * 0.4)); }
+      if (t === "cura") it.cura = Math.round(e.hpMax * 0.2);
+      if (t === "sopro") it.dano = Math.round(a * 2.8);
+      e.intencao = it;
+    }
+    function descreverIntencao(it) {
+      switch (it.tipo) {
+        case "atk":    return { txt: `⚔️ Atacar: ${it.dano}`, perigo: false };
+        case "pesado": return { txt: `⚠️ Golpe pesado: ${it.dano}`, perigo: true };
+        case "multi":  return { txt: `🗡️ ${it.golpes} golpes de ${it.dano}`, perigo: false };
+        case "defesa": return { txt: `🛡️ Vai se defender (+${it.bloq})`, perigo: false };
+        case "veneno": return { txt: `☠️ Veneno: ${it.dano} + ${it.pilhas} de veneno`, perigo: false };
+        case "cura":   return { txt: `💚 Vai se curar (+${it.cura})`, perigo: false };
+        case "furia":  return { txt: `💢 Vai se enfurecer (+20% ataque)`, perigo: false };
+        case "sopro":  return { txt: `🔥 SOPRO DE DRAGÃO: ${it.dano} (ignora defesa)`, perigo: true };
+      }
+    }
+
+    function iniciarCombate(e) {
+      run.inimigo = e;
+      run.cd = 0; run.bloqueio = 0;
+      run.fase = "combate";
+      escolherIntencao(e);
+      if (e.rank === "chefe") log(`🐉 O chão treme... ${e.nome} desperta!`, "epico");
+      else log(`${e.emoji} ${e.nome} bloqueia o caminho!`, "sist");
+      tela(); salvar();
+    }
+
+    function curar(v) {
+      const h = H();
+      const antes = run.hp;
+      run.hp = Math.min(h.hpMax, run.hp + Math.round(v));
+      const c = run.hp - antes;
+      if (c > 0) fx("heroi", "+" + c, "cura");
+      return c;
+    }
+
+    function danoPrevisto(mult) {
+      const h = H();
+      let d = h.atk * mult;
+      if (tem("olho") && run.inimigo && run.inimigo.rank === "chefe") d *= 2;
+      return Math.round(d);
+    }
+
+    function golpe(mult) {
+      const h = H(), e = run.inimigo;
+      if (e.esquiva && Math.random() < e.esquiva) {
+        log(`${e.nome} se esquivou!`, "sist"); fx("inimigo", "Errou", "miss"); return;
+      }
+      let d = h.atk * mult * R(0.85, 1.15);
+      const crit = Math.random() < h.crit;
+      if (crit) d *= h.critMult;
+      if (tem("olho") && e.rank === "chefe") d *= 2;
+      d = Math.max(1, Math.round(d));
+      const abs = Math.min(e.bloqueio, d);
+      e.bloqueio -= abs;
+      const real = d - abs;
+      e.hp -= real;
+      log(`${crit ? "💥 CRÍTICO! " : ""}Você causa ${real} de dano${abs ? ` (${abs} bloqueado)` : ""}.`, "bom");
+      fx("inimigo", real ? (crit ? `-${real}!` : `-${real}`) : "Bloqueado", real ? (crit ? "crit" : "dano") : "bloq");
+      if (tem("adaga")) e.veneno += 2 + Math.floor(run.andar / 4);
+      if (tem("vampiro") && real > 0) curar(real * 0.15);
+    }
+
+    function acao(tipo) {
+      if (!run || run.fase !== "combate" || ocupado) return;
+      const e = run.inimigo, h = H();
+      if (tipo === "pocao") {
+        if (run.pocoes <= 0 || run.hp >= h.hpMax) return;
+        run.pocoes--;
+        const c = curar(h.hpMax * (tem("alquimista") ? 0.6 : 0.4));
+        log(`🧪 Você bebe uma poção e recupera ${c} de vida.`, "bom");
+        tela(); salvar();
+        return; // poção não gasta o turno
+      }
+      if (tipo === "atacar") {
+        golpe(1);
+        if (tem("gemea") && e.hp > 0 && Math.random() < 0.25) { log("⚔️ Lâmina Gêmea: golpe extra!", "bom"); golpe(1); }
+      }
+      if (tipo === "habilidade") {
+        if (run.cd > 0) return;
+        log("🏹 Golpe do Caçador!", "bom");
+        golpe(tem("cristal") ? 4 : 2.5);
+        run.cd = tem("runa") ? 2 : 3;
+      }
+      if (tipo === "defender") {
+        const b = Math.round((h.atk * 0.6 + h.def * 2 + 4) * (tem("escudo") ? 1.6 : 1));
+        run.bloqueio += b;
+        log(`🛡️ Você ergue a guarda (+${b} de bloqueio).`, "sist");
+        fx("heroi", `+${b} 🛡️`, "bloq");
+      }
+      if (e.hp <= 0) return vitoria();
+      ocupado = true;
+      tela();
+      setTimeout(turnoInimigo, 480 / meta.vel);
+    }
+
+    function atingir(dano, ignoraDef) {
+      const h = H(), e = run.inimigo;
+      if (e.primeiroAtaque && tem("capa")) {
+        e.primeiroAtaque = false;
+        log("🧥 A Capa das Sombras desvia o golpe!", "bom"); fx("heroi", "Errou", "miss");
+        return false;
+      }
+      e.primeiroAtaque = false;
+      if (Math.random() < h.esq) { log("💨 Você se esquiva!", "bom"); fx("heroi", "Esquivou", "miss"); return false; }
+      let d = ignoraDef ? dano : Math.max(1, dano - h.def);
+      const abs = Math.min(run.bloqueio, d);
+      run.bloqueio -= abs;
+      d -= abs;
+      run.hp -= d;
+      log(`${e.emoji} ${e.nome} causa ${d} de dano${abs ? ` (${abs} bloqueado)` : ""}.`, "dano");
+      fx("heroi", d ? `-${d}` : "Bloqueado", d ? "dano" : "bloq");
+      if (tem("espinhos") && d + abs > 0) {
+        const r = Math.max(1, Math.round((d + abs) * 0.3));
+        e.hp -= r; fx("inimigo", `-${r} 🌵`, "dano");
+      }
+      verificarFenix();
+      return true;
+    }
+    function verificarFenix() {
+      if (run.hp <= 0 && tem("fenix") && !run.fenixUsada) {
+        run.fenixUsada = true;
+        run.hp = Math.round(H().hpMax * 0.5);
+        log("🪶 A Pena de Fênix arde em chamas! Você renasce!", "epico");
+        fx("heroi", "RENASCEU", "cura");
+      }
+    }
+
+    function turnoInimigo() {
+      ocupado = false;
+      if (!run || run.fase !== "combate") return;
+      const e = run.inimigo;
+      e.bloqueio = 0;
+      if (e.veneno > 0) {
+        e.hp -= e.veneno; fx("inimigo", `-${e.veneno} ☠️`, "ven");
+        log(`☠️ O veneno causa ${e.veneno} em ${e.nome}.`, "bom");
+        e.veneno--;
+        if (e.hp <= 0) return vitoria();
+      }
+      const it = e.intencao;
+      switch (it.tipo) {
+        case "atk": case "pesado": atingir(it.dano); break;
+        case "sopro": log(`🔥 ${e.nome} cospe fogo!`, "dano"); atingir(it.dano, true); break;
+        case "multi": for (let i = 0; i < it.golpes && run.hp > 0; i++) atingir(it.dano); break;
+        case "veneno":
+          if (atingir(it.dano)) {
+            if (tem("talisma")) log("🧿 O Talismã repele o veneno.", "bom");
+            else { run.veneno += it.pilhas; fx("heroi", `+${it.pilhas} ☠️`, "ven"); }
+          }
+          break;
+        case "defesa": e.bloqueio += it.bloq; log(`${e.emoji} ${e.nome} se protege (+${it.bloq}).`, "sist"); fx("inimigo", `+${it.bloq} 🛡️`, "bloq"); break;
+        case "cura": { const c = Math.min(it.cura, e.hpMax - e.hp); e.hp += c; log(`${e.emoji} ${e.nome} se cura em ${c}.`, "sist"); fx("inimigo", `+${c}`, "cura"); break; }
+        case "furia": e.furia++; log(`💢 ${e.nome} fica furioso!`, "dano"); fx("inimigo", "FÚRIA", "crit"); break;
+      }
+      if (run.hp <= 0) return morte();
+      if (e.hp <= 0) return vitoria();
+
+      // Fim do turno
+      run.bloqueio = 0;
+      if (run.veneno > 0) {
+        run.hp -= run.veneno; fx("heroi", `-${run.veneno} ☠️`, "ven");
+        log(`☠️ O veneno queima: -${run.veneno}.`, "dano");
+        run.veneno--;
+        verificarFenix();
+        if (run.hp <= 0) return morte();
+      }
+      if (tem("troll")) curar(Math.max(2, H().hpMax * 0.03));
+      if (run.cd > 0) run.cd--;
+      escolherIntencao(e);
+      tela(); salvar();
+    }
+
+    function vitoria() {
+      const e = run.inimigo, f = run.andar;
+      const mult = e.rank === "chefe" ? 5 : e.rank === "elite" ? 2 : 1;
+      const ouro = Math.round((6 + f * 2.5) * R(0.8, 1.2) * mult * multOuro());
+      const xp = Math.round((6 + f * 2.2) * mult * multXp());
+      run.ouro += ouro;
+      run.abates++; meta.abates++;
+      fx("inimigo", "☠", "crit");
+      if (e.rank === "chefe") {
+        const tier = f / 10;
+        run.dragoes++; meta.dragoes++;
+        run.escamas += 25 * tier;
+        meta.checkpoint = Math.max(meta.checkpoint, f);
+        log(`🐉 ${e.nome} tomba! Você arranca ${25 * tier} escamas do dragão!`, "epico");
+        curar(H().hpMax * 0.3);
+      } else {
+        run.escamas += mult === 2 ? 5 : 1;
+        if (e.rank === "elite") run.elites++;
+        log(`🏆 ${e.nome} foi derrotado!`, "bom");
+      }
+      log(`+${ouro} de ouro, +${xp} de experiência.`, "ouro");
+      run.inimigo = null; run.veneno = 0; run.bloqueio = 0; run.cd = 0;
+      ganharXp(xp);
+      if (mult > 1) run.escolhaReliq = reliquiaAleatoria(3);
+      proxFase();
+    }
+
+    function ganharXp(x) {
+      run.xp += x;
+      while (run.xp >= xpProx(run.nivel)) {
+        run.xp -= xpProx(run.nivel);
+        run.nivel++;
+        run.niveisPend++;
+        log(`⭐ Nível ${run.nivel}!`, "epico");
+      }
+    }
+
+    function morte() {
+      run.hp = 0;
+      const ganho = Math.round(run.escamas * multEscamas());
+      meta.escamas += ganho;
+      meta.totalEscamas += ganho;
+      run.ganho = ganho;
+      run.fase = "morto";
+      ocupado = false;
+      log(`💀 Você caiu no andar ${run.andar}. A guilda recupera ${ganho} escamas.`, "epico");
+      tela(); salvar();
+    }
+
+    // Resolve o que estiver pendente (níveis, relíquias) e depois desce
+    function proxFase() {
+      if (run.niveisPend > 0) { run.fase = "nivel"; run.cartas = gerarCartas(); tela(); salvar(); return; }
+      if (run.escolhaReliq && run.escolhaReliq.length) { run.fase = "reliquia"; tela(); salvar(); return; }
+      run.escolhaReliq = null;
+      descer();
+    }
+    function descer() {
+      run.escamas += 1 + Math.floor(run.andar / 5);
+      run.andar++;
+      meta.recorde = Math.max(meta.recorde, run.andar);
+      if ((run.andar - 1) % 10 === 0) log(`🌑 Você entra em: ${biomaDo(run.andar).nome}.`, "epico");
+      log(`⬇️ Você desce ao andar ${run.andar}.`, "sist");
+      gerarOpcoes();
+      tela(); salvar();
+    }
+    function resultado(emoji, titulo, texto) {
+      run.resultado = { emoji, titulo, texto };
+      run.fase = "resultado";
+      tela(); salvar();
+    }
+
+    // ========================================================
+    // 9. NÍVEIS, FOGUEIRA, TESOURO, LOJA E EVENTOS
+    // ========================================================
+    function valorCarta(id) {
+      switch (id) {
+        case "atk": return Math.max(2, Math.round(run.atk * 0.2));
+        case "hp":  return Math.max(10, Math.round(run.hpMax * 0.2));
+        case "def": return Math.max(1, Math.round(1 + run.andar * 0.25));
+      }
+    }
+    const CARTAS = {
+      atk:   { emoji: "⚔️", nome: "Braço Forte",     desc: () => `+${valorCarta("atk")} de ataque` },
+      hp:    { emoji: "❤️", nome: "Robustez",        desc: () => `+${valorCarta("hp")} de vida máxima` },
+      def:   { emoji: "🛡️", nome: "Pele de Couro",   desc: () => `+${valorCarta("def")} de defesa` },
+      crit:  { emoji: "🎯", nome: "Olhar Afiado",    desc: () => "+6% de chance de crítico" },
+      esq:   { emoji: "💨", nome: "Passos Leves",    desc: () => "+4% de esquiva" },
+      critm: { emoji: "💥", nome: "Golpe Brutal",    desc: () => "+30% de dano crítico" },
+      pocao: { emoji: "🧪", nome: "Kit de Ervas",    desc: () => "+2 poções" },
+      cura:  { emoji: "💖", nome: "Segundo Fôlego",  desc: () => "Recupera toda a vida" },
+    };
+    function gerarCartas() {
+      let ids = ["atk", "hp", "def", "crit", "esq", "critm", "pocao", "cura"];
+      if (run.esquiva >= 0.5) ids = ids.filter(i => i !== "esq");
+      if (run.crit >= 0.9) ids = ids.filter(i => i !== "crit");
+      // ataque e vida aparecem com mais frequência
+      const sorteadas = embaralhar(ids.concat(["atk", "hp"]));
+      return [...new Set(sorteadas)].slice(0, 3);
+    }
+    function aplicarCarta(id, silencioso) {
+      const v = valorCarta(id);
+      switch (id) {
+        case "atk": run.atk += v; break;
+        case "hp": run.hpMax += v; run.hp += v; break;
+        case "def": run.def += v; break;
+        case "crit": run.crit += 0.06; break;
+        case "esq": run.esquiva += 0.04; break;
+        case "critm": run.critMult += 0.3; break;
+        case "pocao": run.pocoes += 2; break;
+        case "cura": run.hp = H().hpMax; break;
+      }
+      if (!silencioso) log(`${CARTAS[id].emoji} ${CARTAS[id].nome}!`, "bom");
+    }
+    function escolherCarta(i) {
+      if (run.fase !== "nivel") return;
+      aplicarCarta(run.cartas[i]);
+      curar(H().hpMax * 0.1);
+      run.niveisPend--;
+      proxFase();
+    }
+    function escolherReliquia(i) {
+      if (run.fase !== "reliquia") return;
+      if (i >= 0) ganharReliquia(run.escolhaReliq[i], "Você escolhe");
+      run.escolhaReliq = null;
+      proxFase();
+    }
+
+    function fogueira(op) {
+      if (run.fase !== "fogueira") return;
+      const h = H();
+      if (op === 0) { const c = curar(h.hpMax * 0.35); resultado("😴", "Descanso", `Você dorme junto ao fogo e recupera ${c} de vida.`); }
+      if (op === 1) { const v = valorCarta("atk"); run.atk += v; resultado("🗡️", "Lâmina afiada", `Você afia sua espada: +${v} de ataque.`); }
+      if (op === 2) { run.pocoes += 1; resultado("🌿", "Ervas fervidas", "Você prepara uma poção com ervas da caverna. +1 poção."); }
+    }
+
+    function abrirTesouro() {
+      const f = run.andar;
+      const ouro = Math.round((15 + f * 5) * R(0.8, 1.3) * multOuro());
+      run.ouro += ouro;
+      let extra = "";
+      if (Math.random() < 0.3) { run.pocoes++; extra += " Há também uma poção!"; }
+      if (Math.random() < 0.15) { const id = reliquiaAleatoria(); if (id) { ganharReliquia(id, "No fundo do baú"); extra += ` E uma relíquia: ${RELIQUIAS[id].emoji} ${RELIQUIAS[id].nome}!`; } }
+      log(`💰 Tesouro: +${ouro} de ouro.`, "ouro");
+      resultado("💰", "Baú do tesouro", `Você encontra ${ouro} moedas de ouro.${extra}`);
+    }
+
+    function gerarLoja() {
+      const f = run.andar;
+      const itens = [
+        { id: "pocao", emoji: "🧪", nome: "Poção de Cura", desc: "Cura 40% da vida.", preco: 20 + f * 3, estoque: 2 },
+        { id: "cura",  emoji: "💖", nome: "Curandeiro", desc: "Recupera toda a vida.", preco: 30 + f * 4, estoque: 1 },
+        { id: "afiar", emoji: "🪨", nome: "Pedra de Amolar", desc: "+20% de ataque.", preco: 50 + f * 6, estoque: 1 },
+      ];
+      reliquiaAleatoria(2).forEach(id => itens.push({ id: "reliq", reliq: id, emoji: RELIQUIAS[id].emoji, nome: RELIQUIAS[id].nome, desc: RELIQUIAS[id].desc, preco: 90 + f * 10, estoque: 1 }));
+      return itens;
+    }
+    function comprar(i) {
+      const it = run.loja[i];
+      if (!it || it.estoque <= 0 || run.ouro < it.preco) return;
+      run.ouro -= it.preco;
+      it.estoque--;
+      if (it.id === "pocao") run.pocoes++;
+      if (it.id === "cura") curar(H().hpMax);
+      if (it.id === "afiar") run.atk += valorCarta("atk");
+      if (it.id === "reliq") ganharReliquia(it.reliq, "Você compra");
+      log(`🛒 Comprou: ${it.nome} (−${it.preco} de ouro).`, "ouro");
+      tela(); salvar();
+    }
+
+    // Eventos: cada opção devolve [emoji, título, texto]
+    const EVENTOS = {
+      altar: {
+        emoji: "🕯️", titulo: "Altar Sombrio",
+        texto: "Um altar de pedra negra pulsa com uma luz vermelha. Uma voz sussurra: \"Sangue por poder...\"",
+        opcoes: [
+          { txt: "Oferecer sangue (−25% da vida)", fazer: () => {
+            run.hp = Math.max(1, run.hp - Math.round(H().hpMax * 0.25));
+            const id = reliquiaAleatoria();
+            if (id) ganharReliquia(id, "O altar concede");
+            return ["🩸", "Pacto selado", id ? `Você sangra sobre o altar e recebe ${RELIQUIAS[id].emoji} ${RELIQUIAS[id].nome}.` : "O altar aceita seu sangue, mas não tem mais nada a oferecer."];
+          } },
+          { txt: "Ir embora", fazer: () => ["🚶", "Prudência", "Você se afasta do altar. Melhor não mexer com isso."] },
+        ],
+        auto: () => run.hp > H().hpMax * 0.6 ? 0 : 1,
+      },
+      fonte: {
+        emoji: "⛲", titulo: "Fonte Encantada",
+        texto: "Uma fonte de água prateada brilha no meio da sala. Moedas antigas repousam no fundo.",
+        opcoes: [
+          { txt: "Beber (cura 40%)", fazer: () => { const c = curar(H().hpMax * 0.4); return ["💧", "Água revigorante", `Você recupera ${c} de vida.`]; } },
+          { txt: "Encher frascos (+1 poção)", fazer: () => { run.pocoes++; return ["🧪", "Frasco cheio", "A água mágica vira uma poção. +1 poção."]; } },
+        ],
+        auto: () => run.hp < H().hpMax * 0.6 ? 0 : 1,
+      },
+      bau: {
+        emoji: "📦", titulo: "Baú Suspeito",
+        texto: "Um baú solitário no centro da sala. Parece valioso... talvez valioso demais.",
+        opcoes: [
+          { txt: "Abrir o baú", fazer: () => {
+            if (Math.random() < 0.5) {
+              const ouro = Math.round((40 + run.andar * 10) * multOuro());
+              run.ouro += ouro;
+              return ["💰", "Fortuna!", `O baú estava cheio: +${ouro} de ouro.`];
+            }
+            iniciarCombate(criarInimigo(MIMICO, "elite"));
+            log("📦 O baú cria dentes! É um MÍMICO!", "dano");
+            return null;
+          } },
+          { txt: "Deixar para lá", fazer: () => ["🚶", "Desconfiado", "Você contorna o baú com cuidado."] },
+        ],
+        auto: () => run.hp > H().hpMax * 0.7 ? 0 : 1,
+      },
+      ermitao: {
+        emoji: "🧙", titulo: "O Ermitão",
+        texto: "Um velho caçador de dragões aposentado vive nesta caverna. Ele tem histórias... e itens.",
+        opcoes: [
+          { txt: "Ouvir histórias (+experiência)", fazer: () => {
+            const x = Math.round(xpProx(run.nivel) * 0.7);
+            ganharXp(x);
+            return ["📜", "Sabedoria antiga", `Você aprende os pontos fracos dos dragões. +${x} de experiência.`];
+          } },
+          { txt: () => `Comprar relíquia (${60 + run.andar * 6} de ouro)`, pode: () => run.ouro >= 60 + run.andar * 6, fazer: () => {
+            run.ouro -= 60 + run.andar * 6;
+            const id = reliquiaAleatoria();
+            if (id) ganharReliquia(id, "O ermitão entrega");
+            return ["🎁", "Bom negócio", id ? `Você recebe ${RELIQUIAS[id].emoji} ${RELIQUIAS[id].nome}.` : "Ele não tem mais nada para vender."];
+          } },
+        ],
+        auto: () => 0,
+      },
+      restos: {
+        emoji: "🦴", titulo: "Restos de um Aventureiro",
+        texto: "O esqueleto de um aventureiro que não teve sorte. Sua mochila ainda parece cheia.",
+        opcoes: [
+          { txt: "Revistar a mochila", fazer: () => {
+            if (Math.random() < 0.6) {
+              const ouro = Math.round((20 + run.andar * 6) * multOuro());
+              run.ouro += ouro; run.pocoes++;
+              return ["🎒", "Achados", `Você encontra ${ouro} de ouro e uma poção.`];
+            }
+            const v = 3 + run.andar;
+            if (!tem("talisma")) run.veneno += v;
+            return ["🕷️", "Picada!", tem("talisma") ? "Uma aranha pula da mochila, mas seu Talismã o protege." : `Uma aranha venenosa pula da mochila! +${v} de veneno (será aplicado no próximo combate).`];
+          } },
+          { txt: "Dar um enterro digno (cura 15%)", fazer: () => { const c = curar(H().hpMax * 0.15); return ["⚰️", "Paz", `Você se sente em paz. +${c} de vida.`]; } },
+        ],
+        auto: () => 0,
+      },
+    };
+    function opcaoEvento(i) {
+      if (run.fase !== "evento") return;
+      const op = EVENTOS[run.evento].opcoes[i];
+      if (op.pode && !op.pode()) return;
+      const r = op.fazer();
+      if (r) resultado(...r);
+    }
+
+    // ========================================================
+    // 10. TELAS
+    // ========================================================
+    function tela() {
+      $("b-escamas").textContent = fmt(meta.escamas);
+      $("b-recorde").textContent = meta.recorde;
+      $("b-dragoes").textContent = meta.dragoes;
+      if (!run) { telaAcampamento(); return; }
+      document.documentElement.style.setProperty("--bioma", biomaDo(run.andar).cor);
+      $("p-heroi").innerHTML = htmlHeroi();
+      $("p-centro").innerHTML = htmlAndarTopo() + htmlFase();
+      $("p-lado").innerHTML = htmlRegistro();
+      requestAnimationFrame(processarFila);
+    }
+
+    function barraVida(hp, max) {
+      return `<div class="barra-vida"><i style="width:${Math.max(0, hp / max * 100)}%"></i><span>${Math.max(0, Math.ceil(hp))} / ${Math.round(max)}</span></div>`;
+    }
+
+    function htmlHeroi() {
+      const h = H();
+      const tags = [];
+      if (run.bloqueio > 0) tags.push(`<span class="tag bloq">🛡️ ${run.bloqueio}</span>`);
+      if (run.veneno > 0) tags.push(`<span class="tag ven">☠️ ${run.veneno}</span>`);
+      if (tem("berserker") && run.hp < h.hpMax * 0.5) tags.push(`<span class="tag fur">🪓 Fúria</span>`);
+      const rel = run.reliquias.map(id => `<button class="reliq-ico" data-reliq="${id}" title="${RELIQUIAS[id].nome}: ${RELIQUIAS[id].desc}">${RELIQUIAS[id].emoji}</button>`).join("");
+      return `
+        <div class="heroi-topo">
+          <div class="heroi-emoji">🧝</div>
+          <div><div class="heroi-nome">Caçador · Nv ${run.nivel}</div><div class="fraco pequeno">💰 ${fmt(run.ouro)} · 🧪 ${run.pocoes} · 💠 ${fmt(run.escamas * multEscamas())}</div></div>
+        </div>
+        ${barraVida(run.hp, h.hpMax)}
+        <div class="barra-xp" title="Experiência"><i style="width:${run.xp / xpProx(run.nivel) * 100}%"></i></div>
+        <div class="status">${tags.join("")}</div>
+        <div class="atributos">
+          <div class="atributo">⚔️ Ataque<b>${Math.round(h.atk)}</b></div>
+          <div class="atributo">🛡️ Defesa<b>${h.def}</b></div>
+          <div class="atributo">🎯 Crítico<b>${pct(h.crit)}</b></div>
+          <div class="atributo">💨 Esquiva<b>${pct(h.esq)}</b></div>
+        </div>
+        <h3>Relíquias (${run.reliquias.length})</h3>
+        <div class="reliquias">${rel || '<span class="fraco pequeno">Nenhuma ainda.</span>'}</div>
+        <div class="reliq-info" id="reliq-info"></div>`;
+    }
+
+    function htmlAndarTopo() {
+      const f = run.andar;
+      const inicioBloco = Math.floor((f - 1) / 10) * 10 + 1;
+      let trilha = "";
+      for (let i = inicioBloco; i < inicioBloco + 10; i++) {
+        trilha += `<i class="${i < f ? "feito" : i === f ? "aqui" : i % 10 === 0 ? "chefe" : ""}"></i>`;
+      }
+      const falta = 10 - ((f - 1) % 10) - 1;
+      return `<div class="andar-topo">
+        <div><div class="num">Andar ${f}</div><div class="trilha">${trilha}</div></div>
+        <div class="bioma">${biomaDo(f).nome}<br><span class="pequeno">${falta ? `🐉 Dragão em ${falta} andar${falta > 1 ? "es" : ""}` : "🐉 Covil do dragão!"}</span></div>
+      </div>`;
+    }
+
+    function htmlAuto() {
+      const chaves = [];
+      if (nivelG("escudeiro")) chaves.push(`<button class="chave ${meta.auto.combate ? "on" : ""}" data-auto="combate">🤖 Combate automático</button>`);
+      if (nivelG("batedor")) {
+        chaves.push(`<button class="chave ${meta.auto.explorar ? "on" : ""}" data-auto="explorar">🧭 Explorar sozinho</button>`);
+        chaves.push(`<button class="chave ${meta.auto.reiniciar ? "on" : ""}" data-auto="reiniciar">🔁 Recomeçar ao morrer</button>`);
+      }
+      if (!chaves.length) return "";
+      chaves.push(`<button class="chave" data-vel="1">⏩ Velocidade ×${meta.vel}</button>`);
+      return `<div class="auto-barra">${chaves.join("")}</div>`;
+    }
+
+    function htmlFase() {
+      const f = run.fase;
+      if (f === "escolha") {
+        const portas = run.opcoes.map((s, i) => {
+          const info = SALAS[s.tipo];
+          let dica = info.dica || "";
+          if (s.inimigo) dica = `${s.inimigo.emoji} ${s.inimigo.nome}<br><span class="fraco">❤️ ${s.inimigo.hp} · ⚔️ ${s.inimigo.atk}</span>`;
+          if (s.tipo === "tesouro") dica = "Ouro e, quem sabe, algo mais.";
+          return `<button class="porta ${s.tipo}" data-sala="${i}">
+            <span class="p-emoji">${info.emoji}</span>
+            <span class="p-nome">${info.nome}</span>
+            <span class="pequeno">${dica}</span>
+            <span class="tecla">[${i + 1}]</span>
+          </button>`;
+        }).join("");
+        return `<p class="fraco" style="text-align:center;margin-bottom:12px">${run.opcoes.length > 1 ? "Três passagens se abrem diante de você. Qual caminho seguir?" : "Um calor sufocante vem da última porta..."}</p>
+          <div class="portas">${portas}</div>${htmlAuto()}`;
+      }
+
+      if (f === "combate") {
+        const e = run.inimigo;
+        const it = descreverIntencao(e.intencao);
+        const tags = [];
+        if (e.bloqueio > 0) tags.push(`<span class="tag bloq">🛡️ ${e.bloqueio}</span>`);
+        if (e.veneno > 0) tags.push(`<span class="tag ven">☠️ ${e.veneno}</span>`);
+        if (e.furia > 0) tags.push(`<span class="tag fur">💢 ×${e.furia}</span>`);
+        if (e.esquiva) tags.push(`<span class="tag">💨 ${pct(e.esquiva)}</span>`);
+        const h = H();
+        const bloq = Math.round((h.atk * 0.6 + h.def * 2 + 4) * (tem("escudo") ? 1.6 : 1));
+        const multH = tem("cristal") ? 4 : 2.5;
+        const dis = ocupado ? "disabled" : "";
+        return `
+          <div class="inimigo">
+            <div class="inimigo-emoji ${e.rank === "chefe" ? "chefe" : ""}" style="filter:${e.filtro || "none"}">${e.emoji}</div>
+            <div class="inimigo-nome ${e.rank}">${e.nome}</div>
+            ${barraVida(e.hp, e.hpMax)}
+            <div class="status">${tags.join("")}</div>
+            <div class="intencao ${it.perigo ? "perigo" : ""}"><span class="rotulo">Próxima ação</span>${it.txt}</div>
+          </div>
+          <div class="acoes">
+            <button class="acao" data-acao="atacar" ${dis}><span class="a-emoji">⚔️</span><span class="a-nome">Atacar</span><span class="a-info">~${danoPrevisto(1)} de dano</span><kbd>[1]</kbd></button>
+            <button class="acao" data-acao="defender" ${dis}><span class="a-emoji">🛡️</span><span class="a-nome">Defender</span><span class="a-info">+${bloq} de bloqueio</span><kbd>[2]</kbd></button>
+            <button class="acao especial" data-acao="habilidade" ${run.cd > 0 || ocupado ? "disabled" : ""}><span class="a-emoji">🏹</span><span class="a-nome">Golpe do Caçador</span><span class="a-info">${run.cd > 0 ? `recarga: ${run.cd} turno${run.cd > 1 ? "s" : ""}` : `~${danoPrevisto(multH)} de dano`}</span><kbd>[3]</kbd></button>
+            <button class="acao" data-acao="pocao" ${run.pocoes <= 0 || run.hp >= h.hpMax || ocupado ? "disabled" : ""}><span class="a-emoji">🧪</span><span class="a-nome">Poção (${run.pocoes})</span><span class="a-info">não gasta o turno</span><kbd>[4]</kbd></button>
+          </div>${htmlAuto()}`;
+      }
+
+      if (f === "nivel") {
+        return `<div class="cena"><div class="c-emoji">⭐</div><h3>Nível ${run.nivel - run.niveisPend + 1}!</h3><p>Escolha uma bênção:</p></div>
+          <div class="cartas">${run.cartas.map((id, i) => `
+            <button class="carta" data-carta="${i}"><span class="c-emoji">${CARTAS[id].emoji}</span><span class="c-nome">${CARTAS[id].nome}</span><span>${CARTAS[id].desc()}</span><span class="tecla fraco pequeno">[${i + 1}]</span></button>`).join("")}
+          </div>${htmlAuto()}`;
+      }
+
+      if (f === "reliquia") {
+        return `<div class="cena"><div class="c-emoji">🎁</div><h3>Espólios!</h3><p>Escolha uma relíquia para levar:</p></div>
+          <div class="cartas">${run.escolhaReliq.map((id, i) => `
+            <button class="carta reliq" data-reliq-escolha="${i}"><span class="c-emoji">${RELIQUIAS[id].emoji}</span><span class="c-nome">${RELIQUIAS[id].nome}</span><span>${RELIQUIAS[id].desc}</span><span class="tecla fraco pequeno">[${i + 1}]</span></button>`).join("")}
+          </div>
+          <div class="centralizar"><button class="chave" data-reliq-escolha="-1">Pular</button></div>${htmlAuto()}`;
+      }
+
+      if (f === "fogueira") {
+        const h = H();
+        return `<div class="cena"><div class="c-emoji">🔥</div><h3>Fogueira</h3><p>O calor afasta o frio da masmorra. Você tem tempo para uma coisa só.</p></div>
+          <div class="cartas">
+            <button class="carta" data-fogo="0"><span class="c-emoji">😴</span><span class="c-nome">Descansar</span><span>Recupera ${Math.round(h.hpMax * 0.35)} de vida</span></button>
+            <button class="carta" data-fogo="1"><span class="c-emoji">🗡️</span><span class="c-nome">Afiar a espada</span><span>+${valorCarta("atk")} de ataque</span></button>
+            <button class="carta" data-fogo="2"><span class="c-emoji">🌿</span><span class="c-nome">Ferver ervas</span><span>+1 poção</span></button>
+          </div>${htmlAuto()}`;
+      }
+
+      if (f === "loja") {
+        return `<div class="cena"><div class="c-emoji">🧙‍♂️</div><h3>Mercador da Masmorra</h3><p>"Ouro brilhante, mercadoria brilhante, heh heh." Você tem <b>💰 ${fmt(run.ouro)}</b>.</p></div>
+          <div class="cartas">${run.loja.map((it, i) => `
+            <button class="carta ${it.id === "reliq" ? "reliq" : ""}" data-comprar="${i}" ${it.estoque <= 0 || run.ouro < it.preco ? "disabled" : ""}>
+              <span class="c-emoji">${it.emoji}</span><span class="c-nome">${it.nome}</span><span class="pequeno">${it.desc}</span>
+              <span class="preco">${it.estoque <= 0 ? "Esgotado" : `💰 ${it.preco}`}</span>
+            </button>`).join("")}
+          </div>
+          <div class="centralizar"><button class="botao-tocha" data-sair="1">Seguir em frente ➜</button></div>${htmlAuto()}`;
+      }
+
+      if (f === "evento") {
+        const ev = EVENTOS[run.evento];
+        return `<div class="cena"><div class="c-emoji">${ev.emoji}</div><h3>${ev.titulo}</h3><p>${ev.texto}</p></div>
+          <div class="cartas">${ev.opcoes.map((op, i) => {
+            const txt = typeof op.txt === "function" ? op.txt() : op.txt;
+            const pode = !op.pode || op.pode();
+            return `<button class="carta" data-evento="${i}" ${pode ? "" : "disabled"}><span class="c-nome">${txt}</span></button>`;
+          }).join("")}</div>${htmlAuto()}`;
+      }
+
+      if (f === "resultado") {
+        const r = run.resultado;
+        return `<div class="cena"><div class="c-emoji">${r.emoji}</div><h3>${r.titulo}</h3><p>${r.texto}</p></div>
+          <div class="centralizar"><button class="botao-tocha" data-continuar="1">Continuar ➜</button></div>${htmlAuto()}`;
+      }
+
+      if (f === "morto") {
+        return `<div class="cena"><div class="c-emoji">💀</div><h3>Você tombou no andar ${run.andar}</h3>
+          <p>Seu corpo é levado de volta à Guilda dos Caçadores. Sua história inspira os próximos.</p></div>
+          <dl class="stats" style="max-width:340px;margin:12px auto">
+            <dt>Andares descidos</dt><dd>${run.andar - run.inicio}</dd>
+            <dt>Monstros abatidos</dt><dd>${run.abates}</dd>
+            <dt>Elites derrotados</dt><dd>${run.elites}</dd>
+            <dt>Dragões caçados</dt><dd>${run.dragoes}</dd>
+            <dt>Nível alcançado</dt><dd>${run.nivel}</dd>
+            <dt>Escamas ganhas</dt><dd style="color:var(--escama)">💠 ${fmt(run.ganho)}</dd>
+          </dl>
+          <div class="centralizar"><button class="botao-tocha" data-acampamento="1">Voltar à Guilda ➜</button></div>${htmlAuto()}`;
+      }
+      return "";
+    }
+
+    function htmlRegistro() {
+      return `<h2>📜 Diário</h2><ul class="registro">${registro.map(r => `<li class="${r.tipo}">${r.texto}</li>`).join("")}</ul>`;
+    }
+
+    // ---- Acampamento (entre expedições) ----
+    function telaAcampamento() {
+      document.documentElement.style.setProperty("--bioma", "#b45309");
+      const hp = 50 + 10 * nivelG("vigor"), atk = 6 + nivelG("forca"), def = nivelG("armadura");
+      const crit = 0.05 + 0.02 * nivelG("precisao"), esq = 0.03 + 0.015 * nivelG("agilidade");
+      $("p-heroi").innerHTML = `
+        <div class="heroi-topo"><div class="heroi-emoji">🧝</div><div><div class="heroi-nome">Caçador de Dragões</div><div class="fraco pequeno">Pronto para a próxima expedição</div></div></div>
+        <div class="atributos">
+          <div class="atributo">❤️ Vida<b>${hp}</b></div>
+          <div class="atributo">⚔️ Ataque<b>${atk}</b></div>
+          <div class="atributo">🛡️ Defesa<b>${def}</b></div>
+          <div class="atributo">🧪 Poções<b>${1 + nivelG("alquimia")}</b></div>
+          <div class="atributo">🎯 Crítico<b>${pct(crit)}</b></div>
+          <div class="atributo">💨 Esquiva<b>${pct(esq)}</b></div>
+        </div>
+        <h3>Como jogar</h3>
+        <p class="pequeno fraco">Desça andar por andar escolhendo portas. Em combate, observe a <b>próxima ação</b> do inimigo: defenda-se dos golpes pesados! A cada 10 andares, um dragão guarda o caminho. Quando você cair, as <b>💠 escamas</b> da expedição voltam para a Guilda e compram melhorias permanentes.</p>`;
+
+      const upgs = GUILDA.map(u => {
+        const n = nivelG(u.id), max = n >= u.max, c = custoGuilda(u);
+        const pode = !max && meta.escamas >= c;
+        return `<button class="upg ${pode ? "pode" : ""} ${max ? "max" : ""}" data-upg="${u.id}" ${pode ? "" : "disabled"}>
+          <span class="u-emoji">${u.emoji}</span>
+          <span><b>${u.nome}</b> <span class="u-niv">${u.max > 1 ? `${n}/${u.max}` : max ? "✔" : ""}</span><br>
+          <span class="pequeno fraco">${u.desc}</span><br>
+          <span class="u-custo">${max ? "Completo" : `💠 ${fmt(c)}`}</span></span>
+        </button>`;
+      }).join("");
+
+      let partidas = `<button class="botao-tocha" data-partir="1">🔥 Descer à masmorra</button>`;
+      if (nivelG("mapa")) {
+        for (let cp = 10; cp <= meta.checkpoint; cp += 10) partidas += `<button class="botao-tocha" data-partir="${cp + 1}">🗺️ Andar ${cp + 1}</button>`;
+      }
+
+      $("p-centro").innerHTML = `
+        <h2>⚜️ Guilda dos Caçadores ⚜️</h2>
+        <div class="partidas">${partidas}</div>
+        ${htmlAuto()}
+        <h3 style="margin-top:20px">Melhorias permanentes · você tem <span style="color:var(--escama)">💠 ${fmt(meta.escamas)}</span></h3>
+        <div class="guilda">${upgs}</div>`;
+
+      $("p-lado").innerHTML = `
+        <h2>🏆 Feitos</h2>
+        <dl class="stats">
+          <dt>Andar mais fundo</dt><dd>${meta.recorde}</dd>
+          <dt>Dragões caçados</dt><dd>${meta.dragoes}</dd>
+          <dt>Monstros abatidos</dt><dd>${fmt(meta.abates)}</dd>
+          <dt>Expedições</dt><dd>${meta.expedicoes}</dd>
+          <dt>Escamas totais</dt><dd>${fmt(meta.totalEscamas)}</dd>
+        </dl>
+        <h3>💾 Progresso</h3>
+        <p class="pequeno fraco">Tudo é salvo neste navegador automaticamente, até no meio de uma expedição.</p>
+        <div class="botoes-save">
+          <button data-save="exportar">Exportar</button>
+          <button data-save="importar">Importar</button>
+          <button data-save="apagar">Apagar tudo</button>
+        </div>
+        ${registro.length ? htmlRegistro() : ""}`;
+    }
+
+    function comprarGuilda(id) {
+      const u = GUILDA.find(g => g.id === id);
+      const c = custoGuilda(u);
+      if (nivelG(id) >= u.max || meta.escamas < c) return;
+      meta.escamas -= c;
+      meta.guilda[id] = nivelG(id) + 1;
+      tela(); salvar();
+    }
+
+    function voltarAcampamento() { run = null; ocupado = false; tela(); salvar(); }
+
+    // ========================================================
+    // 11. CLIQUES E TECLADO
+    // ========================================================
+    document.getElementById("jogo").addEventListener("click", e => {
+      const b = e.target.closest("button");
+      if (!b || b.disabled) return;
+      const d = b.dataset;
+      if (d.sala !== undefined) escolherSala(+d.sala);
+      else if (d.acao) acao(d.acao);
+      else if (d.carta !== undefined) escolherCarta(+d.carta);
+      else if (d.reliqEscolha !== undefined) escolherReliquia(+d.reliqEscolha);
+      else if (d.fogo !== undefined) fogueira(+d.fogo);
+      else if (d.comprar !== undefined) comprar(+d.comprar);
+      else if (d.sair) proxFase();
+      else if (d.evento !== undefined) opcaoEvento(+d.evento);
+      else if (d.continuar) proxFase();
+      else if (d.acampamento) voltarAcampamento();
+      else if (d.partir) novaExpedicao(+d.partir);
+      else if (d.upg) comprarGuilda(d.upg);
+      else if (d.auto) { meta.auto[d.auto] = !meta.auto[d.auto]; tela(); salvar(); }
+      else if (d.vel) { meta.vel = meta.vel >= 4 ? 1 : meta.vel * 2; tela(); salvar(); }
+      else if (d.reliq) { const r = RELIQUIAS[d.reliq]; $("reliq-info").innerHTML = `<b>${r.emoji} ${r.nome}:</b> ${r.desc}`; }
+      else if (d.save) gerenciarSave(d.save);
+    });
+
+    document.addEventListener("keydown", e => {
+      if (!run || e.ctrlKey || e.metaKey || e.altKey) return;
+      const n = parseInt(e.key, 10);
+      if (!n) return;
+      const f = run.fase;
+      if (f === "combate") acao(["atacar", "defender", "habilidade", "pocao"][n - 1]);
+      else if (f === "escolha") escolherSala(n - 1);
+      else if (f === "nivel" && n <= 3) escolherCarta(n - 1);
+      else if (f === "reliquia" && n <= run.escolhaReliq.length) escolherReliquia(n - 1);
+      else if (f === "fogueira" && n <= 3) fogueira(n - 1);
+    });
+
+    // ========================================================
+    // 12. AUTOMÁTICO (Escudeiro e Batedor)
+    // ========================================================
+    function decidirCombate() {
+      const e = run.inimigo, h = H(), it = e.intencao;
+      if (run.pocoes > 0 && run.hp < h.hpMax * 0.35) return "pocao";
+      const golpes = it.tipo === "multi" ? it.golpes : 1;
+      const perigo = it.dano ? (it.tipo === "sopro" ? it.dano : Math.max(1, it.dano - h.def) * golpes) : 0;
+      if (perigo >= run.hp * 0.45 || ((it.tipo === "pesado" || it.tipo === "sopro") && perigo > h.hpMax * 0.15)) return "defender";
+      if (run.cd === 0) return "habilidade";
+      return "atacar";
+    }
+    function decidirSala() {
+      const h = H(), vida = run.hp / h.hpMax;
+      let melhor = 0, nota = -1;
+      run.opcoes.forEach((s, i) => {
+        let p = { combate: 3, tesouro: 4, evento: 2.5, mercador: run.ouro >= 60 ? 3.5 : 1, elite: vida > 0.75 ? 3.5 : 0.5, fogueira: vida < 0.6 ? 6 : 1.5, chefe: 9 }[s.tipo];
+        if (s.inimigo && s.tipo === "combate") p -= s.inimigo.hp / (h.atk * 20);
+        if (p > nota) { nota = p; melhor = i; }
+      });
+      return melhor;
+    }
+    function passoAuto() {
+      if (!run) return;
+      const f = run.fase;
+      if (f === "combate") { if (meta.auto.combate && !ocupado) acao(decidirCombate()); return; }
+      if (!meta.auto.explorar) return;
+      if (f === "escolha") escolherSala(decidirSala());
+      else if (f === "nivel") {
+        const pref = ["atk", "hp", "cura", "def", "crit", "critm", "esq", "pocao"];
+        let ids = run.cartas;
+        if (run.hp < H().hpMax * 0.4 && ids.includes("cura")) return escolherCarta(ids.indexOf("cura"));
+        escolherCarta(ids.indexOf(pref.find(p => ids.includes(p))));
+      }
+      else if (f === "reliquia") escolherReliquia(0);
+      else if (f === "fogueira") fogueira(run.hp < H().hpMax * 0.65 ? 0 : 1);
+      else if (f === "loja") {
+        const i = run.loja.findIndex(it => it.estoque > 0 && run.ouro >= it.preco && (it.id !== "cura" || run.hp < H().hpMax * 0.5));
+        if (i >= 0) comprar(i); else proxFase();
+      }
+      else if (f === "evento") opcaoEvento(EVENTOS[run.evento].auto());
+      else if (f === "resultado") proxFase();
+      else if (f === "morto" && meta.auto.reiniciar) {
+        const inicio = nivelG("mapa") && meta.checkpoint ? meta.checkpoint + 1 : 1;
+        novaExpedicao(inicio);
+      }
+    }
+    let proxAuto = 0;
+    setInterval(() => {
+      const agora = Date.now();
+      if (agora < proxAuto) return;
+      const espera = run && run.fase === "morto" ? 3000 : 750;
+      proxAuto = agora + espera / meta.vel;
+      passoAuto();
+    }, 50);
+
+    // ========================================================
+    // 13. SALVAR E CARREGAR
+    // ========================================================
+    function salvar() {
+      try { localStorage.setItem(CHAVE, JSON.stringify({ meta, run, registro: registro.slice(0, 40) })); } catch (e) { /* sem armazenamento */ }
+    }
+    function aplicar(dados) {
+      meta = Object.assign(novaMeta(), dados.meta || {});
+      meta.auto = Object.assign({ combate: false, explorar: false, reiniciar: false }, meta.auto);
+      run = dados.run || null;
+      registro = dados.registro || [];
+      if (run && run.fase === "combate" && run.inimigo && !run.inimigo.intencao) escolherIntencao(run.inimigo);
+    }
+    function gerenciarSave(op) {
+      if (op === "exportar") {
+        salvar();
+        const codigo = btoa(unescape(encodeURIComponent(JSON.stringify({ meta, run, registro }))));
+        if (navigator.clipboard) navigator.clipboard.writeText(codigo).then(() => alert("Código copiado para a área de transferência!"), () => prompt("Copie seu código:", codigo));
+        else prompt("Copie seu código:", codigo);
+      }
+      if (op === "importar") {
+        const c = prompt("Cole o código exportado:");
+        if (!c) return;
+        try { aplicar(JSON.parse(decodeURIComponent(escape(atob(c.trim()))))); tela(); salvar(); }
+        catch (e) { alert("Código inválido."); }
+      }
+      if (op === "apagar") {
+        if (!confirm("Apagar TODO o progresso da Guilda? Não dá para desfazer.")) return;
+        meta = novaMeta(); run = null; registro = [];
+        try { localStorage.removeItem(CHAVE); } catch (e) {}
+        tela();
+      }
+    }
+
+    try {
+      const txt = localStorage.getItem(CHAVE);
+      if (txt) aplicar(JSON.parse(txt));
+    } catch (e) { /* save corrompido: começa do zero */ }
+    tela();
+  })();
+  </script>
+</body>
+</html>
