@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <!-- 1) CABEÇALHO: configurações da página (não aparecem na tela) -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cotações do Dia</title>
+
+  <!-- 2) CSS: a "roupa" do site — cores, tamanhos, layout -->
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 16px;
+    }
+
+    h1 { font-size: 2rem; margin-bottom: 6px; }
+    .subtitulo { color: #94a3b8; margin-bottom: 32px; }
+
+    /* Grade de cartões: se adapta sozinha ao tamanho da tela */
+    .grade {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+      width: 100%;
+      max-width: 820px;
+    }
+
+    .cartao {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 24px;
+    }
+
+    .moeda { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+    .icone {
+      width: 40px; height: 40px; border-radius: 50%;
+      display: grid; place-items: center;
+      font-weight: 700; font-size: 1.1rem;
+    }
+    .usd .icone { background: #14532d; color: #4ade80; }
+    .eur .icone { background: #1e3a8a; color: #93c5fd; }
+    .btc .icone { background: #78350f; color: #fbbf24; }
+
+    .nome { font-weight: 600; }
+    .codigo { color: #94a3b8; font-size: 0.85rem; }
+
+    .valor { font-size: 1.9rem; font-weight: 700; margin-bottom: 8px; }
+
+    .variacao { font-size: 0.95rem; font-weight: 600; }
+    .sobe  { color: #4ade80; }
+    .desce { color: #f87171; }
+
+    .detalhes { margin-top: 12px; color: #94a3b8; font-size: 0.85rem; line-height: 1.5; }
+
+    .rodape { margin-top: 32px; color: #64748b; font-size: 0.85rem; text-align: center; }
+
+    button {
+      margin-top: 12px;
+      background: #3b82f6; color: white;
+      border: none; border-radius: 8px;
+      padding: 10px 18px; font-size: 0.95rem;
+      cursor: pointer;
+    }
+    button:hover { background: #2563eb; }
+
+    .erro { color: #f87171; }
+  </style>
+</head>
+
+<body>
+  <!-- 3) HTML: a "estrutura" — o que aparece na tela -->
+  <h1>Cotações do Dia</h1>
+  <p class="subtitulo">Dólar, Euro e Bitcoin em Reais (R$)</p>
+
+  <div class="grade">
+    <div class="cartao usd">
+      <div class="moeda">
+        <div class="icone">$</div>
+        <div><div class="nome">Dólar</div><div class="codigo">USD → BRL</div></div>
+      </div>
+      <div class="valor" id="usd-valor">Carregando…</div>
+      <div class="variacao" id="usd-var"></div>
+      <div class="detalhes" id="usd-det"></div>
+    </div>
+
+    <div class="cartao eur">
+      <div class="moeda">
+        <div class="icone">€</div>
+        <div><div class="nome">Euro</div><div class="codigo">EUR → BRL</div></div>
+      </div>
+      <div class="valor" id="eur-valor">Carregando…</div>
+      <div class="variacao" id="eur-var"></div>
+      <div class="detalhes" id="eur-det"></div>
+    </div>
+
+    <div class="cartao btc">
+      <div class="moeda">
+        <div class="icone">₿</div>
+        <div><div class="nome">Bitcoin</div><div class="codigo">BTC → BRL</div></div>
+      </div>
+      <div class="valor" id="btc-valor">Carregando…</div>
+      <div class="variacao" id="btc-var"></div>
+      <div class="detalhes" id="btc-det"></div>
+    </div>
+  </div>
+
+  <div class="rodape">
+    <div id="atualizado">Buscando cotações…</div>
+    <button onclick="buscarCotacoes()">Atualizar agora</button>
+    <p style="margin-top:12px">Fonte: AwesomeAPI · atualiza sozinho a cada 60 segundos</p>
+  </div>
+
+  <!-- 4) JAVASCRIPT: o "cérebro" — busca os dados e preenche a tela -->
+  <script>
+    // Endereço da API gratuita que devolve as cotações em formato JSON
+    const URL_API = "https://economia.awesomeapi.com.br/json/last/USD-BRL,EUR-BRL,BTC-BRL";
+
+    // Transforma 5.4321 em "R$ 5,43" (formato brasileiro)
+    function formatarReais(numero) {
+      return Number(numero).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    }
+
+    // Preenche um cartão com os dados de uma moeda
+    function preencherCartao(prefixo, dados) {
+      const variacao = Number(dados.pctChange);
+
+      document.getElementById(prefixo + "-valor").textContent = formatarReais(dados.bid);
+
+      const elVar = document.getElementById(prefixo + "-var");
+      const seta = variacao >= 0 ? "▲" : "▼";
+      elVar.textContent = `${seta} ${variacao.toFixed(2).replace(".", ",")}% hoje`;
+      elVar.className = "variacao " + (variacao >= 0 ? "sobe" : "desce");
+
+      document.getElementById(prefixo + "-det").innerHTML =
+        `Máxima: ${formatarReais(dados.high)}<br>Mínima: ${formatarReais(dados.low)}`;
+    }
+
+    // Função principal: pede os dados à API e atualiza a página
+    async function buscarCotacoes() {
+      try {
+        const resposta = await fetch(URL_API);          // faz o pedido
+        if (!resposta.ok) throw new Error("HTTP " + resposta.status);
+        const dados = await resposta.json();            // lê a resposta
+
+        preencherCartao("usd", dados.USDBRL);
+        preencherCartao("eur", dados.EURBRL);
+        preencherCartao("btc", dados.BTCBRL);
+
+        const agora = new Date().toLocaleTimeString("pt-BR");
+        document.getElementById("atualizado").textContent = "Atualizado às " + agora;
+        document.getElementById("atualizado").classList.remove("erro");
+      } catch (erro) {
+        document.getElementById("atualizado").textContent =
+          "Não consegui buscar as cotações agora. Tente novamente em instantes.";
+        document.getElementById("atualizado").classList.add("erro");
+        console.error(erro);
+      }
+    }
+
+    buscarCotacoes();                       // busca assim que a página abre
+    setInterval(buscarCotacoes, 60000);     // e repete a cada 60 segundos
+  </script>
+</body>
+</html>
