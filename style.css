@@ -150,3 +150,12 @@ button.secundario:hover { background: #475569; }
   font-size: 0.85rem;
   padding: 24px 16px 40px;
 }
+
+/* ---------- Botão e cartão Surpresa ---------- */
+.menu a.surpresa { color: #fbbf24; }
+.menu a.surpresa:hover { background: #78350f; color: #fde68a; }
+a.cartao.cartao-surpresa {
+  background: linear-gradient(135deg, #78350f, #1e293b 70%);
+  border-color: #b45309;
+}
+button:disabled { opacity: 0.5; cursor: not-allowed; }

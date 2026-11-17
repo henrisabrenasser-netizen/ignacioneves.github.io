@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Games — Canivete Suíço</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .vazio {
+      border: 2px dashed var(--borda);
+      border-radius: 16px;
+      padding: 40px 22px;
+      text-align: center;
+      color: var(--apagado);
+    }
+    .vazio .emoji { font-size: 2.4rem; opacity: 0.5; }
+  </style>
+</head>
+<body>
+  <header class="topo" id="topo"></header>
+  <script src="menu.js"></script>
+
+  <main>
+    <h1>🎮 Games</h1>
+    <p class="subtitulo">Joguinhos para passar o tempo, direto no navegador.</p>
+
+    <!--
+      Quando um jogo ficar pronto, troque um dos cartões "Em breve"
+      por um link assim:
+        <a class="cartao" href="jogo-da-velha.html">
+          <div class="emoji">❌⭕</div>
+          <h2>Jogo da Velha</h2>
+          <p>Desafie o computador.</p>
+        </a>
+    -->
+    <div class="grade" id="lista-jogos">
+      <div class="vazio"><div class="emoji">🕹️</div><p>Em breve</p></div>
+      <div class="vazio"><div class="emoji">🕹️</div><p>Em breve</p></div>
+      <div class="vazio"><div class="emoji">🕹️</div><p>Em breve</p></div>
+    </div>
+  </main>
+
+  <footer class="rodape">Os jogos estão a caminho 🚧</footer>
+</body>
+</html>

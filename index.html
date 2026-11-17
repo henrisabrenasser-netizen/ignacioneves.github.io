@@ -4,66 +4,42 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Canivete Suíço — ferramentas úteis</title>
-  <!-- Puxa o estilo compartilhado -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-  <!-- MENU: igual em todas as páginas; muda só qual link tem class="ativo" -->
-  <header class="topo">
-    <div class="topo-dentro">
-      <a href="index.html" class="logo">🔧 Canivete Suíço</a>
-      <nav class="menu">
-        <a href="index.html" class="ativo">Início</a>
-        <a href="cotacoes.html">Cotações</a>
-        <a href="clima.html">Clima</a>
-        <a href="cep.html">CEP</a>
-        <a href="feriados.html">Feriados</a>
-        <a href="senha.html">Senhas</a>
-        <a href="conta.html">Dividir conta</a>
-      </nav>
-    </div>
-  </header>
+  <!-- O menu é montado pelo menu.js -->
+  <header class="topo" id="topo"></header>
+  <script src="menu.js"></script>
 
   <main>
     <h1>Ferramentas úteis, num lugar só</h1>
     <p class="subtitulo">Escolha uma ferramenta abaixo. Tudo grátis, sem cadastro.</p>
 
-    <!-- Cada cartão é um link para uma ferramenta -->
-    <div class="grade">
-      <a class="cartao" href="cotacoes.html">
-        <div class="emoji">💵</div>
-        <h2>Cotações</h2>
-        <p>Dólar, euro e bitcoin em reais, atualizados a cada minuto.</p>
-      </a>
-      <a class="cartao" href="clima.html">
-        <div class="emoji">🌤️</div>
-        <h2>Previsão do tempo</h2>
-        <p>Temperatura agora e previsão dos próximos dias em qualquer cidade.</p>
-      </a>
-      <a class="cartao" href="cep.html">
-        <div class="emoji">📮</div>
-        <h2>Consulta de CEP</h2>
-        <p>Digite o CEP e descubra rua, bairro e cidade.</p>
-      </a>
-      <a class="cartao" href="feriados.html">
-        <div class="emoji">📅</div>
-        <h2>Feriados</h2>
-        <p>Feriados nacionais do ano e quantos dias faltam para o próximo.</p>
-      </a>
-      <a class="cartao" href="senha.html">
-        <div class="emoji">🔐</div>
-        <h2>Gerador de senhas</h2>
-        <p>Crie senhas fortes e aleatórias com um clique.</p>
-      </a>
-      <a class="cartao" href="conta.html">
-        <div class="emoji">🍻</div>
-        <h2>Dividir a conta</h2>
-        <p>Calcula a gorjeta e quanto cada um paga.</p>
-      </a>
-    </div>
+    <!-- Os cartões também são criados a partir da lista do menu.js -->
+    <div class="grade" id="grade"></div>
   </main>
 
   <footer class="rodape">Feito com HTML, CSS e JavaScript · hospedado no GitHub Pages</footer>
+
+  <script>
+    const grade = document.getElementById("grade");
+
+    // Um cartão para cada ferramenta da lista
+    grade.innerHTML = FERRAMENTAS.map(f => `
+      <a class="cartao" href="${f.arquivo}">
+        <div class="emoji">${f.emoji}</div>
+        <h2>${f.nome}</h2>
+        <p>${f.descricao}</p>
+      </a>
+    `).join("");
+
+    // E um cartão especial para a Surpresa
+    grade.innerHTML += `
+      <a class="cartao cartao-surpresa" href="#" onclick="irParaSurpresa(); return false;">
+        <div class="emoji">🎁</div>
+        <h2>Surpresa!</h2>
+        <p>Não sabe o que quer? Clique e vá para uma ferramenta aleatória.</p>
+      </a>`;
+  </script>
 </body>
 </html>

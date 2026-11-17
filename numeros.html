@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Números aleatórios — Canivete Suíço</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .bolas { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+    .bola {
+      min-width: 56px; height: 56px; padding: 0 10px;
+      border-radius: 28px; display: grid; place-items: center;
+      background: var(--destaque); color: white;
+      font-size: 1.4rem; font-weight: 700;
+      animation: aparecer 0.35s ease-out backwards;
+    }
+    /* Cada bolinha "pula" na tela */
+    @keyframes aparecer {
+      from { transform: scale(0); opacity: 0; }
+      to   { transform: scale(1); opacity: 1; }
+    }
+    .campos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .opcao { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; color: var(--texto); }
+    .atalhos { display: flex; gap: 10px; flex-wrap: wrap; }
+    .historico { list-style: none; max-height: 220px; overflow-y: auto; }
+    .historico li { padding: 6px 0; border-bottom: 1px solid var(--borda); font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <header class="topo" id="topo"></header>
+  <script src="menu.js"></script>
+
+  <main>
+    <h1>🔢 Números aleatórios</h1>
+    <p class="subtitulo">Para sorteios, rifas, amigo secreto ou decidir quem lava a louça.</p>
+
+    <div class="grade" style="align-items:start">
+      <div class="cartao">
+        <div class="campos">
+          <div><label for="minimo">De</label><input id="minimo" type="number" value="1"></div>
+          <div><label for="maximo">Até</label><input id="maximo" type="number" value="100"></div>
+          <div><label for="quantidade">Quantos</label><input id="quantidade" type="number" value="1" min="1" max="500"></div>
+        </div>
+        <label class="opcao"><input type="checkbox" id="sem-repetir" checked> Não repetir números</label>
+        <label class="opcao"><input type="checkbox" id="ordenar"> Mostrar em ordem crescente</label>
+        <button onclick="sortearNumeros()" style="margin-top:6px">🎲 Sortear</button>
+
+        <label style="margin-top:20px">Atalhos</label>
+        <div class="atalhos">
+          <button class="secundario" onclick="dado()">🎲 Dado</button>
+          <button class="secundario" onclick="moeda()">🪙 Cara ou coroa</button>
+          <button class="secundario" onclick="megaSena()">🍀 Mega-Sena</button>
+        </div>
+      </div>
+
+      <div class="cartao">
+        <div class="apagado" id="titulo-resultado">Resultado</div>
+        <div class="resultado" style="min-height:120px; display:grid; place-items:center">
+          <div class="bolas" id="bolas"><span class="apagado">Clique em Sortear</span></div>
+        </div>
+        <label style="margin-top:18px">Histórico</label>
+        <ul class="historico" id="historico"></ul>
+      </div>
+    </div>
+  </main>
+
+  <footer class="rodape">Usa crypto.getRandomValues, o sorteio seguro do navegador</footer>
+
+  <script>
+    // Número inteiro aleatório entre min e max (incluindo os dois)
+    function aleatorio(min, max) {
+      const n = new Uint32Array(1);
+      crypto.getRandomValues(n);
+      return min + (n[0] % (max - min + 1));
+    }
+
+    // Mostra os resultados como bolinhas e guarda no histórico
+    function mostrar(titulo, valores) {
+      document.getElementById("titulo-resultado").textContent = titulo;
+      document.getElementById("bolas").innerHTML = valores
+        .map((v, i) => `<div class="bola" style="animation-delay:${Math.min(i, 20) * 0.06}s">${v}</div>`)
+        .join("");
+
+      const hora = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      const item = document.createElement("li");
+      item.innerHTML = `<span class="apagado">${hora}</span> · ${titulo}: <b>${valores.join(", ")}</b>`;
+      document.getElementById("historico").prepend(item);   // o mais novo fica em cima
+    }
+
+    function mostrarErro(texto) {
+      document.getElementById("bolas").innerHTML = `<span class="erro">${texto}</span>`;
+    }
+
+    function sortearNumeros() {
+      let min = Math.round(Number(document.getElementById("minimo").value));
+      let max = Math.round(Number(document.getElementById("maximo").value));
+      const qtd = Math.round(Number(document.getElementById("quantidade").value));
+      const semRepetir = document.getElementById("sem-repetir").checked;
+      const ordenar = document.getElementById("ordenar").checked;
+
+      if (min > max) [min, max] = [max, min];               // se inverteu, a gente desinverte
+      if (qtd < 1 || qtd > 500) return mostrarErro("Escolha entre 1 e 500 números.");
+      if (semRepetir && qtd > max - min + 1)
+        return mostrarErro(`Só existem ${max - min + 1} números entre ${min} e ${max}.`);
+
+      const resultado = [];
+      if (semRepetir) {
+        // Um "Set" não aceita valores repetidos: vamos sorteando até completar
+        const usados = new Set();
+        while (usados.size < qtd) usados.add(aleatorio(min, max));
+        resultado.push(...usados);
+      } else {
+        for (let i = 0; i < qtd; i++) resultado.push(aleatorio(min, max));
+      }
+
+      if (ordenar) resultado.sort((a, b) => a - b);
+      mostrar(`${qtd} de ${min} a ${max}`, resultado);
+    }
+
+    function dado() {
+      const faces = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
+      const n = aleatorio(1, 6);
+      mostrar("Dado", [`${faces[n - 1]} ${n}`]);
+    }
+
+    function moeda() {
+      mostrar("Cara ou coroa", [aleatorio(0, 1) === 0 ? "😀 Cara" : "👑 Coroa"]);
+    }
+
+    function megaSena() {
+      const usados = new Set();
+      while (usados.size < 6) usados.add(aleatorio(1, 60));
+      const numeros = [...usados].sort((a, b) => a - b).map(n => String(n).padStart(2, "0"));
+      mostrar("Mega-Sena", numeros);
+    }
+
+    // Enter em qualquer campo também sorteia
+    document.querySelectorAll("input[type=number]").forEach(el =>
+      el.addEventListener("keydown", e => { if (e.key === "Enter") sortearNumeros(); })
+    );
+  </script>
+</body>
+</html>

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Roleta de decisões — Canivete Suíço</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .area-roleta { position: relative; width: 100%; max-width: 420px; margin: 0 auto; }
+    #roda {
+      width: 100%; height: auto; display: block;
+      /* A animação do giro: 5 segundos, começa rápido e vai freando */
+      transition: transform 5s cubic-bezier(0.15, 0.85, 0.25, 1);
+    }
+    /* A setinha fixa em cima da roleta */
+    .ponteiro {
+      position: absolute; top: -6px; left: 50%; transform: translateX(-50%);
+      width: 0; height: 0;
+      border-left: 16px solid transparent; border-right: 16px solid transparent;
+      border-top: 30px solid #f8fafc;
+      filter: drop-shadow(0 2px 3px rgba(0,0,0,.5));
+      z-index: 2;
+    }
+    textarea {
+      width: 100%; min-height: 200px; resize: vertical;
+      background: var(--fundo); color: var(--texto);
+      border: 1px solid var(--borda); border-radius: 10px;
+      padding: 11px 13px; font-size: 1rem; font-family: inherit; margin-bottom: 14px;
+    }
+    .vencedor { text-align: center; margin-top: 18px; min-height: 3rem; }
+    .acoes { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <header class="topo" id="topo"></header>
+  <script src="menu.js"></script>
+
+  <main>
+    <h1>🎡 Roleta de decisões</h1>
+    <p class="subtitulo">Escreva uma opção por linha e deixe a sorte decidir.</p>
+
+    <div class="grade" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); align-items:start">
+      <div class="cartao">
+        <div class="area-roleta">
+          <div class="ponteiro"></div>
+          <canvas id="roda" width="600" height="600"></canvas>
+        </div>
+        <div class="vencedor" id="vencedor"></div>
+        <div class="acoes">
+          <button id="botao-girar" onclick="girar()">🎯 Girar!</button>
+          <button class="secundario escondido" id="botao-remover" onclick="removerVencedor()">Tirar essa opção</button>
+        </div>
+      </div>
+
+      <div class="cartao">
+        <label for="opcoes">Opções (uma por linha)</label>
+        <textarea id="opcoes">Pizza
+Hambúrguer
+Japonês
+Churrasco
+Comida caseira
+Pastel</textarea>
+        <label>Ideias prontas</label>
+        <div class="acoes" style="justify-content:flex-start; margin-top:0">
+          <button class="secundario" onclick="usarModelo('comida')">🍕 Jantar</button>
+          <button class="secundario" onclick="usarModelo('simnao')">👍 Sim ou não</button>
+          <button class="secundario" onclick="usarModelo('filme')">🎬 Gênero de filme</button>
+          <button class="secundario" onclick="usarModelo('role')">🚶 Programa</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="rodape">A sorte usa o sorteio seguro do navegador (crypto.getRandomValues)</footer>
+
+  <script>
+    const canvas = document.getElementById("roda");
+    const ctx = canvas.getContext("2d");          // o "pincel" para desenhar no canvas
+    const campo = document.getElementById("opcoes");
+
+    const CORES = ["#3b82f6", "#ef4444", "#22c55e", "#f59e0b", "#a855f7", "#06b6d4", "#ec4899", "#84cc16"];
+
+    const MODELOS = {
+      comida: "Pizza\nHambúrguer\nJaponês\nChurrasco\nComida caseira\nPastel",
+      simnao: "Sim\nNão\nSim\nNão",
+      filme:  "Comédia\nTerror\nAção\nRomance\nFicção científica\nAnimação\nDocumentário",
+      role:   "Cinema\nParque\nShopping\nBar\nFicar em casa\nVisitar alguém\nRestaurante novo",
+    };
+
+    let rotacao = 0;        // quantos graus a roleta já girou no total
+    let girando = false;
+    let ultimoVencedor = null;
+
+    // Lê o texto e transforma em lista, ignorando linhas vazias
+    function lerOpcoes() {
+      return campo.value.split("\n").map(t => t.trim()).filter(t => t !== "");
+    }
+
+    // Sorteio seguro de 0 até max-1
+    function sortear(max) {
+      const n = new Uint32Array(1);
+      crypto.getRandomValues(n);
+      return n[0] % max;
+    }
+
+    // Desenha a roleta: uma fatia de pizza para cada opção
+    function desenhar() {
+      const opcoes = lerOpcoes();
+      const centro = canvas.width / 2;
+      const raio = centro - 8;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (opcoes.length === 0) {
+        ctx.fillStyle = "#334155";
+        ctx.beginPath(); ctx.arc(centro, centro, raio, 0, Math.PI * 2); ctx.fill();
+        return;
+      }
+
+      const fatia = (Math.PI * 2) / opcoes.length;   // tamanho de cada fatia (em radianos)
+
+      opcoes.forEach((texto, i) => {
+        const inicio = i * fatia;
+
+        // A fatia colorida
+        ctx.beginPath();
+        ctx.moveTo(centro, centro);
+        ctx.arc(centro, centro, raio, inicio, inicio + fatia);
+        ctx.closePath();
+        // Se a quantidade for ímpar, a última cor não pode ser igual à primeira
+        let cor = CORES[i % CORES.length];
+        if (i === opcoes.length - 1 && i % CORES.length === 0 && i > 0) cor = CORES[1];
+        ctx.fillStyle = cor;
+        ctx.fill();
+        ctx.strokeStyle = "#0f172a";
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        // O texto, girado para ficar no meio da fatia
+        ctx.save();
+        ctx.translate(centro, centro);
+        ctx.rotate(inicio + fatia / 2);
+        ctx.textAlign = "right";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = "white";
+        ctx.font = `bold ${opcoes.length > 10 ? 20 : 26}px system-ui, sans-serif`;
+        const curto = texto.length > 16 ? texto.slice(0, 15) + "…" : texto;
+        ctx.fillText(curto, raio - 20, 0);
+        ctx.restore();
+      });
+
+      // Bolinha no centro
+      ctx.beginPath();
+      ctx.arc(centro, centro, 34, 0, Math.PI * 2);
+      ctx.fillStyle = "#0f172a";
+      ctx.fill();
+    }
+
+    function girar() {
+      const opcoes = lerOpcoes();
+      if (girando) return;
+      if (opcoes.length < 2) {
+        document.getElementById("vencedor").innerHTML = "<p class='erro'>Coloque pelo menos 2 opções.</p>";
+        return;
+      }
+
+      girando = true;
+      document.getElementById("botao-girar").disabled = true;
+      document.getElementById("botao-remover").classList.add("escondido");
+      document.getElementById("vencedor").innerHTML = "<p class='apagado'>Girando…</p>";
+
+      // 1) Sorteamos o vencedor ANTES de girar
+      const vencedor = sortear(opcoes.length);
+      const grausFatia = 360 / opcoes.length;
+
+      // 2) Escolhemos um ponto qualquer dentro da fatia dele (não na borda)
+      const pontoNaFatia = (vencedor + 0.15 + (sortear(70) / 100)) * grausFatia;
+
+      // 3) Calculamos quanto girar para esse ponto parar embaixo da seta.
+      //    A seta fica em cima, que no canvas é o ângulo de 270°.
+      const destino = (270 - pontoNaFatia + 360) % 360;
+      const voltasExtras = 360 * (5 + sortear(3));          // 5 a 7 voltas para dar emoção
+      rotacao = rotacao - (rotacao % 360) + voltasExtras + destino;
+
+      canvas.style.transform = `rotate(${rotacao}deg)`;
+
+      // 4) Quando a animação terminar, mostramos o resultado
+      canvas.addEventListener("transitionend", () => {
+        girando = false;
+        ultimoVencedor = opcoes[vencedor];
+        document.getElementById("botao-girar").disabled = false;
+        document.getElementById("botao-remover").classList.remove("escondido");
+        document.getElementById("vencedor").innerHTML =
+          `<div class="apagado">Deu:</div><div class="grande">🎉 ${ultimoVencedor}</div>`;
+      }, { once: true });
+    }
+
+    // Tira a opção sorteada da lista (bom para sortear uma ordem)
+    function removerVencedor() {
+      const opcoes = lerOpcoes();
+      const i = opcoes.indexOf(ultimoVencedor);
+      if (i >= 0) opcoes.splice(i, 1);
+      campo.value = opcoes.join("\n");
+      document.getElementById("botao-remover").classList.add("escondido");
+      document.getElementById("vencedor").innerHTML = "";
+      desenhar();
+    }
+
+    function usarModelo(nome) {
+      campo.value = MODELOS[nome];
+      document.getElementById("vencedor").innerHTML = "";
+      desenhar();
+    }
+
+    campo.addEventListener("input", desenhar);   // redesenha enquanto você digita
+    desenhar();
+  </script>
+</body>
+</html>
