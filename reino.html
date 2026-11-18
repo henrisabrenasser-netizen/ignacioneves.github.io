@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Reino Ocioso — Canivete Suíço</title>
+  <title>Reino Ocioso: A Coroa Perdida — Canivete Suíço</title>
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -65,7 +65,7 @@
       gap: 16px;
       align-items: start;
     }
-    #p-reino { grid-area: reino; position: sticky; top: 86px; }
+    #p-reino { grid-area: reino; }
     #p-edif  { grid-area: edif; }
     #p-melh  { grid-area: melh; }
     #p-mais  { grid-area: mais; }
@@ -241,6 +241,118 @@
       .abas button:hover { background: #2a1b0e; }
       .toasts { bottom: 80px; left: 16px; right: 16px; max-width: none; }
       .melhorias { max-height: none; }
+    }
+
+    /* ==========================================================
+       NOVIDADES: estações, fervor, coletor, decretos, missões,
+       bandidos, dons de Legado e história
+       ========================================================== */
+    .estacao {
+      font-family: "Cinzel", serif; color: #f3dfa6; font-size: .92rem; line-height: 1.25;
+      background: rgba(233,181,58,.12); border: 1px solid var(--ouro-escuro); border-radius: 8px; padding: 4px 10px;
+    }
+    .estacao small { display: block; color: #cdb37a; font-family: "EB Garamond", serif; font-size: .85rem; }
+
+    .fervor { margin: 4px auto 6px; max-width: 240px; }
+    .fervor-barra { height: 12px; border-radius: 6px; background: rgba(58,39,22,.2); border: 1px solid var(--borda-p); overflow: hidden; }
+    .fervor-barra div { height: 100%; width: 0; background: linear-gradient(90deg, #e9b53a, #d9572b, #a51d1d); transition: width .1s linear; }
+    .fervor-txt { display: flex; justify-content: space-between; font-size: .85rem; color: var(--tinta-clara); }
+    .fervor.cheio .fervor-barra { box-shadow: 0 0 10px #d9572b; }
+    .valor-clique small { display: block; }
+
+    .coletor { display: grid; gap: 8px; margin: 10px 0 4px; }
+    .col-linha {
+      display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center;
+      background: rgba(255,255,255,.35); border: 1px solid var(--borda-p); border-radius: 6px; padding: 8px 10px;
+    }
+    .col-linha b { font-family: "Cinzel", serif; font-size: .92rem; }
+    .col-linha small { color: var(--tinta-clara); font-size: .85rem; line-height: 1.25; display: block; }
+    .col-botoes { display: grid; gap: 4px; justify-items: stretch; }
+    .painel button.mini {
+      background: var(--musgo); color: #fff6d8; font-family: inherit; font-weight: 600; font-size: .88rem;
+      padding: 5px 10px; border-radius: 6px; white-space: nowrap;
+    }
+    .painel button.mini:hover:not(:disabled) { background: #4d8234; }
+    .painel button.mini.leve { background: transparent; color: var(--tinta); border: 1px solid var(--borda-p); padding: 2px 8px; font-size: .8rem; }
+
+    .decretos { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .decreto {
+      display: grid; justify-items: center; gap: 1px; text-align: center; padding: 6px 4px;
+      background: rgba(122,31,31,.12); color: var(--tinta); border: 1px solid var(--vinho); border-radius: 6px;
+      font-family: inherit; font-weight: 400; font-size: .85rem; line-height: 1.15;
+    }
+    .decreto:hover:not(:disabled) { background: rgba(122,31,31,.25); }
+    .decreto.pronto { box-shadow: inset 0 0 0 2px var(--ouro); background: rgba(233,181,58,.25); }
+    .decreto:disabled { opacity: .55; cursor: default; }
+    .decreto .d-emoji { font-size: 1.5rem; }
+    .decreto .d-nome { font-family: "Cinzel", serif; font-weight: 800; font-size: .8rem; }
+    .decreto .d-desc { color: var(--tinta-clara); font-size: .78rem; }
+    .decreto .d-cd { font-weight: 600; color: var(--vinho); font-size: .8rem; }
+    .efeito.festa { background: #8a5a07; }
+    .efeito.coleta { background: #4b3a7a; }
+
+    .missoes { display: grid; gap: 8px; margin-bottom: 6px; }
+    .missao {
+      display: grid; grid-template-columns: 34px 1fr auto; gap: 8px; align-items: center;
+      background: rgba(255,255,255,.35); border: 1px solid var(--borda-p); border-radius: 6px; padding: 8px 10px; font-size: .95rem;
+    }
+    .missao.feita { border-color: var(--musgo); box-shadow: inset 4px 0 0 var(--musgo); background: rgba(63,107,42,.15); }
+    .missao .mi-emoji { font-size: 1.5rem; text-align: center; }
+    .missao .mi-barra { height: 7px; background: rgba(58,39,22,.18); border-radius: 4px; overflow: hidden; margin-top: 3px; }
+    .missao .mi-barra div { height: 100%; background: var(--musgo); width: 0; }
+    .missao small { color: var(--tinta-clara); }
+    .missoes-info { font-size: .85rem; color: var(--tinta-clara); text-align: center; }
+
+    .bandido {
+      position: fixed; z-index: 55; padding: 6px 10px 4px; line-height: 1; text-align: center;
+      background: rgba(30, 10, 10, .85); border: 2px solid #b33; border-radius: 12px; color: #ffd9d9;
+      font-family: "Cinzel", serif; font-size: .75rem;
+      filter: drop-shadow(0 0 12px rgba(220, 40, 40, .8));
+      animation: espreita 1.2s infinite alternate ease-in-out;
+    }
+    .bandido:hover { background: rgba(70, 15, 15, .9); }
+    .bandido .b-emoji { font-size: 2.6rem; display: block; }
+    .bandido .b-vida { display: block; height: 6px; background: #400; border-radius: 3px; margin-top: 4px; overflow: hidden; }
+    .bandido .b-vida i { display: block; height: 100%; background: #e33; transition: width .1s; }
+    .bandido.golpe { animation: golpe .15s; }
+    @keyframes espreita { from { transform: translateX(-6px); } to { transform: translateX(6px); } }
+    @keyframes golpe { 50% { transform: scale(.85) rotate(-8deg); } }
+
+    .flutua.crit { color: #ff8a5c; font-size: 1.7rem; }
+
+    .dons { display: grid; gap: 6px; margin-top: 8px; }
+    .dom {
+      display: grid; grid-template-columns: 32px 1fr auto; gap: 8px; align-items: center; text-align: left;
+      background: rgba(255,255,255,.35); color: var(--tinta); border: 1px solid var(--borda-p); border-radius: 6px;
+      padding: 6px 10px; font-family: inherit; font-weight: 400; font-size: .9rem; line-height: 1.2;
+    }
+    .dom:hover:not(:disabled) { background: rgba(255,255,255,.6); }
+    .dom .dm-emoji { font-size: 1.4rem; text-align: center; }
+    .dom b { font-family: "Cinzel", serif; font-size: .85rem; }
+    .dom.tem { border-color: var(--musgo); background: rgba(63,107,42,.15); }
+    .dom.pode { border-color: var(--ouro-escuro); box-shadow: inset 4px 0 0 var(--ouro); }
+    .dom:disabled { cursor: default; }
+    .dom:disabled:not(.tem) { opacity: .6; }
+    .dom .dm-custo { font-weight: 600; white-space: nowrap; }
+
+    .capitulos { display: flex; flex-wrap: wrap; gap: 6px; }
+
+    .modal { position: fixed; inset: 0; z-index: 90; background: rgba(10,6,2,.75); display: grid; place-items: center; padding: 16px; }
+    .modal.escondido { display: none; }
+    .pergaminho {
+      max-width: 520px; width: 100%; text-align: center;
+      background: radial-gradient(ellipse at center, var(--pergaminho) 55%, var(--pergaminho-2) 100%);
+      color: var(--tinta); border: 6px double var(--borda-p); border-radius: 8px; padding: 22px 22px 18px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.6); animation: entra .35s ease-out;
+    }
+    .pergaminho .p-selo { font-size: 2.6rem; }
+    .pergaminho h2 { font-family: "Cinzel", serif; color: var(--vinho); font-size: 1.25rem; margin: 4px 0 12px; }
+    .pergaminho p { font-size: 1.08rem; line-height: 1.55; text-align: left; margin-bottom: 10px; }
+    .pergaminho p.novidade { font-style: italic; color: var(--musgo); text-align: center; }
+    .pergaminho button.acao { width: auto; padding: 9px 28px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .bandido { animation: none; }
     }
   </style>
 </head>
