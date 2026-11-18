@@ -11,217 +11,406 @@
   <style>
     /* ==========================================================
        CAÇADOR DE DRAGÕES — roguelike por turnos + incremental
-       Tudo deste jogo (estilo e lógica) mora neste arquivo.
+       Estilo e lógica moram neste arquivo; a arte (sprites SVG,
+       cenários e portas) mora em masmorra-arte.js.
        ========================================================== */
     :root {
-      --pedra: #121417;
-      --painel: #1c1f25;
-      --painel-2: #252932;
-      --linha: #3a404b;
-      --texto-m: #e7e2d6;
-      --fraco: #9aa0aa;
+      --pedra: #0e0f12;
+      --painel: #17191e;
+      --painel-2: #20232a;
+      --painel-3: #2a2e37;
+      --linha: #343a45;
+      --texto-m: #ece6d8;
+      --fraco: #a3a9b4;
       --tocha: #f59e0b;
       --tocha-2: #fbbf24;
+      --ouro: #e0a82e;
       --sangue: #dc2626;
       --escudo: #60a5fa;
       --veneno: #4ade80;
       --escama: #22d3ee;
       --roxo: #a78bfa;
-      --bioma: #4b5563;
+      --bioma: #b45309;
+      --perigo: 0;
+      --vel: 1;
+      --cor-tocha: #f59e0b;
+      --nevoa: 200,190,170;
+      --r-comum: #9ca3af;
+      --r-rara: #60a5fa;
+      --r-epica: #c084fc;
+      --r-lendaria: #fbbf24;
     }
 
     body.masmorra {
       background:
+        radial-gradient(ellipse at 50% -10%, #2a2116 0%, transparent 60%),
         linear-gradient(rgba(0,0,0,.35) 1px, transparent 1px) 0 0 / 64px 32px,
-        linear-gradient(90deg, rgba(0,0,0,.35) 1px, transparent 1px) 0 0 / 64px 64px,
-        radial-gradient(ellipse at 50% 0%, #2a2116 0%, var(--pedra) 60%) fixed;
-      background-color: var(--pedra);
+        linear-gradient(90deg, rgba(0,0,0,.3) 1px, transparent 1px) 0 0 / 64px 64px,
+        var(--pedra);
       font-family: "Alegreya", Georgia, serif;
       font-size: 17px;
       color: var(--texto-m);
     }
     body.masmorra .topo { position: static; background: #0b0c0e; border-bottom: 2px solid #5a3b10; }
     body.masmorra .menu a.ativo { background: #7c2d12; }
-
     h2, h3, .cinzel { font-family: "Cinzel", Georgia, serif; }
+    .spr { display: block; width: 100%; height: 100%; overflow: visible; }
+    kbd { font-family: inherit; }
 
-    #jogo { max-width: 1280px; margin: 0 auto; padding: 14px 16px 48px; }
+    #jogo { max-width: 1320px; margin: 0 auto; padding: 14px 16px 48px; }
 
+    /* ---------- Barra do topo ---------- */
     .barra {
       display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
       background: linear-gradient(#1d1a15, #121110);
       border: 1px solid #5a3b10; border-radius: 10px;
-      padding: 10px 16px; margin-bottom: 16px;
+      padding: 8px 16px; margin-bottom: 14px;
       box-shadow: 0 0 30px rgba(245,158,11,.08);
     }
-    .barra .titulo { font-family: "Cinzel", serif; font-weight: 800; font-size: 1.3rem; color: var(--tocha-2); margin-right: auto; text-shadow: 0 0 12px rgba(245,158,11,.45); }
-    .barra .item { color: var(--fraco); font-size: .95rem; }
+    .barra .titulo { display: flex; align-items: center; gap: 10px; font-family: "Cinzel", serif; font-weight: 800; font-size: 1.3rem; color: var(--tocha-2); margin-right: auto; text-shadow: 0 0 12px rgba(245,158,11,.45); }
+    .barra .titulo .spr { width: 34px; height: 34px; }
+    .barra .item { display: flex; align-items: center; gap: 6px; color: var(--fraco); font-size: .95rem; }
+    .barra .item .spr { width: 22px; height: 22px; }
     .barra .item b { color: var(--texto-m); font-size: 1.1rem; }
     .barra .item.esc b { color: var(--escama); }
+    .btn-debug { background: none; border: 1px dashed #4b5160; color: #6b7280; font-size: .78rem; padding: 3px 9px; font-weight: 600; font-family: inherit; letter-spacing: .05em; }
+    #jogo .btn-debug:hover { color: #c4b5fd; border-color: #7e22ce; background: none; }
+    .btn-debug.ativos { color: #d8b4fe; border-color: #a855f7; border-style: solid; }
+    body.em-run .so-menu { display: none !important; }
 
-    .mesa { display: grid; grid-template-columns: 290px 1fr 300px; gap: 16px; align-items: start; }
-
+    /* ---------- Mesa: 3 colunas, central com largura estável ---------- */
+    .mesa { display: grid; grid-template-columns: 270px minmax(0, 1fr) 280px; gap: 16px; align-items: start; }
     .painel {
-      background: linear-gradient(180deg, var(--painel), #17191e);
-      border: 1px solid var(--linha); border-radius: 10px;
-      padding: 16px;
+      background: linear-gradient(180deg, var(--painel), #131519);
+      border: 1px solid var(--linha); border-radius: 12px;
+      padding: 14px;
       box-shadow: 0 10px 30px rgba(0,0,0,.45);
     }
-    .painel h2 { font-size: 1.05rem; color: var(--tocha-2); letter-spacing: .05em; margin-bottom: 12px; text-align: center; }
-    .painel h3 { font-size: .9rem; color: var(--tocha); margin: 14px 0 8px; letter-spacing: .04em; }
+    .titulo-painel { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 1rem; color: var(--tocha-2); letter-spacing: .06em; margin-bottom: 10px; }
+    .titulo-painel .spr, .sub .spr { width: 22px; height: 22px; }
+    .sub { display: flex; align-items: center; gap: 6px; font-size: .88rem; color: var(--tocha); margin: 14px 0 8px; letter-spacing: .05em; }
+    .sub small { color: var(--fraco); font-family: "Alegreya", serif; letter-spacing: 0; font-size: .9rem; }
     .fraco { color: var(--fraco); }
-    .pequeno { font-size: .88rem; }
+    .pequeno { font-size: .9rem; }
 
-    /* ---------- Herói ---------- */
-    .heroi-topo { display: flex; align-items: center; gap: 12px; }
-    .heroi-emoji { font-size: 3rem; line-height: 1; filter: drop-shadow(0 0 10px rgba(245,158,11,.35)); }
-    .heroi-nome { font-family: "Cinzel", serif; font-weight: 800; font-size: 1.1rem; }
-    .barra-vida { position: relative; height: 22px; background: #2b1416; border: 1px solid #5b1d1d; border-radius: 6px; overflow: hidden; margin: 10px 0 4px; }
-    .barra-vida > i { position: absolute; inset: 0 auto 0 0; background: linear-gradient(#ef4444, #b91c1c); transition: width .3s; }
-    .barra-vida > span { position: relative; display: block; text-align: center; font-weight: 700; font-size: .9rem; line-height: 20px; text-shadow: 0 1px 2px #000; }
-    .barra-xp { height: 8px; background: #1f2530; border-radius: 4px; overflow: hidden; }
-    .barra-xp > i { display: block; height: 100%; background: linear-gradient(90deg, #a78bfa, #7c3aed); transition: width .3s; }
-    .status { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; min-height: 24px; }
-    .tag { font-size: .82rem; font-weight: 700; padding: 2px 8px; border-radius: 20px; background: var(--painel-2); border: 1px solid var(--linha); }
-    .tag.bloq { color: var(--escudo); border-color: #1e3a5f; }
-    .tag.ven { color: var(--veneno); border-color: #14532d; }
-    .tag.fur { color: #f87171; border-color: #7f1d1d; }
-    .atributos { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 10px; }
-    .atributo { background: var(--painel-2); border: 1px solid var(--linha); border-radius: 8px; padding: 6px 8px; font-size: .9rem; }
-    .atributo b { display: block; font-size: 1.1rem; }
+    /* ---------- Painel do herói ---------- */
+    .heroi-topo { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+    .retrato {
+      width: 62px; height: 62px; flex: none; border-radius: 12px; overflow: hidden;
+      background: radial-gradient(circle at 50% 35%, #3a2a1a, #120d09);
+      border: 2px solid #7a5a1c; box-shadow: 0 0 14px rgba(245,158,11,.25);
+    }
+    .heroi-nome { font-family: "Cinzel", serif; font-weight: 800; font-size: 1.1rem; line-height: 1.2; }
+    .nivel-selo { display: inline-block; margin-top: 3px; padding: 1px 10px; border-radius: 20px; background: #2e1f4f; border: 1px solid #6d28d9; color: #ddd6fe; font-family: "Cinzel", serif; font-size: .8rem; font-weight: 800; }
+
+    .barra-st {
+      position: relative; height: 26px; border-radius: 7px; overflow: hidden; margin-bottom: 7px;
+      background: #1a0c0d; border: 1px solid #000; box-shadow: inset 0 2px 6px rgba(0,0,0,.6);
+    }
+    .barra-st > i { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 6px 0 0 6px; }
+    .barra-st > .rastro { background: #fde68a; opacity: .75; transition: width calc(.6s / var(--vel)) ease-out; }
+    .barra-st > .cheio { transition: width calc(.35s / var(--vel)) ease-out; }
+    .barra-st > .cheio::after { content: ""; position: absolute; inset: 0 0 50% 0; background: linear-gradient(rgba(255,255,255,.28), rgba(255,255,255,.04)); }
+    .barra-st > span { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 6px; height: 100%; font-weight: 700; font-size: .92rem; text-shadow: 0 1px 2px #000, 0 0 4px #000; }
+    .barra-st > span .spr { width: 16px; height: 16px; }
+    .barra-st.vida > .cheio { background: linear-gradient(#f05252, #b91c1c 60%, #8f1515); box-shadow: 0 0 10px rgba(239,68,68,.55); }
+    .barra-st.xp { height: 18px; background: #140f22; }
+    .barra-st.xp > .cheio { background: linear-gradient(#a78bfa, #7c3aed); box-shadow: 0 0 8px rgba(139,92,246,.6); }
+    .barra-st.xp > .rastro { background: #ddd6fe; }
+    .barra-st.xp > span { font-size: .8rem; }
+    .barra-st.inimigo { height: 22px; }
+    .barra-st.inimigo > .cheio { background: linear-gradient(#f97316, #c2410c 55%, #7f1d1d); box-shadow: 0 0 10px rgba(249,115,22,.5); }
+
+    .status { display: flex; gap: 6px; flex-wrap: wrap; }
+    .status:empty { display: none; }
+    .tag { display: inline-flex; align-items: center; gap: 4px; font-size: .85rem; font-weight: 700; padding: 2px 9px 2px 5px; border-radius: 20px; background: rgba(20,22,27,.85); border: 1px solid var(--linha); }
+    .tag .spr { width: 16px; height: 16px; }
+    .tag.bloq { color: #93c5fd; border-color: #1e3a8a; box-shadow: 0 0 8px rgba(96,165,250,.35); }
+    .tag.ven { color: var(--veneno); border-color: #14532d; box-shadow: 0 0 8px rgba(74,222,128,.3); }
+    .tag.fur { color: #fca5a5; border-color: #7f1d1d; }
+
+    .recursos { display: flex; gap: 6px; margin: 8px 0; }
+    .recurso { flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; background: var(--painel-2); border: 1px solid var(--linha); border-radius: 8px; padding: 4px 6px; font-weight: 700; font-size: .95rem; }
+    .recurso .spr { width: 20px; height: 20px; flex: none; }
+    .recurso.esc { color: var(--escama); }
+    .atributos { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .atributo { display: flex; align-items: center; gap: 8px; background: var(--painel-2); border: 1px solid var(--linha); border-radius: 8px; padding: 5px 8px; font-size: .85rem; color: var(--fraco); line-height: 1.15; }
+    .atributo .spr { width: 24px; height: 24px; flex: none; }
+    .atributo b { display: block; color: var(--texto-m); font-size: 1.08rem; }
     .reliquias { display: flex; flex-wrap: wrap; gap: 6px; }
-    .reliq-ico { width: 40px; height: 40px; display: grid; place-items: center; font-size: 1.4rem; padding: 0; background: var(--painel-2); border: 1px solid #5a3b10; border-radius: 8px; cursor: help; }
-    .reliq-ico:hover { background: #3a2f1c; }
-    .reliq-info { min-height: 1.4em; margin-top: 6px; font-size: .9rem; color: var(--fraco); }
+    .reliq-ico {
+      position: relative; width: 42px; height: 42px; padding: 5px;
+      background: radial-gradient(circle at 50% 35%, #2c2a33, #17161b); border: 2px solid var(--r-comum); border-radius: 9px; cursor: help;
+    }
+    #jogo .reliq-ico:hover, .reliq-ico:focus-visible { background: radial-gradient(circle at 50% 35%, #3a3644, #1d1b22); }
+    .reliq-ico.r-rara { border-color: var(--r-rara); }
+    .reliq-ico.r-epica { border-color: var(--r-epica); box-shadow: 0 0 8px rgba(192,132,252,.35); }
+    .reliq-ico.r-lendaria { border-color: var(--r-lendaria); box-shadow: 0 0 10px rgba(251,191,36,.45); }
+    .reliq-ico .tip {
+      position: absolute; left: 0; bottom: calc(100% + 8px); z-index: 30; width: 220px; text-align: left;
+      background: #0f1014; border: 1px solid var(--linha); border-radius: 8px; padding: 8px 10px;
+      font-size: .88rem; font-weight: 400; color: var(--texto-m); line-height: 1.35;
+      box-shadow: 0 8px 20px rgba(0,0,0,.6); pointer-events: none;
+      opacity: 0; transform: translateY(4px); transition: opacity .12s, transform .12s;
+    }
+    .reliq-ico .tip b { display: block; font-family: "Cinzel", serif; color: var(--tocha-2); margin-bottom: 2px; }
+    .reliq-ico:hover .tip, .reliq-ico:focus-visible .tip { opacity: 1; transform: none; }
+    .reliq-info { margin-top: 6px; font-size: .9rem; color: var(--fraco); }
+    .reliq-info:empty { display: none; }
+    .reliq-info b { color: var(--texto-m); }
 
-    /* ---------- Área central ---------- */
-    .centro { border-top: 3px solid var(--bioma); }
-    .andar-topo { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; border-bottom: 1px solid var(--linha); padding-bottom: 10px; }
-    .andar-topo .num { font-family: "Cinzel", serif; font-weight: 800; font-size: 1.35rem; color: var(--tocha-2); }
-    .andar-topo .bioma { font-style: italic; color: var(--fraco); }
-    .trilha { display: flex; gap: 3px; margin-top: 4px; }
-    .trilha i { width: 14px; height: 6px; border-radius: 2px; background: #2c313a; }
+    /* ---------- Painel central ---------- */
+    .centro { padding: 0; margin: 0; max-width: none; width: 100%; overflow: hidden; border-top: 3px solid var(--bioma); }
+    /* o style.css do site pinta todo botão de azul no hover: aqui cada botão define o seu */
+    #jogo button:disabled { opacity: 1; }
+    .andar-topo { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 16px; border-bottom: 1px solid var(--linha); background: rgba(0,0,0,.25); min-height: 62px; }
+    .andar-topo .num { font-family: "Cinzel", serif; font-weight: 800; font-size: 1.35rem; color: var(--tocha-2); line-height: 1.1; }
+    .andar-topo .bioma { text-align: right; font-style: italic; color: var(--fraco); line-height: 1.3; }
+    .andar-topo .bioma b { font-style: normal; font-family: "Cinzel", serif; color: var(--texto-m); font-size: .95rem; }
+    .trilha { display: flex; align-items: center; gap: 3px; margin-top: 5px; }
+    .trilha i { width: 16px; height: 6px; border-radius: 2px; background: #2c313a; }
     .trilha i.feito { background: var(--tocha); }
-    .trilha i.chefe { background: #7f1d1d; }
-    .trilha i.aqui { background: var(--tocha-2); box-shadow: 0 0 6px var(--tocha-2); }
+    .trilha i.aqui { background: var(--tocha-2); box-shadow: 0 0 8px var(--tocha-2); }
+    .trilha .spr { width: 20px; height: 20px; opacity: .55; }
+    .trilha .spr.aqui { opacity: 1; filter: drop-shadow(0 0 6px #ef4444); }
 
-    .portas { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
-    .porta {
-      display: grid; gap: 6px; justify-items: center; text-align: center;
-      background: linear-gradient(180deg, #2a2620, #1b1915);
-      border: 2px solid #4a3b22; border-radius: 80px 80px 10px 10px;
-      padding: 26px 12px 16px; color: var(--texto-m);
-      font-family: inherit; font-weight: 400; font-size: .95rem;
-      transition: transform .12s, border-color .12s, box-shadow .12s;
+    /* Palco: cenário + personagens */
+    .palco { position: relative; height: 330px; overflow: hidden; background: #050403; isolation: isolate; }
+    .fundo, .nevoa, .perigo-veu, .camada { position: absolute; inset: 0; }
+    .fundo .cenario-svg { width: 100%; height: 100%; display: block; }
+    .nevoa { pointer-events: none; opacity: .5; mix-blend-mode: screen; }
+    .nevoa.n1 { background: radial-gradient(ellipse 40% 18% at 20% 78%, rgba(var(--nevoa), .22), transparent 70%), radial-gradient(ellipse 35% 14% at 70% 84%, rgba(var(--nevoa), .18), transparent 70%); animation: nevoa calc(26s) linear infinite alternate; }
+    .nevoa.n2 { background: radial-gradient(ellipse 30% 12% at 45% 72%, rgba(var(--nevoa), .16), transparent 70%), radial-gradient(ellipse 45% 16% at 90% 76%, rgba(var(--nevoa), .14), transparent 70%); animation: nevoa calc(34s) linear infinite alternate-reverse; }
+    .perigo-veu { pointer-events: none; background: radial-gradient(ellipse at 50% 55%, transparent 35%, rgba(120,10,10,.75) 100%); opacity: calc(var(--perigo) * .7); }
+    .palco::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 40%, transparent 50%, rgba(0,0,0,.65) 100%); z-index: 3; }
+    .tocha { position: absolute; top: 74px; width: 26px; height: 58px; z-index: 1; pointer-events: none; }
+    .tocha.t-esq { left: 9%; } .tocha.t-dir { right: 9%; }
+    .tocha::before { content: ""; position: absolute; left: 50%; top: 10px; width: 210px; height: 210px; transform: translate(-50%, -50%); background: radial-gradient(circle, color-mix(in srgb, var(--cor-tocha) 38%, transparent), transparent 65%); animation: tremeluz 2.3s ease-in-out infinite alternate; mix-blend-mode: screen; }
+    .tocha-svg { width: 100%; height: 100%; overflow: visible; position: relative; }
+    .tocha .chama { transform-origin: 20px 38px; animation: chama .5s ease-in-out infinite alternate; }
+    .camada { z-index: 2; }
+
+    /* Atores */
+    .ator { position: absolute; bottom: 30px; }
+    .ator .corpo { position: relative; z-index: 1; transform-origin: 50% 100%; }
+    .ator .sombra { position: absolute; left: 12%; right: 12%; bottom: -6px; height: 16px; border-radius: 50%; background: radial-gradient(ellipse, rgba(0,0,0,.75), transparent 70%); }
+    .ator.voa .sombra { bottom: -16px; opacity: .6; }
+    .ator-heroi { left: 9%; width: 160px; height: 160px; }
+    .ator-inimigo { right: 9%; width: 190px; height: 190px; }
+    .ator-inimigo.elite .corpo { filter: drop-shadow(0 0 10px rgba(249,115,22,.65)); }
+    .ator-inimigo.chefe { right: 3%; width: 330px; height: 250px; bottom: 22px; }
+    .ator-inimigo.chefe .corpo { filter: drop-shadow(0 0 18px rgba(220,38,38,.45)); }
+    .ator .corpo, .ator .corpo .spr { width: 100%; height: 100%; }
+    .ator.envenenado .corpo { filter: drop-shadow(0 0 8px rgba(74,222,128,.7)) saturate(.8); }
+    .idle { animation: respira 2.6s ease-in-out infinite; }
+    .ator.voa .idle { animation: flutua 2.2s ease-in-out infinite; }
+    .ator.chefe .idle { animation: respira 3.4s ease-in-out infinite; }
+    .aura-escudo {
+      position: absolute; inset: -14px -10px -6px; z-index: 2; border-radius: 50% 50% 46% 46%; pointer-events: none;
+      border: 2px solid rgba(147,197,253,.85);
+      background: radial-gradient(ellipse at 50% 45%, rgba(96,165,250,.06), rgba(96,165,250,.28) 70%, rgba(147,197,253,.45));
+      box-shadow: 0 0 22px rgba(96,165,250,.55), inset 0 0 18px rgba(147,197,253,.4);
+      animation: escudo calc(.4s / var(--vel)) ease-out, escudo-pulsa 1.6s ease-in-out infinite;
     }
-    .porta:hover { background: linear-gradient(180deg, #332d24, #1f1c17); transform: translateY(-4px); border-color: var(--tocha); box-shadow: 0 0 22px rgba(245,158,11,.25); }
-    .porta .p-emoji { font-size: 2.6rem; }
-    .porta .p-nome { font-family: "Cinzel", serif; font-weight: 800; font-size: 1rem; color: var(--tocha-2); }
-    .porta.elite { border-color: #7c2d12; }
-    .porta.chefe { border-color: #b91c1c; box-shadow: 0 0 30px rgba(220,38,38,.3); grid-column: 1 / -1; max-width: 360px; justify-self: center; width: 100%; }
-    .porta .tecla { font-size: .75rem; color: var(--fraco); }
+    .aura-escudo b { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); font-family: "Cinzel", serif; font-size: .85rem; color: #dbeafe; background: #1e3a8a; border: 1px solid #93c5fd; border-radius: 10px; padding: 0 8px; }
 
-    /* ---------- Combate ---------- */
-    .inimigo { text-align: center; padding: 6px 0 14px; }
-    .inimigo-emoji { font-size: 6rem; line-height: 1.1; display: inline-block; filter: drop-shadow(0 8px 14px rgba(0,0,0,.6)); }
-    .inimigo-emoji.chefe { font-size: 8rem; }
-    .inimigo-nome { font-family: "Cinzel", serif; font-weight: 800; font-size: 1.2rem; }
-    .inimigo-nome.elite { color: #fb923c; }
-    .inimigo-nome.chefe { color: #f87171; text-shadow: 0 0 10px rgba(220,38,38,.6); }
-    .inimigo .barra-vida { max-width: 360px; margin: 8px auto 4px; }
-    .inimigo .status { justify-content: center; }
+    /* HUD do inimigo e intenção */
+    .hud-inimigo { position: absolute; top: 12px; right: 4%; width: min(300px, 44%); z-index: 4; text-align: right; }
+    .nome-inimigo { font-family: "Cinzel", serif; font-weight: 800; font-size: 1.05rem; text-shadow: 0 2px 4px #000; margin-bottom: 4px; }
+    .nome-inimigo.elite { color: #fb923c; }
+    .nome-inimigo.chefe { color: #fca5a5; text-shadow: 0 0 12px rgba(220,38,38,.8), 0 2px 4px #000; }
+    .hud-inimigo .status { justify-content: flex-end; }
     .intencao {
-      display: inline-block; margin-top: 10px; padding: 8px 16px; border-radius: 8px;
-      background: var(--painel-2); border: 1px solid var(--linha); font-weight: 700;
+      position: absolute; left: 50%; top: 36%; transform: translate(-50%, -50%); z-index: 4;
+      display: flex; align-items: center; gap: 10px; padding: 8px 16px 8px 10px; border-radius: 14px;
+      background: rgba(14,15,18,.88); border: 2px solid #4b5160; box-shadow: 0 8px 22px rgba(0,0,0,.6);
+      white-space: nowrap;
     }
-    .intencao.perigo { border-color: #b91c1c; background: #2a1414; color: #fca5a5; animation: alerta 1s infinite alternate; }
-    .intencao .rotulo { display: block; font-size: .75rem; font-weight: 400; color: var(--fraco); text-transform: uppercase; letter-spacing: .08em; }
+    .intencao .it-ico { width: 46px; height: 46px; flex: none; }
+    .intencao b { display: block; font-family: "Cinzel", serif; font-size: 1.7rem; line-height: 1; }
+    .intencao small { display: block; color: var(--fraco); font-size: .82rem; }
+    .intencao .rotulo { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; background: #0e0f12; color: var(--fraco); padding: 0 8px; border-radius: 8px; border: 1px solid #4b5160; }
+    .intencao.perigo { border-color: #dc2626; background: rgba(42,10,10,.92); animation: alerta calc(.9s) ease-in-out infinite alternate; }
+    .intencao.perigo b { color: #fca5a5; }
+    .intencao.perigo .rotulo { border-color: #dc2626; color: #fca5a5; }
+    .intencao.calmo b { color: #93c5fd; }
+    .intencao.vs-chefe { left: 30%; top: 24%; }
 
-    .acoes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 8px; }
+    /* Cenas de evento (palco com um objeto central) */
+    .objeto-central { position: absolute; left: 50%; bottom: 36px; width: 170px; height: 170px; transform: translateX(-50%); }
+    .objeto-central::before { content: ""; position: absolute; inset: -30px; border-radius: 50%; background: radial-gradient(circle, rgba(var(--brilho, 251,191,36), .28), transparent 65%); animation: tremeluz 2.4s ease-in-out infinite alternate; }
+    .objeto-central .spr { position: relative; }
+    .objeto-central.icone { width: 120px; height: 120px; bottom: 70px; }
+    .titulo-palco { position: absolute; top: 18px; left: 0; right: 0; text-align: center; z-index: 4; font-family: "Cinzel", serif; font-weight: 800; font-size: 1.8rem; color: var(--tocha-2); text-shadow: 0 0 18px rgba(245,158,11,.6), 0 2px 4px #000; }
+    .titulo-palco.roxo { color: #e9d5ff; text-shadow: 0 0 18px rgba(167,139,250,.7), 0 2px 4px #000; }
+    .ator-heroi.heroi-centro { left: calc(50% - 80px); }
+    .heroi-centro::before { content: ""; position: absolute; inset: -40px; border-radius: 50%; background: conic-gradient(from 0deg, transparent, rgba(251,191,36,.25), transparent 20%, rgba(251,191,36,.2), transparent 45%, rgba(251,191,36,.25), transparent 70%); animation: gira 9s linear infinite; }
+    .ator.caido { left: 12%; bottom: -8px; width: 150px; height: 150px; transform: rotate(-80deg); transform-origin: 50% 50%; filter: grayscale(.75) brightness(.6); }
+    .ator.caido .spr { width: 100%; height: 100%; }
+
+    /* Portas */
+    .portas { position: absolute; inset: 14px 14px 10px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; align-items: end; }
+    .portas.n1 { grid-template-columns: minmax(0, 1fr); justify-items: center; }
+    .porta {
+      position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px;
+      background: none; border: none; padding: 0; color: var(--texto-m); font-family: inherit; font-weight: 400; font-size: .92rem; border-radius: 12px;
+    }
+    #jogo .porta:hover { background: none; }
+    .porta-moldura { position: relative; width: 132px; height: 176px; transition: transform calc(.18s / var(--vel)), filter calc(.18s / var(--vel)); }
+    .porta-arte { width: 100%; height: 100%; display: block; overflow: visible; }
+    .porta-halo { animation: tremeluz 2.6s ease-in-out infinite alternate; }
+    .porta-emblema { position: absolute; left: 50%; top: -8px; width: 40px; height: 40px; transform: translateX(-50%); padding: 6px; border-radius: 50%; background: radial-gradient(circle at 50% 35%, #3b3631, #1a1714); border: 2px solid #7a5a1c; box-shadow: 0 4px 10px rgba(0,0,0,.6); }
+    .porta-rotulo { display: grid; justify-items: center; align-content: center; gap: 1px; text-align: center; min-height: 70px; background: rgba(10,10,12,.78); border: 1px solid #3a332a; border-radius: 9px; padding: 4px 10px; width: 100%; max-width: 210px; }
+    .porta-rotulo b { font-family: "Cinzel", serif; font-weight: 800; color: var(--tocha-2); font-size: .98rem; }
+    .porta-rotulo .dica { display: flex; align-items: center; justify-content: center; gap: 5px; flex-wrap: wrap; font-size: .86rem; color: #d6d0c4; line-height: 1.25; }
+    .porta-rotulo .dica .spr { width: 16px; height: 16px; display: inline-block; vertical-align: -3px; }
+    .porta-rotulo .dica .mini-inimigo, .porta-rotulo .dica .mini-inimigo .spr { width: 28px; height: 28px; }
+    .porta kbd { position: absolute; top: 6px; right: calc(50% - 76px); font-size: .72rem; color: #8b8f99; background: rgba(0,0,0,.6); border: 1px solid #3a3f4a; border-radius: 5px; padding: 0 5px; }
+    .porta:hover .porta-moldura, .porta:focus-visible .porta-moldura { transform: translateY(-6px) scale(1.04); filter: drop-shadow(0 0 16px rgba(245,158,11,.45)) brightness(1.15); }
+    .porta.p-elite .porta-rotulo b { color: #fb923c; }
+    .porta.p-chefe .porta-moldura { width: 166px; height: 222px; }
+    .porta.p-chefe .porta-rotulo b { color: #fca5a5; }
+    .porta.p-chefe:hover .porta-moldura { filter: drop-shadow(0 0 22px rgba(220,38,38,.6)) brightness(1.15); }
+    .porta.entrando .porta-moldura { animation: entrar-porta calc(.38s / var(--vel)) ease-in forwards; }
+    .palco.mergulho .camada > .portas > .porta:not(.entrando) { opacity: .25; transition: opacity calc(.2s / var(--vel)); }
+
+    /* ---------- Parte de baixo do painel central ---------- */
+    .inferior { padding: 14px 16px 16px; min-height: 236px; }
+    .texto-cena { text-align: center; margin-bottom: 12px; }
+    .texto-cena h3 { font-size: 1.15rem; color: var(--tocha-2); margin-bottom: 4px; }
+    .texto-cena p { max-width: 560px; margin: 0 auto; color: #d6d0c4; }
+    .dica-portas { text-align: center; color: var(--fraco); margin: 2px 0 6px; }
+
+    .acoes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
     .acao {
-      display: grid; gap: 2px; justify-items: center; padding: 12px 6px;
-      background: linear-gradient(180deg, #2f3440, #232731); color: var(--texto-m);
-      border: 1px solid #4a5160; border-radius: 10px; font-family: inherit; font-size: .95rem;
+      position: relative; display: grid; justify-items: center; gap: 2px; padding: 12px 6px 10px;
+      background: linear-gradient(180deg, #2f3440, #20242d); color: var(--texto-m);
+      border: 1px solid #4a5160; border-radius: 12px; font-family: inherit; font-size: .95rem; font-weight: 400;
+      box-shadow: 0 4px 0 #0c0d10, 0 6px 14px rgba(0,0,0,.35);
+      transition: transform .08s, box-shadow .08s, border-color .12s, background .12s;
     }
-    .acao:hover:not(:disabled) { background: linear-gradient(180deg, #3a4150, #2a2f3a); border-color: var(--tocha); }
-    .acao .a-emoji { font-size: 1.8rem; }
-    .acao .a-nome { font-family: "Cinzel", serif; font-weight: 800; font-size: .85rem; }
-    .acao .a-info { font-size: .8rem; color: var(--fraco); font-weight: 400; }
-    .acao.especial { border-color: #7c2d12; }
-    .acao kbd { font-size: .7rem; color: var(--fraco); font-family: inherit; }
+    .acao .a-ico { width: 44px; height: 44px; margin-bottom: 2px; transition: transform .12s; }
+    .acao .a-nome { font-family: "Cinzel", serif; font-weight: 800; font-size: .9rem; line-height: 1.15; text-align: center; }
+    .acao .a-info { font-size: .85rem; color: var(--fraco); }
+    .acao kbd { position: absolute; top: 6px; left: 8px; font-size: .7rem; color: #6b7280; border: 1px solid #3f4553; border-radius: 4px; padding: 0 4px; }
+    #jogo .acao:hover:not(:disabled) { background: linear-gradient(180deg, #3a4150, #282d38); border-color: var(--tocha); }
+    .acao:hover:not(:disabled) .a-ico { transform: scale(1.1) rotate(-4deg); }
+    .acao:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 #0c0d10, 0 2px 6px rgba(0,0,0,.35); }
+    .acao:hover { background: linear-gradient(180deg, #2f3440, #20242d); }
+    .acao.especial:hover { background: linear-gradient(180deg, #3a2a22, #251b16); }
+    .acao:disabled { opacity: .42 !important; cursor: not-allowed; filter: grayscale(.7); }
+    .acao.especial { border-color: #7c2d12; background: linear-gradient(180deg, #3a2a22, #251b16); }
+    .acao.sugerida { border-color: var(--tocha-2); box-shadow: 0 4px 0 #0c0d10, 0 0 0 1px var(--tocha-2), 0 0 18px rgba(251,191,36,.35); }
+    .acao.sugerida::after { content: "melhor jogada"; position: absolute; top: -9px; left: 50%; transform: translateX(-50%); font-size: .66rem; letter-spacing: .08em; text-transform: uppercase; background: var(--tocha-2); color: #1c1306; font-weight: 800; padding: 0 7px; border-radius: 6px; white-space: nowrap; }
+    .acao .recarga { position: absolute; top: 6px; right: 8px; display: flex; gap: 3px; }
+    .acao .recarga i { width: 7px; height: 7px; border-radius: 50%; background: #f97316; box-shadow: 0 0 6px #f97316; }
 
-    /* ---------- Escolhas (cartas, eventos, loja) ---------- */
-    .cartas { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+    .cartas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .cartas.c2 { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 520px; margin: 0 auto; }
+    .cartas.c5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
     .carta {
-      display: grid; gap: 6px; justify-items: center; text-align: center; padding: 18px 12px;
-      background: linear-gradient(180deg, #262236, #1a1824); color: var(--texto-m);
-      border: 2px solid #4c3d78; border-radius: 12px; font-family: inherit; font-weight: 400; font-size: .95rem;
-      transition: transform .12s, border-color .12s;
+      position: relative; display: grid; gap: 4px; justify-items: center; align-content: start; text-align: center; padding: 16px 10px 12px;
+      background: linear-gradient(180deg, #24222c, #17161c); color: var(--texto-m);
+      border: 2px solid var(--r-comum); border-radius: 14px; font-family: inherit; font-weight: 400; font-size: .95rem;
+      box-shadow: 0 6px 16px rgba(0,0,0,.4);
+      transition: transform calc(.14s / var(--vel)), box-shadow .14s, border-color .14s;
     }
-    .carta:hover:not(:disabled) { transform: translateY(-4px); border-color: var(--roxo); background: linear-gradient(180deg, #2e2942, #1f1c2b); }
-    .carta .c-emoji { font-size: 2.4rem; }
-    .carta .c-nome { font-family: "Cinzel", serif; font-weight: 800; color: #ddd6fe; }
-    .carta.reliq { background: linear-gradient(180deg, #2c2416, #1c1810); border-color: #7a5a1c; }
-    .carta.reliq:hover { border-color: var(--tocha-2); background: linear-gradient(180deg, #382e1c, #221d13); }
-    .carta.reliq .c-nome { color: var(--tocha-2); }
-    .carta:disabled { opacity: .45; cursor: default; }
-    .carta .preco { font-weight: 700; color: var(--tocha-2); }
-
-    .cena { text-align: center; padding: 6px 0 14px; }
-    .cena .c-emoji { font-size: 4.5rem; }
-    .cena h3 { font-size: 1.15rem; margin: 6px 0; color: var(--tocha-2); }
-    .cena p { max-width: 520px; margin: 0 auto; color: #d1ccc0; }
+    .carta .c-ico { width: 58px; height: 58px; margin-bottom: 2px; filter: drop-shadow(0 4px 6px rgba(0,0,0,.5)); }
+    .carta .c-rar { font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; color: var(--r-comum); font-weight: 700; }
+    .carta .c-nome { font-family: "Cinzel", serif; font-weight: 800; font-size: .98rem; color: var(--texto-m); line-height: 1.2; }
+    .carta .c-desc { font-size: .9rem; color: #cfc9bd; line-height: 1.3; }
+    .carta kbd { position: absolute; top: 6px; left: 8px; font-size: .7rem; color: #6b7280; border: 1px solid #3f4553; border-radius: 4px; padding: 0 4px; }
+    .carta .preco { display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; font-weight: 700; color: var(--tocha-2); }
+    .carta .preco .spr { width: 18px; height: 18px; }
+    #jogo .carta:hover:not(:disabled) { transform: translateY(-5px); box-shadow: 0 12px 24px rgba(0,0,0,.5), 0 0 18px color-mix(in srgb, var(--r-cor, #9ca3af) 45%, transparent); background: linear-gradient(180deg, #2c2a36, #1b1a21); }
+    .carta:hover { background: linear-gradient(180deg, #24222c, #17161c); }
+    .carta:disabled { opacity: .45 !important; cursor: not-allowed; }
+    .carta.r-comum { --r-cor: var(--r-comum); }
+    .carta.r-rara { --r-cor: var(--r-rara); border-color: var(--r-rara); background: linear-gradient(180deg, #1d2534, #151a24); }
+    .carta.r-rara .c-rar { color: var(--r-rara); }
+    .carta.r-epica { --r-cor: var(--r-epica); border-color: var(--r-epica); background: linear-gradient(180deg, #2a1f3a, #1a1524); }
+    .carta.r-epica .c-rar { color: var(--r-epica); }
+    .carta.r-lendaria { --r-cor: var(--r-lendaria); border-color: var(--r-lendaria); background: linear-gradient(180deg, #33280f, #1f190b); box-shadow: 0 0 16px rgba(251,191,36,.25); }
+    .carta.r-lendaria .c-rar { color: var(--r-lendaria); }
+    .carta.so-texto { padding: 14px 12px; align-content: center; min-height: 64px; }
+    .carta.so-texto .c-nome { font-size: .95rem; }
+    .cartas-entrada .carta { animation: carta-entra calc(.4s / var(--vel)) cubic-bezier(.2,.9,.3,1.2) backwards; }
+    .cartas-entrada .carta:nth-child(2) { animation-delay: calc(.07s / var(--vel)); }
+    .cartas-entrada .carta:nth-child(3) { animation-delay: calc(.14s / var(--vel)); }
+    .cartas-entrada .carta:nth-child(4) { animation-delay: calc(.21s / var(--vel)); }
+    .cartas-entrada .carta:nth-child(5) { animation-delay: calc(.28s / var(--vel)); }
 
     .botao-tocha {
+      display: inline-flex; align-items: center; gap: 8px;
       background: linear-gradient(180deg, #d97706, #92400e); color: #fff7e6;
       border: 1px solid #f59e0b; font-family: "Cinzel", serif; font-weight: 800; letter-spacing: .03em;
-      padding: 12px 22px; border-radius: 10px;
+      padding: 12px 22px; border-radius: 10px; box-shadow: 0 4px 0 #4a2306, 0 0 18px rgba(245,158,11,.2);
+      transition: transform .08s, box-shadow .08s;
     }
-    .botao-tocha:hover { background: linear-gradient(180deg, #f59e0b, #b45309); }
-    .centralizar { text-align: center; margin-top: 16px; }
+    .botao-tocha .spr { width: 22px; height: 22px; }
+    #jogo .botao-tocha:hover { background: linear-gradient(180deg, #f59e0b, #b45309); }
+    .botao-tocha:active { transform: translateY(3px); box-shadow: 0 1px 0 #4a2306; }
+    .centralizar { text-align: center; margin-top: 14px; }
+    .botao-leve { background: var(--painel-2); border: 1px solid var(--linha); color: var(--texto-m); font-family: inherit; font-size: .9rem; font-weight: 600; padding: 7px 14px; }
+    #jogo .botao-leve:hover { background: var(--painel-3); }
 
-    .auto-barra { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--linha); font-size: .9rem; }
-    .chave { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 20px; background: var(--painel-2); border: 1px solid var(--linha); cursor: pointer; color: var(--texto-m); font-family: inherit; font-size: .88rem; font-weight: 600; }
-    .chave:hover { background: #313642; }
-    .chave.on { border-color: var(--veneno); color: var(--veneno); }
+    .auto-barra { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--linha); }
+    .chave { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px 5px 6px; border-radius: 20px; background: var(--painel-2); border: 1px solid var(--linha); color: var(--texto-m); font-family: inherit; font-size: .88rem; font-weight: 600; }
+    .chave .spr { width: 20px; height: 20px; }
+    #jogo .chave:hover { background: var(--painel-3); }
+    .chave.on { border-color: var(--veneno); color: var(--veneno); box-shadow: 0 0 10px rgba(74,222,128,.2); }
 
-    /* ---------- Acampamento / Guilda ---------- */
-    .guilda { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
-    .upg {
-      display: grid; grid-template-columns: 40px 1fr; gap: 10px; align-items: center; text-align: left;
-      background: var(--painel-2); color: var(--texto-m); border: 1px solid var(--linha); border-radius: 10px;
-      padding: 10px; font-family: inherit; font-weight: 400; font-size: .9rem;
-    }
-    .upg:hover:not(:disabled) { border-color: var(--escama); background: #283039; }
-    .upg.pode { border-color: #155e75; box-shadow: inset 3px 0 0 var(--escama); }
-    .upg:disabled { opacity: .55; cursor: default; }
-    .upg .u-emoji { font-size: 1.7rem; text-align: center; }
-    .upg b { font-family: "Cinzel", serif; font-size: .9rem; }
-    .upg .u-custo { color: var(--escama); font-weight: 700; }
-    .upg .u-niv { color: var(--fraco); font-size: .8rem; }
-    .upg.max .u-custo { color: var(--veneno); }
-
+    /* ---------- Guilda (menu) ---------- */
     .partidas { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+    .guilda { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+    .upg {
+      position: relative; display: grid; grid-template-columns: 46px 1fr; gap: 10px; align-items: center; text-align: left;
+      background: linear-gradient(180deg, #22252d, #1a1c22); color: var(--texto-m); border: 1px solid var(--linha); border-radius: 12px;
+      padding: 10px 12px 10px 10px; font-family: inherit; font-weight: 400; font-size: .9rem;
+      transition: transform .1s, border-color .12s, box-shadow .12s;
+    }
+    .upg .u-ico { width: 46px; height: 46px; padding: 6px; border-radius: 10px; background: radial-gradient(circle at 50% 35%, #2f333d, #16181d); border: 1px solid #3a404b; }
+    .upg .u-nome { display: flex; justify-content: space-between; gap: 6px; font-family: "Cinzel", serif; font-weight: 800; font-size: .92rem; }
+    .upg .u-niv { font-family: "Alegreya", serif; color: var(--fraco); font-size: .85rem; font-weight: 700; }
+    .upg .u-desc { display: block; color: var(--fraco); font-size: .88rem; line-height: 1.3; margin: 1px 0 4px; }
+    .upg .u-pips { display: flex; gap: 3px; margin-bottom: 4px; }
+    .upg .u-pips i { flex: 1; max-width: 18px; height: 5px; border-radius: 3px; background: #2c313a; }
+    .upg .u-pips i.on { background: var(--escama); box-shadow: 0 0 5px rgba(34,211,238,.5); }
+    .upg .u-prog { height: 5px; border-radius: 3px; background: #2c313a; overflow: hidden; margin-bottom: 4px; }
+    .upg .u-prog i { display: block; height: 100%; background: var(--escama); }
+    .upg .u-custo { display: inline-flex; align-items: center; gap: 4px; color: var(--escama); font-weight: 700; }
+    .upg .u-custo .spr { width: 16px; height: 16px; }
+    .upg:hover, .upg:disabled:hover { background: linear-gradient(180deg, #22252d, #1a1c22); }
+    .upg:disabled:not(.max) { opacity: .62 !important; }
+    #jogo .upg:hover:not(:disabled) { background: linear-gradient(180deg, #282c36, #1e2027); border-color: var(--escama); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,.4), 0 0 14px rgba(34,211,238,.18); }
+    .upg.pode { border-color: #155e75; }
+    .upg.pode .u-ico { border-color: #0e7490; box-shadow: 0 0 10px rgba(34,211,238,.25); }
+    .upg:disabled { cursor: default; }
+    .upg:disabled:not(.max) .u-custo { color: #64748b; }
+    .upg:disabled:not(.max) .u-ico { filter: grayscale(.5) brightness(.8); }
+    .upg.max { border-color: #14532d; }
+    .upg.max .u-custo { color: var(--veneno); }
+    .upg.comprado { animation: comprado calc(.6s / var(--vel)) ease-out; }
 
-    .registro { list-style: none; max-height: 560px; overflow-y: auto; font-size: .92rem; }
-    .registro li { padding: 5px 2px; border-bottom: 1px solid #262a31; }
-    .registro li.dano { color: #fca5a5; }
-    .registro li.bom { color: #86efac; }
-    .registro li.ouro { color: var(--tocha-2); }
-    .registro li.epico { color: #f0abfc; font-weight: 700; }
-    .registro li.sist { color: var(--fraco); font-style: italic; }
-
-    .stats { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; font-size: .93rem; }
+    .stats { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; font-size: .95rem; }
     .stats dd { text-align: right; font-weight: 700; }
+    .stats-morte { max-width: 360px; margin: 10px auto 0; background: var(--painel-2); border: 1px solid var(--linha); border-radius: 10px; padding: 10px 14px; }
+    .botoes-save { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0 4px; }
+    .botoes-save button { background: var(--painel-2); border: 1px solid var(--linha); font-size: .85rem; padding: 6px 10px; font-weight: 600; font-family: inherit; color: var(--texto-m); }
+    #jogo .botoes-save button:hover { background: var(--painel-3); }
+    .botoes-save button.perigo:hover { border-color: #b91c1c; color: #fca5a5; }
 
-    .botoes-save { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
-    .botoes-save button { background: var(--painel-2); border: 1px solid var(--linha); font-size: .82rem; padding: 6px 10px; font-weight: 600; font-family: inherit; }
-    .botoes-save button:hover { background: #313642; }
+    /* ---------- Diário ---------- */
+    .registro { list-style: none; max-height: 520px; overflow-y: auto; font-size: .875rem; line-height: 1.35; padding-right: 4px; scroll-behavior: smooth; }
+    .registro li { padding: 4px 2px 4px 10px; border-left: 2px solid #2c313a; margin-bottom: 2px; color: #b8bcc5; }
+    .registro li.causado { color: #fcd34d; border-left-color: #b45309; }
+    .registro li.recebido { color: #fca5a5; border-left-color: #b91c1c; }
+    .registro li.evento { color: #ddd6fe; border-left-color: #7c3aed; }
+    .registro li:last-child { background: rgba(255,255,255,.04); }
+    .legenda { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; font-size: .78rem; color: var(--fraco); margin: -4px 0 8px; }
+    .legenda i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 4px; }
 
-    /* ---------- Painel de cheats ---------- */
-    .btn-cheats { background: #3b1f4a; border: 1px solid #7e22ce; color: #e9d5ff; font-family: "Cinzel", serif; font-size: .85rem; padding: 6px 12px; }
-    .btn-cheats:hover { background: #4c1d63; }
-    .btn-cheats.ativos { box-shadow: 0 0 12px rgba(168,85,247,.7); }
+    /* ---------- Painel de cheats (debug) ---------- */
     .cheats-fundo { position: fixed; inset: 0; z-index: 80; background: rgba(0,0,0,.65); display: grid; place-items: center; padding: 16px; }
     .cheats-fundo[hidden] { display: none; }
     .cheats { width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; background: #1a1424; border: 2px solid #7e22ce; border-radius: 12px; padding: 18px; box-shadow: 0 0 40px rgba(168,85,247,.35); }
@@ -233,51 +422,139 @@
     .cheats select.mudado { border-color: #a855f7; color: #e9d5ff; font-weight: 700; }
     .cheats .botoes-c { display: flex; flex-wrap: wrap; gap: 6px; }
     .cheats .botoes-c button { background: #2e2342; border: 1px solid #4c3d78; color: var(--texto-m); font-size: .85rem; padding: 7px 10px; font-family: inherit; font-weight: 600; }
-    .cheats .botoes-c button:hover:not(:disabled) { background: #3d2e58; border-color: #a855f7; }
+    #jogo .cheats .botoes-c button:hover:not(:disabled) { background: #3d2e58; border-color: #a855f7; }
     .cheats .chave-c { display: flex; align-items: center; gap: 8px; font-size: .92rem; }
     .cheats .rodape-c { display: flex; justify-content: space-between; gap: 8px; margin-top: 18px; }
-    @media (max-width: 560px) { .cheats .grade-c { grid-template-columns: 1fr; } }
 
     /* ---------- Efeitos ---------- */
     .flutua {
       position: fixed; pointer-events: none; z-index: 60; transform: translateX(-50%);
-      font-family: "Cinzel", serif; font-weight: 800; font-size: 1.5rem; text-shadow: 0 2px 0 #000, 0 0 8px #000;
-      animation: sobe 1s ease-out forwards;
+      display: flex; align-items: center; gap: 4px;
+      font-family: "Cinzel", serif; font-weight: 800; font-size: 1.55rem; line-height: 1;
+      text-shadow: 0 2px 0 #000, 0 0 6px #000, 0 0 2px #000;
+      animation: sobe calc(1s / var(--vel)) cubic-bezier(.2,.7,.3,1) forwards;
     }
-    .flutua.dano { color: #fecaca; }
-    .flutua.crit { color: #fde047; font-size: 2rem; }
-    .flutua.cura { color: #86efac; }
-    .flutua.miss { color: #cbd5e1; font-size: 1.1rem; }
-    .flutua.bloq { color: #93c5fd; }
-    .flutua.ven { color: var(--veneno); }
-    .treme { animation: treme .35s; }
-    .flash { animation: flash .4s; }
+    .flutua .f-ico { width: 22px; height: 22px; }
+    .flutua.dano { color: #fff1f1; }
+    .flutua.crit { color: #fde047; font-size: 2.3rem; animation-name: sobe-crit; }
+    .flutua.bloq { color: #9ca3af; font-size: 1.2rem; }
+    .flutua.escudo { color: #93c5fd; }
+    .flutua.cura { color: #4ade80; }
+    .flutua.ven { color: #15803d; text-shadow: 0 2px 0 #000, 0 0 6px #bbf7d0; }
+    .flutua.miss { color: #e2e8f0; font-size: 1.15rem; letter-spacing: .1em; }
+    .flutua.gasto { color: var(--escama); font-size: 1.2rem; }
 
-    @keyframes sobe { from { transform: translate(-50%, 0); } to { transform: translate(-50%, -80px); opacity: 0; } }
-    @keyframes treme { 20% { transform: translateX(-8px) rotate(-4deg); } 40% { transform: translateX(8px) rotate(4deg); } 60% { transform: translateX(-5px); } 80% { transform: translateX(5px); } }
-    @keyframes flash { 0% { box-shadow: inset 0 0 0 200px rgba(220,38,38,.35); } 100% { box-shadow: inset 0 0 0 200px rgba(220,38,38,0); } }
-    @keyframes alerta { to { box-shadow: 0 0 16px rgba(220,38,38,.55); } }
+    .ator-heroi.avanca .corpo { animation: avanca-dir calc(.32s / var(--vel)) ease-out; }
+    .ator-inimigo.avanca .corpo { animation: avanca-esq calc(.32s / var(--vel)) ease-out; }
+    .corpo.atingido .spr, .retrato.atingido .spr { animation: atingido calc(.38s / var(--vel)) ease-out; }
+    .ator-heroi.esquiva .corpo { animation: esquiva-esq calc(.4s / var(--vel)) ease-out; }
+    .ator-inimigo.esquiva .corpo { animation: esquiva-dir calc(.4s / var(--vel)) ease-out; }
+    .flash { animation: flash calc(.45s / var(--vel)); }
+    .tremor { animation: tremor calc(.45s / var(--vel)); }
+    .tremor-tela { animation: tremor-forte calc(.7s / var(--vel)); }
+    .palco.transicao .camada, .palco.transicao .fundo { animation: transicao calc(.6s / var(--vel)) ease-out; }
+    .palco.mergulho .fundo { transform: scale(1.06); transition: transform calc(.38s / var(--vel)) ease-in; }
+    .camada.aparece { animation: aparece calc(.35s / var(--vel)) ease-out; }
+    .morrendo { position: fixed; z-index: 55; pointer-events: none; animation: dissolve calc(.8s / var(--vel)) ease-in forwards; }
+    .morrendo .spr { width: 100%; height: 100%; }
+    .part { position: fixed; z-index: 58; width: var(--s, 6px); height: var(--s, 6px); border-radius: 50%; pointer-events: none; animation: particula calc(.9s / var(--vel)) ease-out forwards; }
+    .part.ouro { background: #fde047; box-shadow: 0 0 8px #fbbf24; }
+    .part.cinza { background: #a8a29e; box-shadow: 0 0 6px #57534e; }
+    .part.brasa { background: #fb923c; box-shadow: 0 0 8px #ea580c; }
+    .part.roxa { background: #c084fc; box-shadow: 0 0 8px #7c3aed; }
+
+    @keyframes respira { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.015, 1.035) translateY(-1px); } }
+    @keyframes flutua { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+    @keyframes avanca-dir { 0% { transform: translateX(0); } 35% { transform: translateX(70px) scale(1.04); } 100% { transform: translateX(0); } }
+    @keyframes avanca-esq { 0% { transform: translateX(0); } 35% { transform: translateX(-70px) scale(1.04); } 100% { transform: translateX(0); } }
+    @keyframes atingido { 0% { filter: brightness(4) saturate(0); transform: translateX(0); } 20% { transform: translateX(-9px) rotate(-3deg); } 45% { filter: brightness(1.6); transform: translateX(8px) rotate(2deg); } 70% { transform: translateX(-4px); } 100% { filter: none; transform: none; } }
+    @keyframes esquiva-esq { 0% { transform: none; } 40% { transform: translateX(-46px) skewX(8deg); opacity: .6; } 100% { transform: none; opacity: 1; } }
+    @keyframes esquiva-dir { 0% { transform: none; } 40% { transform: translateX(46px) skewX(-8deg); opacity: .6; } 100% { transform: none; opacity: 1; } }
+    @keyframes sobe { 0% { transform: translate(-50%, 6px) scale(.7); opacity: 0; } 15% { transform: translate(-50%, -6px) scale(1.15); opacity: 1; } 100% { transform: translate(-50%, -78px) scale(1); opacity: 0; } }
+    @keyframes sobe-crit { 0% { transform: translate(-50%, 6px) scale(.5) rotate(-8deg); opacity: 0; } 18% { transform: translate(-50%, -10px) scale(1.35) rotate(3deg); opacity: 1; } 100% { transform: translate(-50%, -90px) scale(1); opacity: 0; } }
+    @keyframes flash { 0% { box-shadow: inset 0 0 0 200px rgba(220,38,38,.3); } 100% { box-shadow: inset 0 0 0 200px rgba(220,38,38,0); } }
+    @keyframes tremor { 20% { transform: translateX(-6px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(3px); } }
+    @keyframes tremor-forte { 10% { transform: translate(-10px, 4px); } 25% { transform: translate(9px, -6px); } 40% { transform: translate(-8px, 5px); } 55% { transform: translate(7px, -3px); } 70% { transform: translate(-4px, 2px); } 85% { transform: translate(2px, -1px); } }
+    @keyframes alerta { to { box-shadow: 0 8px 22px rgba(0,0,0,.6), 0 0 22px rgba(220,38,38,.6); } }
+    @keyframes nevoa { from { transform: translateX(-6%); } to { transform: translateX(6%); } }
+    @keyframes tremeluz { 0% { opacity: .75; transform: translate(-50%, -50%) scale(.96); } 50% { opacity: 1; } 100% { opacity: .82; transform: translate(-50%, -50%) scale(1.04); } }
+    .porta-halo, .objeto-central::before { animation-name: pulso; }
+    @keyframes pulso { from { opacity: .7; } to { opacity: 1; } }
+    @keyframes chama { from { transform: scale(1, 1) skewX(-3deg); } to { transform: scale(.94, 1.08) skewX(3deg); } }
+    @keyframes escudo { from { transform: scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
+    @keyframes escudo-pulsa { 50% { box-shadow: 0 0 30px rgba(96,165,250,.75), inset 0 0 22px rgba(147,197,253,.55); } }
+    @keyframes entrar-porta { to { transform: scale(1.7) translateY(10px); filter: brightness(2.2) blur(1px); opacity: 0; } }
+    @keyframes transicao { 0% { opacity: 0; transform: scale(1.12); filter: brightness(2); } 100% { opacity: 1; transform: none; filter: none; } }
+    @keyframes aparece { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    @keyframes dissolve { 0% { opacity: 1; filter: brightness(2.5) saturate(0); } 30% { opacity: .9; filter: brightness(1.4) sepia(1) hue-rotate(-20deg); transform: translateY(-4px); } 100% { opacity: 0; filter: brightness(.4) blur(6px); transform: translateY(-18px) scale(1.06, .9); } }
+    @keyframes particula { from { transform: translate(0, 0) scale(1); opacity: 1; } to { transform: translate(var(--dx), var(--dy)) scale(.2); opacity: 0; } }
+    @keyframes carta-entra { from { transform: translateY(24px) scale(.92); opacity: 0; } to { transform: none; opacity: 1; } }
+    @keyframes comprado { 0% { box-shadow: 0 0 0 0 rgba(34,211,238,.8); transform: scale(1.03); } 100% { box-shadow: 0 0 0 16px rgba(34,211,238,0); transform: none; } }
+    @keyframes gira { to { transform: rotate(360deg); } }
 
     @media (prefers-reduced-motion: reduce) {
-      .treme, .flash, .intencao.perigo { animation: none; }
-      .flutua { animation-duration: .5s; }
+      .idle, .ator.voa .idle, .nevoa, .tocha::before, .tocha .chama, .porta-halo, .objeto-central::before, .heroi-centro::before, .intencao.perigo, .aura-escudo { animation: none !important; }
+      .avanca .corpo, .atingido .spr, .esquiva .corpo, .tremor, .tremor-tela, .palco.transicao .camada, .palco.transicao .fundo, .cartas-entrada .carta, .upg.comprado { animation: none !important; }
+      .flutua { animation-duration: .6s; animation-name: sobe; }
+      .morrendo { animation-duration: .3s; }
+      .barra-st > i { transition: none !important; }
     }
 
-    @media (max-width: 1060px) {
-      .mesa { grid-template-columns: 1fr; }
+    /* ---------- Responsivo ---------- */
+    @media (max-width: 1100px) {
+      .mesa { grid-template-columns: minmax(0, 1fr); }
       #p-heroi { order: 1; }
       #p-centro { order: 2; }
       #p-lado { order: 3; }
-      .registro { max-height: 260px; }
+      #p-heroi.em-run-heroi { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 16px; }
+      #p-heroi.em-run-heroi > .col-a, #p-heroi.em-run-heroi > .col-b { min-width: 0; }
+      .registro { max-height: 240px; }
     }
-    @media (max-width: 560px) {
-      .acoes { grid-template-columns: repeat(2, 1fr); }
-      .barra .titulo { width: 100%; }
-      .inimigo-emoji { font-size: 4.5rem; }
-      .inimigo-emoji.chefe { font-size: 6rem; }
-      .atributos { grid-template-columns: repeat(4, 1fr); }
-      .atributo { font-size: .78rem; padding: 4px 6px; }
-      .atributo b { font-size: .95rem; }
+    @media (max-width: 640px) {
+      #jogo { padding: 10px 10px 40px; }
+      .barra .titulo { width: 100%; font-size: 1.15rem; }
+      #p-heroi.em-run-heroi { grid-template-columns: minmax(0, 1fr); }
+      .palco { height: 270px; }
+      .palco[data-fase="escolha"] { height: auto; min-height: 270px; }
+      .palco[data-fase="escolha"] .camada { position: relative; }
+      .portas { position: relative; inset: auto; display: flex; flex-direction: column; gap: 10px; padding: 12px; }
+      .porta { flex-direction: row; gap: 12px; background: rgba(10,10,12,.72); border: 1px solid #3a332a; padding: 8px 12px 8px 8px; }
+      .porta-moldura, .porta.p-chefe .porta-moldura { width: 66px; height: 88px; flex: none; }
+      .porta-emblema { width: 28px; height: 28px; padding: 4px; top: -6px; }
+      .porta-rotulo { background: none; border: none; justify-items: start; text-align: left; min-height: 0; max-width: none; }
+      .porta-rotulo .dica { justify-content: flex-start; }
+      .porta kbd { display: none; }
+      .porta:hover .porta-moldura { transform: scale(1.05); }
+      .ator-heroi { left: 4%; width: 116px; height: 116px; bottom: 26px; }
+      .ator-inimigo { right: 4%; width: 136px; height: 136px; bottom: 26px; }
+      .ator-inimigo.chefe { width: 220px; height: 170px; right: 0; }
+      .hud-inimigo { width: 62%; top: 8px; }
+      .intencao { top: 46%; padding: 6px 12px 6px 8px; gap: 8px; }
+      .intencao .it-ico { width: 34px; height: 34px; }
+      .intencao b { font-size: 1.3rem; }
+      .tocha { display: none; }
+      .titulo-palco { font-size: 1.4rem; }
+      .objeto-central { width: 130px; height: 130px; }
+      .acoes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .cartas, .cartas.c5 { grid-template-columns: minmax(0, 1fr); }
+      .carta { grid-template-columns: 52px 1fr; justify-items: start; text-align: left; align-items: center; padding: 10px 12px; gap: 2px 12px; }
+      .carta .c-ico { grid-row: span 4; width: 48px; height: 48px; }
+      .carta kbd { display: none; }
+      .inferior { padding: 12px; min-height: 0; }
+      .ator.caido { left: 6%; bottom: -6px; width: 110px; height: 110px; }
+      .porta { width: 100%; }
+      .ator-heroi.heroi-centro { left: calc(50% - 58px); }
+      .intencao.vs-chefe { left: 30%; top: 46%; }
+      /* painel do herói compacto no celular */
+      #p-heroi.em-run-heroi { padding: 10px 12px; }
+      #p-heroi.em-run-heroi .heroi-topo { margin-bottom: 6px; }
+      #p-heroi.em-run-heroi .retrato { width: 44px; height: 44px; }
+      #p-heroi.em-run-heroi .atributos { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
+      #p-heroi.em-run-heroi .atributo { flex-direction: column; gap: 0; padding: 4px; text-align: center; font-size: .75rem; }
+      #p-heroi.em-run-heroi .atributo .spr { width: 18px; height: 18px; }
+      #p-heroi.em-run-heroi .atributo b { font-size: .95rem; }
+      #p-heroi.em-run-heroi .sub { margin: 8px 0 4px; }
+      #p-heroi.em-run-heroi .reliq-ico { width: 34px; height: 34px; padding: 3px; }
     }
   </style>
 </head>
@@ -287,23 +564,37 @@
 
   <div id="jogo">
     <div class="barra">
-      <div class="titulo">🐉 Caçador de Dragões</div>
-      <div class="item esc">💠 <b id="b-escamas">0</b> escamas</div>
-      <div class="item">🏔️ Recorde: <b id="b-recorde">1</b></div>
-      <div class="item">🐲 Dragões: <b id="b-dragoes">0</b></div>
-      <button class="btn-cheats" id="btn-cheats" data-cheats-abrir="1">🧪 Cheats</button>
+      <div class="titulo"><span class="ico-titulo"></span>Caçador de Dragões</div>
+      <div class="item esc so-menu"><span class="ico-escama"></span><b id="b-escamas">0</b> escamas</div>
+      <div class="item so-menu"><span class="ico-recorde"></span>Recorde: <b id="b-recorde">1</b></div>
+      <div class="item so-menu"><span class="ico-dragoes"></span>Dragões: <b id="b-dragoes">0</b></div>
+      <button class="btn-debug so-menu" id="btn-cheats" data-cheats-abrir="1" title="Painel de debug (atalho: Shift+C)">debug</button>
     </div>
 
     <div class="mesa">
       <aside class="painel" id="p-heroi"></aside>
-      <main class="painel centro" id="p-centro"></main>
+      <main class="painel centro" id="p-centro">
+        <div class="andar-topo" id="andar-topo"></div>
+        <div class="palco" id="palco">
+          <div class="fundo" id="fundo"></div>
+          <div class="nevoa n1"></div>
+          <div class="nevoa n2"></div>
+          <div class="tocha t-esq"></div>
+          <div class="tocha t-dir"></div>
+          <div class="perigo-veu"></div>
+          <div class="camada" id="camada"></div>
+        </div>
+        <div class="inferior" id="inferior"></div>
+      </main>
       <aside class="painel" id="p-lado"></aside>
     </div>
 
     <div class="cheats-fundo" id="cheats-fundo" hidden>
-      <div class="cheats" id="cheats" role="dialog" aria-label="Cheats"></div>
+      <div class="cheats" id="cheats" role="dialog" aria-label="Painel de debug"></div>
     </div>
   </div>
+
+  <script src="masmorra-arte.js"></script>
 
   <script>
   (() => {
@@ -488,26 +779,6 @@
       registro.length = Math.min(registro.length, 80);
     }
     const fx = (alvo, texto, tipo) => fila.push({ alvo, texto, tipo });
-
-    function processarFila() {
-      fila.forEach((f, i) => {
-        const el = f.alvo === "inimigo" ? document.querySelector(".inimigo-emoji") : document.querySelector(".heroi-emoji");
-        if (!el) return;
-        const r = el.getBoundingClientRect();
-        const d = document.createElement("div");
-        d.className = "flutua " + f.tipo;
-        d.textContent = f.texto;
-        d.style.left = (r.left + r.width / 2 + R(-30, 30)) + "px";
-        d.style.top = (r.top + r.height * 0.2 + i * 6) + "px";
-        document.body.appendChild(d);
-        setTimeout(() => d.remove(), 1000);
-        if (f.tipo === "dano" || f.tipo === "crit") {
-          el.classList.remove("treme"); void el.offsetWidth; el.classList.add("treme");
-          if (f.alvo === "heroi") { const p = $("p-heroi"); p.classList.remove("flash"); void p.offsetWidth; p.classList.add("flash"); }
-        }
-      });
-      fila = [];
-    }
 
     // ========================================================
     // 7. EXPEDIÇÃO
@@ -1064,6 +1335,29 @@
     // ========================================================
     // 10. TELAS
     // ========================================================
+    // (Camada visual: só desenha o estado do jogo. Nenhuma regra mora aqui.)
+    const A = window.ARTE;
+    const S = (id, classe = "", titulo = "") => A.sprite(id, classe, titulo);
+    const semEmoji = txt => String(txt).replace(/[\p{Extended_Pictographic}\u{FE0F}\u{200D}\u{20E3}]/gu, "").replace(/\s{2,}/g, " ").trim();
+    const reduzido = () => window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const ms = v => v / (meta.vel || 1);
+    const faseAtual = () => run ? run.fase : "guilda";
+    const idxBioma = andar => Math.min(BIOMAS.length - 1, Math.floor((andar - 1) / 10));
+    const RAR_NOME = { comum: "Comum", rara: "Rara", epica: "Épica", lendaria: "Lendária" };
+    let antes = { fase: null, andar: null, chefe: false };
+    let barrasAntes = {};
+    let fundoAtual = null;
+    let ultimoComprado = null;
+    let entrando = false;
+    let posInimigo = null;
+
+    // Ícones fixos da barra do topo e tochas (desenhados uma vez)
+    document.querySelector(".ico-titulo").innerHTML = S("cabeca-dragao");
+    document.querySelector(".ico-escama").innerHTML = S("escama");
+    document.querySelector(".ico-recorde").innerHTML = S("tocha");
+    document.querySelector(".ico-dragoes").innerHTML = S("trofeu");
+    document.querySelectorAll(".tocha").forEach(t => t.innerHTML = A.tocha());
+
     function tela() {
       const c = meta.cheats, padrao = novosCheats();
       $("btn-cheats").classList.toggle("ativos", Object.keys(padrao).some(k => c[k] !== padrao[k]));
@@ -1071,42 +1365,82 @@
       $("b-escamas").textContent = fmt(meta.escamas);
       $("b-recorde").textContent = meta.recorde;
       $("b-dragoes").textContent = meta.dragoes;
-      if (!run) { telaAcampamento(); return; }
-      document.documentElement.style.setProperty("--bioma", biomaDo(run.andar).cor);
-      $("p-heroi").innerHTML = htmlHeroi();
-      $("p-centro").innerHTML = htmlAndarTopo() + htmlFase();
-      $("p-lado").innerHTML = htmlRegistro();
-      requestAnimationFrame(processarFila);
+      document.body.classList.toggle("em-run", !!run);
+      const raiz = document.documentElement.style;
+      raiz.setProperty("--vel", meta.vel);
+
+      const fantasma = capturarMorte();
+      if (!run) {
+        telaAcampamento();
+      } else {
+        const b = idxBioma(run.andar);
+        raiz.setProperty("--bioma", biomaDo(run.andar).cor);
+        raiz.setProperty("--perigo", (((run.andar - 1) % 10) / 9).toFixed(2));
+        montarFundo(b);
+        $("andar-topo").innerHTML = htmlAndarTopo();
+        $("camada").innerHTML = htmlCamada();
+        $("inferior").innerHTML = htmlInferior();
+        $("p-heroi").className = "painel em-run-heroi";
+        $("p-heroi").innerHTML = htmlHeroi();
+        $("p-lado").innerHTML = htmlRegistro();
+      }
+      $("palco").dataset.fase = faseAtual();
+      requestAnimationFrame(() => depoisDeDesenhar(fantasma));
     }
 
-    function barraVida(hp, max) {
-      return `<div class="barra-vida"><i style="width:${Math.max(0, hp / max * 100)}%"></i><span>${Math.max(0, Math.ceil(hp))} / ${Math.round(max)}</span></div>`;
+    function montarFundo(i) {
+      if (fundoAtual === i) return;
+      fundoAtual = i;
+      $("fundo").innerHTML = A.cenario(i);
+      document.documentElement.style.setProperty("--cor-tocha", A.corTocha(i));
+      document.documentElement.style.setProperty("--nevoa", A.corNevoa(i));
     }
+
+    // ---------- Pequenos construtores de HTML ----------
+    function barra(id, tipo, atual, max, texto, icone = "") {
+      const p = Math.max(0, Math.min(100, atual / max * 100));
+      return `<div class="barra-st ${tipo}" data-barra="${id}" data-pct="${p.toFixed(2)}"><i class="rastro"></i><i class="cheio"></i><span>${icone ? S(icone) : ""}${texto}</span></div>`;
+    }
+    const tag = (cls, ico, txt) => `<span class="tag ${cls}">${S(ico)}${txt}</span>`;
+    const atraso = dur => `animation-delay:-${((Date.now() % (dur * 1000)) / 1000).toFixed(2)}s`;
+    function atributo(ico, nome, valor) { return `<div class="atributo">${S(ico)}<span>${nome}<b>${valor}</b></span></div>`; }
 
     function htmlHeroi() {
       const h = H();
       const tags = [];
-      if (run.bloqueio > 0) tags.push(`<span class="tag bloq">🛡️ ${run.bloqueio}</span>`);
-      if (run.veneno > 0) tags.push(`<span class="tag ven">☠️ ${run.veneno}</span>`);
-      if (tem("berserker") && run.hp < h.hpMax * 0.5) tags.push(`<span class="tag fur">🪓 Fúria</span>`);
-      const rel = run.reliquias.map(id => `<button class="reliq-ico" data-reliq="${id}" title="${RELIQUIAS[id].nome}: ${RELIQUIAS[id].desc}">${RELIQUIAS[id].emoji}</button>`).join("");
+      if (run.bloqueio > 0) tags.push(tag("bloq", "escudo", run.bloqueio));
+      if (run.veneno > 0) tags.push(tag("ven", "gota-veneno", run.veneno));
+      if (tem("berserker") && run.hp < h.hpMax * 0.5) tags.push(tag("fur", "machado", "Fúria"));
+      const rel = run.reliquias.map(id => {
+        const r = RELIQUIAS[id];
+        return `<button class="reliq-ico r-${A.raridadeReliquia(id)}" data-reliq="${id}" aria-label="${r.nome}: ${r.desc}">${S(A.reliquia(id))}<span class="tip"><b>${r.nome}</b>${r.desc}</span></button>`;
+      }).join("");
       return `
-        <div class="heroi-topo">
-          <div class="heroi-emoji">🧝</div>
-          <div><div class="heroi-nome">Caçador · Nv ${run.nivel}</div><div class="fraco pequeno">💰 ${fmt(run.ouro)} · 🧪 ${run.pocoes} · 💠 ${fmt(run.escamas * multEscamas())}</div></div>
+        <div class="col-a">
+          <div class="heroi-topo">
+            <div class="retrato">${S("cacador-retrato")}</div>
+            <div><div class="heroi-nome">Caçador</div><span class="nivel-selo">Nível ${run.nivel}</span></div>
+          </div>
+          ${barra("heroi-hp", "vida", run.hp, h.hpMax, `${Math.max(0, Math.ceil(run.hp))} / ${Math.round(h.hpMax)}`, "coracao")}
+          ${barra("heroi-xp", "xp", run.xp, xpProx(run.nivel), `XP ${run.xp} / ${xpProx(run.nivel)}`)}
+          <div class="status">${tags.join("")}</div>
+          <div class="recursos">
+            <span class="recurso" title="Ouro">${S("moeda")}${fmt(run.ouro)}</span>
+            <span class="recurso" title="Poções">${S("pocao")}${run.pocoes}</span>
+            <span class="recurso esc" title="Escamas desta expedição">${S("escama")}${fmt(run.escamas * multEscamas())}</span>
+          </div>
         </div>
-        ${barraVida(run.hp, h.hpMax)}
-        <div class="barra-xp" title="Experiência"><i style="width:${run.xp / xpProx(run.nivel) * 100}%"></i></div>
-        <div class="status">${tags.join("")}</div>
-        <div class="atributos">
-          <div class="atributo">⚔️ Ataque<b>${Math.round(h.atk)}</b></div>
-          <div class="atributo">🛡️ Defesa<b>${h.def}</b></div>
-          <div class="atributo">🎯 Crítico<b>${pct(h.crit)}</b></div>
-          <div class="atributo">💨 Esquiva<b>${pct(h.esq)}</b></div>
-        </div>
-        <h3>Relíquias (${run.reliquias.length})</h3>
-        <div class="reliquias">${rel || '<span class="fraco pequeno">Nenhuma ainda.</span>'}</div>
-        <div class="reliq-info" id="reliq-info"></div>`;
+        <div class="col-b">
+          <div class="atributos">
+            ${atributo("espada", "Ataque", Math.round(h.atk))}
+            ${atributo("escudo", "Defesa", h.def)}
+            ${atributo("alvo", "Crítico", pct(h.crit))}
+            ${atributo("vento", "Esquiva", pct(h.esq))}
+          </div>
+          <h3 class="sub">Relíquias <small>(${run.reliquias.length})</small></h3>
+          <div class="reliquias">${rel || '<span class="fraco pequeno">Nenhuma ainda.</span>'}</div>
+          <div class="reliq-info" id="reliq-info"></div>
+        </div>`;
     }
 
     function htmlAndarTopo() {
@@ -1114,144 +1448,341 @@
       const inicioBloco = Math.floor((f - 1) / 10) * 10 + 1;
       let trilha = "";
       for (let i = inicioBloco; i < inicioBloco + 10; i++) {
-        trilha += `<i class="${i < f ? "feito" : i === f ? "aqui" : i % 10 === 0 ? "chefe" : ""}"></i>`;
+        if (i % 10 === 0) trilha += S("cabeca-dragao", i === f ? "aqui" : "");
+        else trilha += `<i class="${i < f ? "feito" : i === f ? "aqui" : ""}"></i>`;
       }
       const falta = 10 - ((f - 1) % 10) - 1;
-      return `<div class="andar-topo">
+      return `
         <div><div class="num">Andar ${f}</div><div class="trilha">${trilha}</div></div>
-        <div class="bioma">${biomaDo(f).nome}<br><span class="pequeno">${falta ? `🐉 Dragão em ${falta} andar${falta > 1 ? "es" : ""}` : "🐉 Covil do dragão!"}</span></div>
-      </div>`;
+        <div class="bioma"><b>${biomaDo(f).nome}</b><br><span class="pequeno">${falta ? `Dragão em ${falta} andar${falta > 1 ? "es" : ""}` : "Covil do dragão!"}</span></div>`;
     }
 
     function htmlAuto() {
       const chaves = [];
-      if (nivelG("escudeiro")) chaves.push(`<button class="chave ${meta.auto.combate ? "on" : ""}" data-auto="combate">🤖 Combate automático</button>`);
+      if (nivelG("escudeiro")) chaves.push(`<button class="chave ${meta.auto.combate ? "on" : ""}" data-auto="combate">${S("elmo-pluma")}Combate automático</button>`);
       if (nivelG("batedor")) {
-        chaves.push(`<button class="chave ${meta.auto.explorar ? "on" : ""}" data-auto="explorar">🧭 Explorar sozinho</button>`);
-        chaves.push(`<button class="chave ${meta.auto.reiniciar ? "on" : ""}" data-auto="reiniciar">🔁 Recomeçar ao morrer</button>`);
+        chaves.push(`<button class="chave ${meta.auto.explorar ? "on" : ""}" data-auto="explorar">${S("bussola")}Explorar sozinho</button>`);
+        chaves.push(`<button class="chave ${meta.auto.reiniciar ? "on" : ""}" data-auto="reiniciar">${S("pena")}Recomeçar ao morrer</button>`);
       }
       if (!chaves.length) return "";
-      chaves.push(`<button class="chave" data-vel="1">⏩ Velocidade ×${meta.vel}</button>`);
+      chaves.push(`<button class="chave" data-vel="1">${S("relogio")}Velocidade ×${meta.vel}</button>`);
       return `<div class="auto-barra">${chaves.join("")}</div>`;
     }
 
-    function htmlFase() {
+    // ---------- Valores da intenção do inimigo ----------
+    function infoIntencao(it) {
+      switch (it.tipo) {
+        case "atk":    return { valor: it.dano, rotulo: "Ataque" };
+        case "pesado": return { valor: it.dano, rotulo: "Golpe pesado" };
+        case "multi":  return { valor: `${it.golpes}×${it.dano}`, rotulo: "Golpes múltiplos" };
+        case "defesa": return { valor: `+${it.bloq}`, rotulo: "Vai se defender", calmo: true };
+        case "veneno": return { valor: it.dano, rotulo: `Veneno (+${it.pilhas})` };
+        case "cura":   return { valor: `+${it.cura}`, rotulo: "Vai se curar", calmo: true };
+        case "furia":  return { valor: "+20%", rotulo: "Vai se enfurecer" };
+        case "sopro":  return { valor: it.dano, rotulo: "Sopro · ignora defesa" };
+      }
+      return { valor: "?", rotulo: "" };
+    }
+
+    // ---------- O que aparece no palco ----------
+    function heroiAtor(classe = "", extra = "") {
+      return `<div class="ator ator-heroi ${classe}">${extra}<div class="corpo idle" style="${atraso(2.6)}">${S("cacador", "", "Caçador")}</div><div class="sombra"></div></div>`;
+    }
+    function objeto(sprId, classe = "", brilho = "") {
+      return `<div class="objeto-central ${classe}" style="${brilho ? `--brilho:${brilho}` : ""}">${S(sprId)}</div>`;
+    }
+
+    function htmlCamada() {
       const f = run.fase;
       if (f === "escolha") {
-        const portas = run.opcoes.map((s, i) => {
+        return `<div class="portas n${run.opcoes.length}">${run.opcoes.map((s, i) => {
           const info = SALAS[s.tipo];
           let dica = info.dica || "";
-          if (s.inimigo) dica = `${s.inimigo.emoji} ${s.inimigo.nome}<br><span class="fraco">❤️ ${s.inimigo.hp} · ⚔️ ${s.inimigo.atk}</span>`;
+          if (s.inimigo) dica = `<span class="mini-inimigo">${S(A.inimigo(s.inimigo.nome))}</span>${s.inimigo.nome}<span>${S("coracao")}${s.inimigo.hp}</span><span>${S("espada")}${s.inimigo.atk}</span>`;
           if (s.tipo === "tesouro") dica = "Ouro e, quem sabe, algo mais.";
-          return `<button class="porta ${s.tipo}" data-sala="${i}">
-            <span class="p-emoji">${info.emoji}</span>
-            <span class="p-nome">${info.nome}</span>
-            <span class="pequeno">${dica}</span>
-            <span class="tecla">[${i + 1}]</span>
+          return `<button class="porta p-${s.tipo}" data-sala="${i}" aria-label="${info.nome}">
+            <span class="porta-moldura">${A.porta(s.tipo)}<span class="porta-emblema">${S(A.sala(s.tipo))}</span></span>
+            <span class="porta-rotulo"><b>${info.nome}</b><span class="dica">${dica}</span></span>
+            <kbd>${i + 1}</kbd>
           </button>`;
-        }).join("");
-        return `<p class="fraco" style="text-align:center;margin-bottom:12px">${run.opcoes.length > 1 ? "Três passagens se abrem diante de você. Qual caminho seguir?" : "Um calor sufocante vem da última porta..."}</p>
-          <div class="portas">${portas}</div>${htmlAuto()}`;
+        }).join("")}</div>`;
       }
-
       if (f === "combate") {
         const e = run.inimigo;
-        const it = descreverIntencao(e.intencao);
+        const id = A.inimigo(e.nome);
+        const it = e.intencao;
+        const perigo = descreverIntencao(it).perigo;
+        const ii = infoIntencao(it);
         const tags = [];
-        if (e.bloqueio > 0) tags.push(`<span class="tag bloq">🛡️ ${e.bloqueio}</span>`);
-        if (e.veneno > 0) tags.push(`<span class="tag ven">☠️ ${e.veneno}</span>`);
-        if (e.furia > 0) tags.push(`<span class="tag fur">💢 ×${e.furia}</span>`);
-        if (e.esquiva) tags.push(`<span class="tag">💨 ${pct(e.esquiva)}</span>`);
+        if (e.bloqueio > 0) tags.push(tag("bloq", "escudo", e.bloqueio));
+        if (e.veneno > 0) tags.push(tag("ven", "gota-veneno", e.veneno));
+        if (e.furia > 0) tags.push(tag("fur", "furia", `×${e.furia}`));
+        if (e.esquiva) tags.push(tag("", "vento", pct(e.esquiva)));
+        const aura = run.bloqueio > 0 ? `<div class="aura-escudo"><b>${run.bloqueio}</b></div>` : "";
+        return `
+          ${heroiAtor(run.veneno > 0 ? "envenenado" : "", aura)}
+          <div class="hud-inimigo">
+            <div class="nome-inimigo ${e.rank}">${e.nome}</div>
+            ${barra(`ini-${e.nome}-${e.hpMax}`, "inimigo", e.hp, e.hpMax, `${Math.max(0, Math.ceil(e.hp))} / ${e.hpMax}`)}
+            <div class="status">${tags.join("")}</div>
+          </div>
+          <div class="intencao ${perigo ? "perigo" : ""} ${ii.calmo ? "calmo" : ""} ${e.rank === "chefe" ? "vs-chefe" : ""}" title="${semEmoji(descreverIntencao(it).txt)}">
+            <span class="rotulo">Próxima ação</span>${S(A.intencao(it.tipo), "it-ico")}<div><b>${ii.valor}</b><small>${ii.rotulo}</small></div>
+          </div>
+          <div class="ator ator-inimigo ${e.rank} ${A.voa(id) ? "voa" : ""} ${e.veneno > 0 ? "envenenado" : ""}">
+            <div class="corpo idle" style="${atraso(2.6)}">${S(id, "", e.nome)}</div><div class="sombra"></div>
+          </div>`;
+      }
+      if (f === "nivel") return `<div class="titulo-palco">Nível ${run.nivel - run.niveisPend + 1}!</div>${heroiAtor("heroi-centro")}`;
+      if (f === "reliquia") return `<div class="titulo-palco">Espólios!</div>${objeto("bau-aberto")}`;
+      if (f === "fogueira") return `${heroiAtor()}${objeto("fogueira-grande", "", "251,146,60")}`;
+      if (f === "loja") return `${heroiAtor()}<div class="ator ator-inimigo"><div class="corpo idle" style="${atraso(2.6)}">${S("mercador", "", "Mercador")}</div><div class="sombra"></div></div>`;
+      if (f === "evento") return objeto(A.evento(run.evento), "icone", "167,139,250");
+      if (f === "resultado") {
+        const spr = A.emoji(run.resultado.emoji);
+        return objeto(spr, A.ehIcone(spr) ? "icone" : "");
+      }
+      if (f === "morto") return `<div class="titulo-palco roxo">Fim da caçada</div><div class="ator caido">${S("cacador")}</div>${objeto("lapide", "", "167,139,250")}`;
+      return "";
+    }
+
+    // ---------- Parte de baixo: ações, cartas e textos ----------
+    function carta(attrs, ico, raridade, nome, desc, extra = "", tecla = "") {
+      return `<button class="carta r-${raridade}" ${attrs}>${S(ico, "c-ico")}<span class="c-rar">${RAR_NOME[raridade]}</span><span class="c-nome">${nome}</span><span class="c-desc">${desc}</span>${extra}${tecla ? `<kbd>${tecla}</kbd>` : ""}</button>`;
+    }
+
+    function htmlInferior() {
+      const f = run.fase;
+      if (f === "escolha") {
+        return `<p class="dica-portas">${run.opcoes.length > 1 ? "Três passagens se abrem diante de você. Qual caminho seguir?" : "Um calor sufocante vem da última porta..."}</p>${htmlAuto()}`;
+      }
+      if (f === "combate") {
         const h = H();
         const bloq = Math.round((h.atk * 0.6 + h.def * 2 + 4) * (tem("escudo") ? 1.6 : 1));
         const multH = tem("cristal") ? 4 : 2.5;
+        const sug = ocupado ? null : decidirCombate();
         const dis = ocupado ? "disabled" : "";
-        return `
-          <div class="inimigo">
-            <div class="inimigo-emoji ${e.rank === "chefe" ? "chefe" : ""}" style="filter:${e.filtro || "none"}">${e.emoji}</div>
-            <div class="inimigo-nome ${e.rank}">${e.nome}</div>
-            ${barraVida(e.hp, e.hpMax)}
-            <div class="status">${tags.join("")}</div>
-            <div class="intencao ${it.perigo ? "perigo" : ""}"><span class="rotulo">Próxima ação</span>${it.txt}</div>
-          </div>
-          <div class="acoes">
-            <button class="acao" data-acao="atacar" ${dis}><span class="a-emoji">⚔️</span><span class="a-nome">Atacar</span><span class="a-info">~${danoPrevisto(1)} de dano</span><kbd>[1]</kbd></button>
-            <button class="acao" data-acao="defender" ${dis}><span class="a-emoji">🛡️</span><span class="a-nome">Defender</span><span class="a-info">+${bloq} de bloqueio</span><kbd>[2]</kbd></button>
-            <button class="acao especial" data-acao="habilidade" ${run.cd > 0 || ocupado ? "disabled" : ""}><span class="a-emoji">🏹</span><span class="a-nome">Golpe do Caçador</span><span class="a-info">${run.cd > 0 ? `recarga: ${run.cd} turno${run.cd > 1 ? "s" : ""}` : `~${danoPrevisto(multH)} de dano`}</span><kbd>[3]</kbd></button>
-            <button class="acao" data-acao="pocao" ${run.pocoes <= 0 || run.hp >= h.hpMax || ocupado ? "disabled" : ""}><span class="a-emoji">🧪</span><span class="a-nome">Poção (${run.pocoes})</span><span class="a-info">não gasta o turno</span><kbd>[4]</kbd></button>
+        const recarga = run.cd > 0 ? `<span class="recarga">${"<i></i>".repeat(run.cd)}</span>` : "";
+        const botao = (id, ico, nome, info, desabilitado, extra = "", classe = "") =>
+          `<button class="acao ${classe} ${sug === id && !desabilitado ? "sugerida" : ""}" data-acao="${id}" ${desabilitado ? "disabled" : ""}>${S(ico, "a-ico")}<span class="a-nome">${nome}</span><span class="a-info">${info}</span>${extra}</button>`;
+        return `<div class="acoes">
+            ${botao("atacar", "espada", "Atacar", `~${danoPrevisto(1)} de dano`, !!dis, "<kbd>1</kbd>")}
+            ${botao("defender", "escudo", "Defender", `+${bloq} de bloqueio`, !!dis, "<kbd>2</kbd>")}
+            ${botao("habilidade", "golpe", "Golpe do Caçador", run.cd > 0 ? `recarga: ${run.cd} turno${run.cd > 1 ? "s" : ""}` : `~${danoPrevisto(multH)} de dano`, run.cd > 0 || ocupado, "<kbd>3</kbd>" + recarga, "especial")}
+            ${botao("pocao", "pocao", `Poção (${run.pocoes})`, "não gasta o turno", run.pocoes <= 0 || run.hp >= h.hpMax || ocupado, "<kbd>4</kbd>")}
           </div>${htmlAuto()}`;
       }
-
       if (f === "nivel") {
-        return `<div class="cena"><div class="c-emoji">⭐</div><h3>Nível ${run.nivel - run.niveisPend + 1}!</h3><p>Escolha uma bênção:</p></div>
-          <div class="cartas">${run.cartas.map((id, i) => `
-            <button class="carta" data-carta="${i}"><span class="c-emoji">${CARTAS[id].emoji}</span><span class="c-nome">${CARTAS[id].nome}</span><span>${CARTAS[id].desc()}</span><span class="tecla fraco pequeno">[${i + 1}]</span></button>`).join("")}
-          </div>${htmlAuto()}`;
+        return `<div class="texto-cena"><p>Escolha uma bênção:</p></div>
+          <div class="cartas cartas-entrada">${run.cartas.map((id, i) => carta(`data-carta="${i}"`, A.carta(id), A.raridadeCarta(id), CARTAS[id].nome, CARTAS[id].desc(), "", i + 1)).join("")}</div>${htmlAuto()}`;
       }
-
       if (f === "reliquia") {
-        return `<div class="cena"><div class="c-emoji">🎁</div><h3>Espólios!</h3><p>Escolha uma relíquia para levar:</p></div>
-          <div class="cartas">${run.escolhaReliq.map((id, i) => `
-            <button class="carta reliq" data-reliq-escolha="${i}"><span class="c-emoji">${RELIQUIAS[id].emoji}</span><span class="c-nome">${RELIQUIAS[id].nome}</span><span>${RELIQUIAS[id].desc}</span><span class="tecla fraco pequeno">[${i + 1}]</span></button>`).join("")}
-          </div>
-          <div class="centralizar"><button class="chave" data-reliq-escolha="-1">Pular</button></div>${htmlAuto()}`;
+        return `<div class="texto-cena"><p>Escolha uma relíquia para levar:</p></div>
+          <div class="cartas cartas-entrada">${run.escolhaReliq.map((id, i) => carta(`data-reliq-escolha="${i}"`, A.reliquia(id), A.raridadeReliquia(id), RELIQUIAS[id].nome, RELIQUIAS[id].desc, "", i + 1)).join("")}</div>
+          <div class="centralizar"><button class="botao-leve" data-reliq-escolha="-1">Pular</button></div>${htmlAuto()}`;
       }
-
       if (f === "fogueira") {
         const h = H();
-        return `<div class="cena"><div class="c-emoji">🔥</div><h3>Fogueira</h3><p>O calor afasta o frio da masmorra. Você tem tempo para uma coisa só.</p></div>
-          <div class="cartas">
-            <button class="carta" data-fogo="0"><span class="c-emoji">😴</span><span class="c-nome">Descansar</span><span>Recupera ${Math.round(h.hpMax * 0.35)} de vida</span></button>
-            <button class="carta" data-fogo="1"><span class="c-emoji">🗡️</span><span class="c-nome">Afiar a espada</span><span>+${valorCarta("atk")} de ataque</span></button>
-            <button class="carta" data-fogo="2"><span class="c-emoji">🌿</span><span class="c-nome">Ferver ervas</span><span>+1 poção</span></button>
+        return `<div class="texto-cena"><h3>Fogueira</h3><p>O calor afasta o frio da masmorra. Você tem tempo para uma coisa só.</p></div>
+          <div class="cartas cartas-entrada">
+            ${carta(`data-fogo="0"`, "lua", "comum", "Descansar", `Recupera ${Math.round(h.hpMax * 0.35)} de vida`, "", 1)}
+            ${carta(`data-fogo="1"`, "espada", "comum", "Afiar a espada", `+${valorCarta("atk")} de ataque`, "", 2)}
+            ${carta(`data-fogo="2"`, "ervas", "comum", "Ferver ervas", "+1 poção", "", 3)}
           </div>${htmlAuto()}`;
       }
-
       if (f === "loja") {
-        return `<div class="cena"><div class="c-emoji">🧙‍♂️</div><h3>Mercador da Masmorra</h3><p>"Ouro brilhante, mercadoria brilhante, heh heh." Você tem <b>💰 ${fmt(run.ouro)}</b>.</p></div>
-          <div class="cartas">${run.loja.map((it, i) => `
-            <button class="carta ${it.id === "reliq" ? "reliq" : ""}" data-comprar="${i}" ${it.estoque <= 0 || run.ouro < it.preco ? "disabled" : ""}>
-              <span class="c-emoji">${it.emoji}</span><span class="c-nome">${it.nome}</span><span class="pequeno">${it.desc}</span>
-              <span class="preco">${it.estoque <= 0 ? "Esgotado" : `💰 ${it.preco}`}</span>
-            </button>`).join("")}
-          </div>
+        return `<div class="texto-cena"><h3>Mercador da Masmorra</h3><p>"Ouro brilhante, mercadoria brilhante, heh heh." Você tem <b>${fmt(run.ouro)}</b> de ouro.</p></div>
+          <div class="cartas c5 cartas-entrada">${run.loja.map((it, i) => {
+            const rel = it.id === "reliq";
+            const preco = `<span class="preco">${it.estoque <= 0 ? "Esgotado" : `${S("moeda")}${it.preco}`}</span>`;
+            return carta(`data-comprar="${i}" ${it.estoque <= 0 || run.ouro < it.preco ? "disabled" : ""}`, rel ? A.reliquia(it.reliq) : A.loja(it.id), rel ? A.raridadeReliquia(it.reliq) : "comum", it.nome, it.desc, preco);
+          }).join("")}</div>
           <div class="centralizar"><button class="botao-tocha" data-sair="1">Seguir em frente ➜</button></div>${htmlAuto()}`;
       }
-
       if (f === "evento") {
         const ev = EVENTOS[run.evento];
-        return `<div class="cena"><div class="c-emoji">${ev.emoji}</div><h3>${ev.titulo}</h3><p>${ev.texto}</p></div>
-          <div class="cartas">${ev.opcoes.map((op, i) => {
+        return `<div class="texto-cena"><h3>${ev.titulo}</h3><p>${ev.texto}</p></div>
+          <div class="cartas c2">${ev.opcoes.map((op, i) => {
             const txt = typeof op.txt === "function" ? op.txt() : op.txt;
             const pode = !op.pode || op.pode();
-            return `<button class="carta" data-evento="${i}" ${pode ? "" : "disabled"}><span class="c-nome">${txt}</span></button>`;
+            return `<button class="carta so-texto" data-evento="${i}" ${pode ? "" : "disabled"}><span class="c-nome">${txt}</span></button>`;
           }).join("")}</div>${htmlAuto()}`;
       }
-
       if (f === "resultado") {
         const r = run.resultado;
-        return `<div class="cena"><div class="c-emoji">${r.emoji}</div><h3>${r.titulo}</h3><p>${r.texto}</p></div>
+        return `<div class="texto-cena"><h3>${r.titulo}</h3><p>${r.texto}</p></div>
           <div class="centralizar"><button class="botao-tocha" data-continuar="1">Continuar ➜</button></div>${htmlAuto()}`;
       }
-
       if (f === "morto") {
-        return `<div class="cena"><div class="c-emoji">💀</div><h3>Você tombou no andar ${run.andar}</h3>
+        return `<div class="texto-cena"><h3>Você tombou no andar ${run.andar}</h3>
           <p>Seu corpo é levado de volta à Guilda dos Caçadores. Sua história inspira os próximos.</p></div>
-          <dl class="stats" style="max-width:340px;margin:12px auto">
+          <dl class="stats stats-morte">
             <dt>Andares descidos</dt><dd>${run.andar - run.inicio}</dd>
             <dt>Monstros abatidos</dt><dd>${run.abates}</dd>
             <dt>Elites derrotados</dt><dd>${run.elites}</dd>
             <dt>Dragões caçados</dt><dd>${run.dragoes}</dd>
             <dt>Nível alcançado</dt><dd>${run.nivel}</dd>
-            <dt>Escamas ganhas</dt><dd style="color:var(--escama)">💠 ${fmt(run.ganho)}</dd>
+            <dt>Escamas ganhas</dt><dd style="color:var(--escama)">${fmt(run.ganho)}</dd>
           </dl>
-          <div class="centralizar"><button class="botao-tocha" data-acampamento="1">Voltar à Guilda ➜</button></div>${htmlAuto()}`;
+          <div class="centralizar"><button class="botao-tocha" data-acampamento="1">${S("tocha")}Voltar à Guilda ➜</button></div>${htmlAuto()}`;
       }
       return "";
     }
 
     function htmlRegistro() {
-      return `<h2>📜 Diário</h2><ul class="registro">${registro.map(r => `<li class="${r.tipo}">${r.texto}</li>`).join("")}</ul>`;
+      const cls = { bom: "causado", dano: "recebido", epico: "evento", ouro: "evento" };
+      const linhas = registro.slice().reverse().map(r => `<li class="${cls[r.tipo] || ""}">${semEmoji(r.texto)}</li>`).join("");
+      return `<h2 class="titulo-painel">${S("pergaminho")} Diário</h2>
+        <div class="legenda"><span><i style="background:#f59e0b"></i>seus golpes</span><span><i style="background:#ef4444"></i>dano sofrido</span><span><i style="background:#a78bfa"></i>eventos</span></div>
+        <ul class="registro">${linhas}</ul>`;
+    }
+
+    // ---------- Depois de desenhar: animações e efeitos ----------
+    function reiniciarClasse(el, c) {
+      if (!el) return;
+      el.classList.remove(c); void el.offsetWidth; el.classList.add(c);
+    }
+
+    function capturarMorte() {
+      const sumiu = antes.fase === "combate" && run && run.fase !== "combate" && run.fase !== "morto";
+      const el = document.querySelector("#camada .ator-inimigo .corpo");
+      if (!sumiu || !el) return null;
+      const r = el.getBoundingClientRect();
+      posInimigo = r;
+      return { html: el.innerHTML, r, chefe: antes.chefe };
+    }
+
+    function animarBarras() {
+      document.querySelectorAll("[data-barra]").forEach(b => {
+        const id = b.dataset.barra, p = +b.dataset.pct;
+        const cheio = b.querySelector(".cheio"), rastro = b.querySelector(".rastro");
+        const ant = barrasAntes[id];
+        barrasAntes[id] = p;
+        if (ant === undefined || reduzido()) { cheio.style.width = rastro.style.width = p + "%"; return; }
+        cheio.style.transition = rastro.style.transition = "none";
+        cheio.style.width = ant + "%";
+        rastro.style.width = Math.max(ant, p) + "%";
+        void b.offsetWidth;
+        cheio.style.transition = rastro.style.transition = "";
+        cheio.style.width = p + "%";
+        setTimeout(() => { if (rastro.isConnected) rastro.style.width = p + "%"; }, ms(420));
+      });
+    }
+
+    function particulas(x, y, n, tipo, forca = 90) {
+      if (reduzido()) return;
+      for (let i = 0; i < n; i++) {
+        const d = document.createElement("div");
+        const ang = Math.random() * Math.PI * 2, dist = forca * (0.4 + Math.random());
+        d.className = "part " + tipo;
+        d.style.left = x + "px"; d.style.top = y + "px";
+        d.style.setProperty("--dx", Math.cos(ang) * dist + "px");
+        d.style.setProperty("--dy", Math.sin(ang) * dist - forca * 0.4 + "px");
+        d.style.setProperty("--s", (3 + Math.random() * 6) + "px");
+        document.body.appendChild(d);
+        setTimeout(() => d.remove(), ms(950));
+      }
+    }
+
+    function morteInimigo(g) {
+      const d = document.createElement("div");
+      d.className = "morrendo";
+      Object.assign(d.style, { left: g.r.left + "px", top: g.r.top + "px", width: g.r.width + "px", height: g.r.height + "px" });
+      d.innerHTML = g.html;
+      document.body.appendChild(d);
+      setTimeout(() => d.remove(), ms(850));
+      const cx = g.r.left + g.r.width / 2, cy = g.r.top + g.r.height * 0.55;
+      particulas(cx, cy, g.chefe ? 60 : 22, g.chefe ? "brasa" : "cinza", g.chefe ? 160 : 80);
+      if (g.chefe) { particulas(cx, cy, 40, "ouro", 200); if (!reduzido()) reiniciarClasse($("jogo"), "tremor-tela"); }
+    }
+
+    function flutuar(ref, txt, tipo, icone, i = 0) {
+      const r = ref.getBoundingClientRect ? ref.getBoundingClientRect() : ref;
+      const d = document.createElement("div");
+      d.className = "flutua " + tipo;
+      d.innerHTML = (icone ? S(icone, "f-ico") : "") + `<span></span>`;
+      d.querySelector("span").textContent = txt;
+      d.style.left = (r.left + r.width / 2 + (Math.random() * 40 - 20)) + "px";
+      d.style.top = (r.top + r.height * 0.22 + i * 10) + "px";
+      document.body.appendChild(d);
+      setTimeout(() => d.remove(), ms(1050));
+    }
+
+    // Efeitos que a lógica pediu com fx(alvo, texto, tipo)
+    function processarFila() {
+      if (!fila.length) return;
+      const lote = fila;
+      fila = [];
+      const ator = alvo => document.querySelector(alvo === "inimigo" ? "#camada .ator-inimigo" : "#camada .ator-heroi");
+      const corpo = alvo => {
+        const a = ator(alvo);
+        if (a) return a.querySelector(".corpo");
+        return alvo === "inimigo" ? posInimigo : document.querySelector("#p-heroi .retrato");
+      };
+      const golpe = f => ["dano", "crit", "miss", "bloq"].includes(f.tipo) && !/☠|🌵/u.test(f.texto) && !String(f.texto).startsWith("+");
+      const heroiAtaca = lote.some(f => f.alvo === "inimigo" && golpe(f));
+      const inimigoAtaca = lote.some(f => f.alvo === "heroi" && golpe(f));
+      if (heroiAtaca) reiniciarClasse(ator("heroi"), "avanca");
+      if (inimigoAtaca) reiniciarClasse(ator("inimigo"), "avanca");
+      const espera = heroiAtaca || inimigoAtaca ? ms(130) : 0;
+      lote.forEach((f, i) => setTimeout(() => {
+        const ref = corpo(f.alvo);
+        if (!ref || (ref.isConnected === false)) return;
+        let tipo = f.tipo, txt = semEmoji(f.texto), icone = "";
+        if (f.tipo === "miss") { txt = "ESQUIVOU"; reiniciarClasse(ator(f.alvo), "esquiva"); }
+        if (f.tipo === "bloq" && txt.startsWith("+")) { tipo = "escudo"; icone = "escudo"; }
+        if (/☠/u.test(f.texto)) { tipo = "ven"; icone = "gota-veneno"; }
+        if (/🌵/u.test(f.texto)) icone = "espinhos";
+        if (f.texto === "☠") { txt = ""; icone = "caveira"; }
+        if ((f.tipo === "dano" || f.tipo === "crit") && ref.classList) reiniciarClasse(ref, "atingido");
+        if (f.alvo === "heroi" && (f.tipo === "dano" || tipo === "ven")) reiniciarClasse($("p-heroi"), "flash");
+        if (f.tipo === "crit" && f.alvo === "inimigo" && !reduzido()) reiniciarClasse($("palco"), "tremor");
+        if (txt || icone) flutuar(ref, txt, tipo, icone, i % 3);
+      }, espera + i * ms(90)));
+    }
+
+    function depoisDeDesenhar(fantasma) {
+      animarBarras();
+      const f = faseAtual();
+      if (fantasma) morteInimigo(fantasma);
+      const palco = $("palco");
+      if (run && antes.andar !== null && run.andar !== antes.andar) reiniciarClasse(palco, "transicao");
+      else if (f !== antes.fase && antes.fase !== null) reiniciarClasse($("camada"), "aparece");
+      if (f === "nivel" && antes.fase !== "nivel") {
+        const r = palco.getBoundingClientRect();
+        particulas(r.left + r.width / 2, r.top + r.height * 0.5, 46, "ouro", 150);
+      }
+      if (f === "morto" && antes.fase !== "morto" && !reduzido()) reiniciarClasse(palco, "tremor");
+      if (ultimoComprado) {
+        const el = document.querySelector(`[data-upg="${ultimoComprado.id}"]`);
+        if (el) {
+          reiniciarClasse(el, "comprado");
+          flutuar(el, `−${fmt(ultimoComprado.custo)}`, "gasto", "escama");
+          const r = el.getBoundingClientRect();
+          particulas(r.left + 30, r.top + r.height / 2, 14, "ouro", 50);
+        }
+        ultimoComprado = null;
+      }
+      processarFila();
+      const reg = document.querySelector(".registro");
+      if (reg) reg.scrollTop = reg.scrollHeight;
+      antes = { fase: f, andar: run ? run.andar : null, chefe: !!(run && run.inimigo && run.inimigo.rank === "chefe") };
+      if (f !== "combate") posInimigo = null;
+    }
+
+    // Entrar por uma porta: pequena animação antes de abrir a sala
+    function entrarPorta(i) {
+      if (!run || run.fase !== "escolha" || entrando || !run.opcoes[i]) return;
+      const el = document.querySelector(`.porta[data-sala="${i}"]`);
+      if (!el || reduzido()) return escolherSala(i);
+      entrando = true;
+      el.classList.add("entrando");
+      $("palco").classList.add("mergulho");
+      setTimeout(() => {
+        entrando = false;
+        $("palco").classList.remove("mergulho");
+        escolherSala(i);
+      }, ms(360));
     }
 
     // ---- Painel de cheats ----
@@ -1272,7 +1803,8 @@
       const emRun = !!run && run.fase !== "morto";
       const dis = emRun ? "" : "disabled";
       return `
-        <h2>🧪 Painel de Cheats</h2>
+        <h2>Painel de Debug</h2>
+        <p class="fraco pequeno" style="text-align:center">Atalho: Shift + C</p>
         <p class="fraco pequeno" style="text-align:center">As mudanças valem na hora. Vida e dano dos monstros afetam os próximos monstros que aparecerem.</p>
         <h3>Multiplicadores</h3>
         <div class="grade-c">${selects}</div>
@@ -1327,47 +1859,63 @@
 
     // ---- Acampamento (entre expedições) ----
     function telaAcampamento() {
-      document.documentElement.style.setProperty("--bioma", "#b45309");
+      const raiz = document.documentElement.style;
+      raiz.setProperty("--bioma", "#b45309");
+      raiz.setProperty("--perigo", 0);
+      montarFundo(5);
       const hp = 50 + 10 * nivelG("vigor"), atk = 6 + nivelG("forca"), def = nivelG("armadura");
       const crit = 0.05 + 0.02 * nivelG("precisao"), esq = 0.03 + 0.015 * nivelG("agilidade");
+      $("p-heroi").className = "painel";
       $("p-heroi").innerHTML = `
-        <div class="heroi-topo"><div class="heroi-emoji">🧝</div><div><div class="heroi-nome">Caçador de Dragões</div><div class="fraco pequeno">Pronto para a próxima expedição</div></div></div>
-        <div class="atributos">
-          <div class="atributo">❤️ Vida<b>${hp}</b></div>
-          <div class="atributo">⚔️ Ataque<b>${atk}</b></div>
-          <div class="atributo">🛡️ Defesa<b>${def}</b></div>
-          <div class="atributo">🧪 Poções<b>${1 + nivelG("alquimia")}</b></div>
-          <div class="atributo">🎯 Crítico<b>${pct(crit)}</b></div>
-          <div class="atributo">💨 Esquiva<b>${pct(esq)}</b></div>
+        <div class="heroi-topo">
+          <div class="retrato">${S("cacador-retrato")}</div>
+          <div><div class="heroi-nome">Caçador de Dragões</div><div class="fraco pequeno">Pronto para a próxima expedição</div></div>
         </div>
-        <h3>Como jogar</h3>
-        <p class="pequeno fraco">Desça andar por andar escolhendo portas. Em combate, observe a <b>próxima ação</b> do inimigo: defenda-se dos golpes pesados! A cada 10 andares, um dragão guarda o caminho. Quando você cair, as <b>💠 escamas</b> da expedição voltam para a Guilda e compram melhorias permanentes.</p>`;
+        <div class="atributos">
+          ${atributo("coracao", "Vida", hp)}
+          ${atributo("espada", "Ataque", atk)}
+          ${atributo("escudo", "Defesa", def)}
+          ${atributo("pocao", "Poções", 1 + nivelG("alquimia"))}
+          ${atributo("alvo", "Crítico", pct(crit))}
+          ${atributo("vento", "Esquiva", pct(esq))}
+        </div>
+        <h3 class="sub">${S("pergaminho")} Como jogar</h3>
+        <p class="pequeno fraco">Desça andar por andar escolhendo portas. Em combate, observe a <b>próxima ação</b> do inimigo: defenda-se dos golpes pesados! A cada 10 andares, um dragão guarda o caminho. Quando você cair, as <b>escamas</b> da expedição voltam para a Guilda e compram melhorias permanentes.</p>`;
+
+      $("andar-topo").innerHTML = `
+        <div><div class="num">Guilda dos Caçadores</div><div class="fraco pequeno">O salão onde toda caçada começa</div></div>
+        <div class="bioma"><b>${fmt(meta.escamas)} escamas</b><br><span class="pequeno">para gastar em melhorias</span></div>`;
+      $("camada").innerHTML = `${heroiAtor()}${objeto("fogueira-grande", "", "251,146,60")}`;
 
       const upgs = GUILDA.map(u => {
         const n = nivelG(u.id), max = n >= u.max, c = custoGuilda(u);
         const pode = !max && meta.escamas >= c;
+        const progresso = u.max <= 5
+          ? `<span class="u-pips">${Array.from({ length: u.max }, (_, k) => `<i class="${k < n ? "on" : ""}"></i>`).join("")}</span>`
+          : `<span class="u-prog"><i style="width:${n / u.max * 100}%"></i></span>`;
         return `<button class="upg ${pode ? "pode" : ""} ${max ? "max" : ""}" data-upg="${u.id}" ${pode ? "" : "disabled"}>
-          <span class="u-emoji">${u.emoji}</span>
-          <span><b>${u.nome}</b> <span class="u-niv">${u.max > 1 ? `${n}/${u.max}` : max ? "✔" : ""}</span><br>
-          <span class="pequeno fraco">${u.desc}</span><br>
-          <span class="u-custo">${max ? "Completo" : `💠 ${fmt(c)}`}</span></span>
+          ${S(A.guilda(u.id), "u-ico")}
+          <span>
+            <span class="u-nome">${u.nome}<span class="u-niv">${u.max > 1 ? `${n}/${u.max}` : max ? "✔" : ""}</span></span>
+            <span class="u-desc">${u.desc}</span>
+            ${u.max > 1 ? progresso : ""}
+            <span class="u-custo">${max ? "Completo" : `${S("escama")}${fmt(c)}`}</span>
+          </span>
         </button>`;
       }).join("");
 
-      let partidas = `<button class="botao-tocha" data-partir="1">🔥 Descer à masmorra</button>`;
+      let partidas = `<button class="botao-tocha" data-partir="1">${S("tocha")}Descer à masmorra</button>`;
       if (nivelG("mapa")) {
-        for (let cp = 10; cp <= meta.checkpoint; cp += 10) partidas += `<button class="botao-tocha" data-partir="${cp + 1}">🗺️ Andar ${cp + 1}</button>`;
+        for (let cp = 10; cp <= meta.checkpoint; cp += 10) partidas += `<button class="botao-tocha" data-partir="${cp + 1}">${S("mapa")}Andar ${cp + 1}</button>`;
       }
-
-      $("p-centro").innerHTML = `
-        <h2>⚜️ Guilda dos Caçadores ⚜️</h2>
+      $("inferior").innerHTML = `
         <div class="partidas">${partidas}</div>
         ${htmlAuto()}
-        <h3 style="margin-top:20px">Melhorias permanentes · você tem <span style="color:var(--escama)">💠 ${fmt(meta.escamas)}</span></h3>
+        <h3 class="sub" style="margin-top:18px">${S("escama")} Melhorias permanentes <small>· você tem ${fmt(meta.escamas)} escamas</small></h3>
         <div class="guilda">${upgs}</div>`;
 
       $("p-lado").innerHTML = `
-        <h2>🏆 Feitos</h2>
+        <h2 class="titulo-painel">${S("trofeu")} Feitos</h2>
         <dl class="stats">
           <dt>Andar mais fundo</dt><dd>${meta.recorde}</dd>
           <dt>Dragões caçados</dt><dd>${meta.dragoes}</dd>
@@ -1375,14 +1923,14 @@
           <dt>Expedições</dt><dd>${meta.expedicoes}</dd>
           <dt>Escamas totais</dt><dd>${fmt(meta.totalEscamas)}</dd>
         </dl>
-        <h3>💾 Progresso</h3>
+        <h3 class="sub">${S("pergaminho")} Progresso</h3>
         <p class="pequeno fraco">Tudo é salvo neste navegador automaticamente, até no meio de uma expedição.</p>
         <div class="botoes-save">
           <button data-save="exportar">Exportar</button>
           <button data-save="importar">Importar</button>
-          <button data-save="apagar">Apagar tudo</button>
+          <button data-save="apagar" class="perigo">Apagar tudo</button>
         </div>
-        ${registro.length ? htmlRegistro() : ""}`;
+        ${registro.length ? `<div style="margin-top:18px">${htmlRegistro()}</div>` : ""}`;
     }
 
     function comprarGuilda(id) {
@@ -1403,7 +1951,7 @@
       const b = e.target.closest("button");
       if (!b || b.disabled) return;
       const d = b.dataset;
-      if (d.sala !== undefined) escolherSala(+d.sala);
+      if (d.sala !== undefined) entrarPorta(+d.sala);
       else if (d.acao) acao(d.acao);
       else if (d.carta !== undefined) escolherCarta(+d.carta);
       else if (d.reliqEscolha !== undefined) escolherReliquia(+d.reliqEscolha);
@@ -1414,10 +1962,14 @@
       else if (d.continuar) proxFase();
       else if (d.acampamento) voltarAcampamento();
       else if (d.partir) novaExpedicao(+d.partir);
-      else if (d.upg) comprarGuilda(d.upg);
+      else if (d.upg) {
+        const u = GUILDA.find(g => g.id === d.upg);
+        if (u && nivelG(u.id) < u.max && meta.escamas >= custoGuilda(u)) ultimoComprado = { id: u.id, custo: custoGuilda(u) };
+        comprarGuilda(d.upg);
+      }
       else if (d.auto) { meta.auto[d.auto] = !meta.auto[d.auto]; tela(); salvar(); }
       else if (d.vel) { meta.vel = meta.vel >= 4 ? 1 : meta.vel * 2; tela(); salvar(); }
-      else if (d.reliq) { const r = RELIQUIAS[d.reliq]; $("reliq-info").innerHTML = `<b>${r.emoji} ${r.nome}:</b> ${r.desc}`; }
+      else if (d.reliq) { const r = RELIQUIAS[d.reliq]; $("reliq-info").innerHTML = `<b>${r.nome}:</b> ${r.desc}`; }
       else if (d.save) gerenciarSave(d.save);
       else if (d.cheatsAbrir) { $("cheats-fundo").hidden = false; tela(); }
       else if (d.cheatsFechar) { $("cheats-fundo").hidden = true; }
@@ -1435,13 +1987,20 @@
 
     document.addEventListener("keydown", e => {
       if (e.key === "Escape") $("cheats-fundo").hidden = true;
+      // Atalho discreto do painel de debug: Shift + C
+      if (e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === "c" && !/input|select|textarea/i.test(e.target.tagName)) {
+        const fundo = $("cheats-fundo");
+        fundo.hidden = !fundo.hidden;
+        if (!fundo.hidden) tela();
+        return;
+      }
       if (!$("cheats-fundo").hidden) return;
       if (!run || e.ctrlKey || e.metaKey || e.altKey) return;
       const n = parseInt(e.key, 10);
       if (!n) return;
       const f = run.fase;
       if (f === "combate") acao(["atacar", "defender", "habilidade", "pocao"][n - 1]);
-      else if (f === "escolha") escolherSala(n - 1);
+      else if (f === "escolha") entrarPorta(n - 1);
       else if (f === "nivel" && n <= 3) escolherCarta(n - 1);
       else if (f === "reliquia" && n <= run.escolhaReliq.length) escolherReliquia(n - 1);
       else if (f === "fogueira" && n <= 3) fogueira(n - 1);
