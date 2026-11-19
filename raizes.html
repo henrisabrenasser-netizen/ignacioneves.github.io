@@ -236,6 +236,55 @@
     .total-sucata { display: flex; align-items: center; gap: 8px; font: 800 18px "Orbitron", sans-serif; color: var(--n-ambar); }
     .total-sucata img { width: 30px; height: 30px; }
     .total-sucata small { font: 600 14px "Rajdhani", sans-serif; color: var(--n-fraco); }
+    /* arsenal (equipamentos) */
+    .arsenal-topo { display: grid; grid-template-columns: 1.4fr 1fr; gap: 12px; margin-bottom: 14px; }
+    .equipados { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .eq-slot { --r: #2a4a5c; display: flex; gap: 10px; align-items: center; text-align: left; background: var(--n-painel-2); border: 1.5px solid color-mix(in srgb, var(--r) 70%, #0b1520); border-radius: 10px; padding: 8px; color: var(--n-texto); font-weight: 500; min-width: 0; }
+    .eq-slot img { width: 44px; height: 44px; flex: none; border-radius: 8px; background: radial-gradient(circle, color-mix(in srgb, var(--r) 25%, transparent), transparent 70%); }
+    .eq-slot b { font: 700 12.5px/1.2 "Orbitron", sans-serif; display: block; color: var(--r); }
+    .eq-slot small { color: var(--n-fraco); font-size: 13px; }
+    .eq-slot.vazio { opacity: .55; border-style: dashed; }
+    .eq-slot.vazio b { color: var(--n-fraco); }
+    button.eq-slot { cursor: pointer; }
+    #palco button.eq-slot:hover, #palco .eq-slot.sel { background: #0f2231; box-shadow: 0 0 14px color-mix(in srgb, var(--r) 40%, transparent); }
+    .eq-resumo { background: var(--n-painel-2); border: 1px solid var(--n-borda); border-radius: 10px; padding: 10px 12px; }
+    .eq-resumo h3, .arsenal-barra h3 { font: 700 12px "Orbitron", sans-serif; letter-spacing: .12em; color: var(--n-fraco); text-transform: uppercase; margin-bottom: 6px; }
+    .eq-resumo ul, .detalhe-item ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 2px; color: #bfe9c9; font-size: 15px; }
+    .eq-resumo li::before, .detalhe-item li::before { content: "▸ "; color: var(--n-lima); }
+    .eq-resumo p { color: var(--n-fraco); }
+    .arsenal-barra { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+    .arsenal-barra h3 { margin: 0; }
+    .inventario { display: grid; grid-template-columns: repeat(auto-fill, minmax(54px, 1fr)); gap: 6px; margin-bottom: 12px; }
+    .inv-item { --r: #2a4a5c; position: relative; aspect-ratio: 1; padding: 4px; border-radius: 9px; background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--r) 22%, #0b1520), #08111a 75%); border: 1.5px solid color-mix(in srgb, var(--r) 75%, #0b1520); cursor: pointer; }
+    .inv-item img { width: 100%; height: 100%; display: block; }
+    #palco .inv-item:hover { transform: translateY(-2px); box-shadow: 0 0 12px color-mix(in srgb, var(--r) 50%, transparent); background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--r) 30%, #0b1520), #08111a 75%); }
+    #palco .inv-item.sel { outline: 2px solid #fff; outline-offset: 1px; box-shadow: 0 0 16px var(--r); }
+    .inv-item.novo { animation: brilhoNovo 1s ease 3; }
+    @keyframes brilhoNovo { 50% { box-shadow: 0 0 22px var(--r), 0 0 4px #fff; } }
+    .inv-item .nv { position: absolute; right: 3px; bottom: 1px; font: 800 10px "Orbitron", sans-serif; color: #fff; text-shadow: 0 0 3px #000, 0 0 2px #000; }
+    .inv-item .eq { position: absolute; left: 3px; top: 2px; font: 800 9px "Orbitron", sans-serif; color: #00131a; background: var(--n-lima); border-radius: 3px; padding: 0 3px; }
+    .vazio-inv { color: var(--n-fraco); grid-column: 1 / -1; }
+    .detalhe-item { --r: #2a4a5c; display: flex; gap: 12px; align-items: flex-start; background: var(--n-painel-2); border: 1.5px solid color-mix(in srgb, var(--r) 70%, #0b1520); border-radius: 12px; padding: 12px; min-height: 76px; }
+    .detalhe-item > img { width: 64px; height: 64px; flex: none; border-radius: 10px; background: radial-gradient(circle, color-mix(in srgb, var(--r) 30%, transparent), transparent 70%); }
+    .detalhe-item .info { flex: 1; min-width: 0; }
+    .detalhe-item .info b { font: 700 15px "Orbitron", sans-serif; color: var(--r); display: block; }
+    .detalhe-item .rar { color: var(--n-fraco); font-size: 13px; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; }
+    .detalhe-item .pips { display: flex; gap: 3px; margin: 4px 0 6px; }
+    .detalhe-item .pips i { width: 14px; height: 4px; border-radius: 2px; background: #1f3a4a; }
+    .detalhe-item .pips i.on { background: var(--r); box-shadow: 0 0 5px var(--r); }
+    .detalhe-item .info small { display: block; color: var(--n-fraco); margin-top: 6px; font-size: 13.5px; line-height: 1.25; }
+    .detalhe-item .acoes { display: grid; gap: 6px; flex: none; }
+    .detalhe-item .acoes .btn-sec, .detalhe-item .acoes .comprar { padding: 8px 12px; font-size: 11.5px; justify-content: center; }
+    .detalhe-item .dica { color: var(--n-fraco); }
+    .btn-sec.perigo { border-color: #6b2a3a; color: #ffb3c1; }
+    #palco .btn-sec.perigo:hover { background: #2a0f18; border-color: var(--n-vermelho); }
+    .achados { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 6px; }
+    .achado { --r: #2a4a5c; display: flex; align-items: center; gap: 8px; background: #0b1520; border: 1px solid color-mix(in srgb, var(--r) 70%, #0b1520); border-radius: 8px; padding: 6px 8px; }
+    .achado img { width: 36px; height: 36px; }
+    .achado b { font: 700 12px "Orbitron", sans-serif; color: var(--r); display: block; }
+    .achado small { color: var(--n-fraco); }
+    #fim-achados h3 { font: 700 12px "Orbitron", sans-serif; letter-spacing: .12em; color: var(--n-fraco); text-transform: uppercase; margin: 14px 0 6px; }
+    .dica-achados { color: var(--n-fraco); text-align: center; margin-top: 6px; font-size: 14px; }
     .btn-debug { background: none; border: 1px dashed #2f4b5a; color: #4d6b7c; font: 600 .75rem "Orbitron", sans-serif; padding: 4px 9px; letter-spacing: .06em; border-radius: 6px; }
     #palco .btn-debug:hover { color: #c4b5fd; border-color: #7e22ce; background: none; }
 
@@ -273,6 +322,9 @@
       .relogio { font-size: 18px; }
       .chefe { width: min(320px, 80vw); }
       .hud-dir { gap: 4px; }
+      .arsenal-topo { grid-template-columns: 1fr; }
+      .detalhe-item { flex-wrap: wrap; }
+      .detalhe-item .acoes { grid-template-columns: 1fr 1fr 1fr; width: 100%; }
     }
     @media (max-width: 480px) {
       #btn-som, #btn-tela { display: none; }
@@ -322,6 +374,7 @@
         <div class="abas" id="abas">
           <button data-aba="sobrev" class="ativa">Sobreviventes</button>
           <button data-aba="oficina">Oficina</button>
+          <button data-aba="arsenal">Arsenal</button>
           <button data-aba="arquivo">Arquivo</button>
           <button data-aba="como">Como jogar</button>
         </div>
@@ -329,6 +382,15 @@
         <div class="painel-menu" id="aba-oficina" hidden>
           <p class="sub" style="margin-bottom:12px">Melhorias permanentes, pagas com a sucata que você traz das expedições.</p>
           <div class="oficina-grade" id="lista-oficina"></div>
+        </div>
+        <div class="painel-menu" id="aba-arsenal" hidden>
+          <div class="arsenal-topo">
+            <div class="equipados" id="equipados"></div>
+            <div class="eq-resumo" id="eq-resumo"></div>
+          </div>
+          <div class="arsenal-barra"><h3 id="inv-titulo">Inventário</h3><button class="comprar" id="btn-caixa-eq"></button></div>
+          <div class="inventario" id="inventario"></div>
+          <div class="detalhe-item" id="detalhe-item"></div>
         </div>
         <div class="painel-menu" id="aba-arquivo" hidden>
           <div class="secao" style="margin-top:0"><h3>Registros</h3><div class="registros" id="registros"></div></div>
@@ -344,7 +406,9 @@
             <div>⬆️ <b>Subiu de nível?</b> Escolha uma arma nova, um módulo passivo ou melhore o que já tem. Você carrega até 6 armas e 6 módulos.</div>
             <div>✨ <b>Evolução:</b> leve uma arma ao nível máximo, tenha o módulo que combina com ela e abra uma <b>Caixa de Suprimentos</b> (deixada por elites e chefes).</div>
             <div>📦 Barris laranja escondem kits médicos, ímãs e bombas EMP. Quebre-os!</div>
-            <div>⚙️ Ao fim de cada expedição você leva <b>sucata</b> para a Oficina e desbloqueia novos sobreviventes.</div>
+            <div>⚠️ <b>Leia os avisos no chão:</b> cardos mostram a linha por onde vão rolar, baobás pisam num círculo laranja e raízes brotam nos círculos vermelhos.</div>
+            <div>💼 <b>Maletas de equipamento</b> caem de elites, chefes e barris. Elas vão para o <b>Arsenal</b> no fim da expedição, onde você equipa capacete, traje, botas e módulo.</div>
+            <div>⚙️ Ao fim de cada expedição você leva <b>sucata</b> para a Oficina, aprimora equipamentos e desbloqueia novos sobreviventes.</div>
           </div>
         </div>
         <div class="menu-rodape">
@@ -403,6 +467,7 @@
         <div class="resumo" id="fim-resumo"></div>
         <table class="tabela-dano"><thead><tr><th>Arma</th><th>Nível</th><th>Dano total</th><th>Dano/s</th></tr></thead><tbody id="fim-tabela"></tbody></table>
         <p class="ganho" id="fim-ganho"></p>
+        <div id="fim-achados"></div>
         <div class="linha-botoes">
           <button class="btn-sec" id="btn-bunker">Voltar ao bunker</button>
           <button class="btn-neon" id="btn-denovo">Jogar de novo</button>

@@ -47,7 +47,7 @@
   // evolui: { com: passivo necessário, em: arma evoluída }
   const ARMAS = {
     blaster: { tipo: "blaster", nome: "Blaster de Plasma", desc: "Atira plasma no inimigo mais próximo.",
-      base: { dano: 14, recarga: 0.75, qtd: 1, perfura: 1, vel: 560, area: 1 },
+      base: { dano: 16, recarga: 0.75, qtd: 1, perfura: 1, vel: 560, area: 1 },
       niveis: [
         { qtd: 1, txt: "+1 disparo por rajada." },
         { dano: 6, txt: "+6 de dano." },
@@ -55,32 +55,32 @@
         { qtd: 1, dano: 6, txt: "+1 disparo e +6 de dano." },
       ], evolui: { com: "potencia", em: "fusao" } },
     fusao: { tipo: "blaster", evo: true, nome: "Canhão de Fusão", desc: "Rajadas de fusão gigantes que atravessam fileiras inteiras de plantas.",
-      base: { dano: 34, recarga: 0.5, qtd: 3, perfura: 7, vel: 720, area: 1.7 } },
+      base: { dano: 40, recarga: 0.5, qtd: 3, perfura: 7, vel: 720, area: 1.7 } },
 
     chamas: { tipo: "chamas", nome: "Lança-chamas", desc: "Jatos de fogo em cone. Plantas odeiam fogo.",
-      base: { dano: 7, recarga: 2.4, duracao: 1.0, area: 1 },
+      base: { dano: 9, recarga: 1.7, duracao: 1.6, area: 1 },
       niveis: [
         { dano: 3, txt: "+3 de dano." },
         { area: 0.25, txt: "+25% de alcance." },
-        { duracao: 0.5, txt: "O jato dura +0,5s." },
-        { dano: 4, recarga: -0.6, txt: "+4 de dano e recarrega 0,6s mais rápido." },
+        { duracao: 0.6, txt: "O jato dura +0,6s." },
+        { dano: 4, recarga: -0.5, txt: "+4 de dano e recarrega 0,5s mais rápido." },
       ], evolui: { com: "amplificador", em: "inferno" } },
     inferno: { tipo: "chamas", evo: true, nome: "Inferno Azul", desc: "Fogo azul em duas direções que deixa as plantas queimando.",
-      base: { dano: 15, recarga: 1.3, duracao: 2.0, area: 1.55, queima: 1 } },
+      base: { dano: 18, recarga: 0.9, duracao: 2.4, area: 1.45, queima: 1 } },
 
     serras: { tipo: "serras", nome: "Serras Orbitais", desc: "Lâminas giratórias que orbitam ao seu redor.",
-      base: { dano: 10, recarga: 3.0, duracao: 3.0, qtd: 2, area: 1, velRot: 3.4 },
+      base: { dano: 13, recarga: 2.2, duracao: 4.0, qtd: 2, area: 1, velRot: 3.0 },
       niveis: [
         { qtd: 1, txt: "+1 serra." },
-        { dano: 5, duracao: 0.6, txt: "+5 de dano e giram 0,6s a mais." },
-        { qtd: 1, velRot: 0.6, txt: "+1 serra e giram mais rápido." },
-        { qtd: 1, dano: 5, txt: "+1 serra e +5 de dano." },
+        { dano: 6, duracao: 1, txt: "+6 de dano e giram 1s a mais." },
+        { qtd: 1, velRot: 0.5, txt: "+1 serra e giram mais rápido." },
+        { qtd: 1, dano: 6, txt: "+1 serra e +6 de dano." },
       ], evolui: { com: "bateria", em: "anel" } },
     anel: { tipo: "serras", evo: true, nome: "Anel Eterno", desc: "Serras douradas que nunca param de girar.",
-      base: { dano: 22, recarga: 0, duracao: 1, qtd: 6, area: 1.35, velRot: 4.4, permanente: 1 } },
+      base: { dano: 26, recarga: 0, duracao: 1, qtd: 6, area: 1.3, velRot: 3.8, permanente: 1 } },
 
     pulso: { tipo: "pulso", nome: "Pulso EMP", desc: "Onda de choque que empurra e fere tudo ao redor.",
-      base: { dano: 14, recarga: 2.8, area: 1, empurrao: 1 },
+      base: { dano: 16, recarga: 2.6, area: 1, empurrao: 1 },
       niveis: [
         { dano: 6, txt: "+6 de dano." },
         { area: 0.25, txt: "+25% de raio." },
@@ -88,10 +88,10 @@
         { dano: 8, area: 0.2, txt: "+8 de dano e +20% de raio." },
       ], evolui: { com: "blindagem", em: "colapso" } },
     colapso: { tipo: "pulso", evo: true, nome: "Colapso EMP", desc: "Pulsos gigantes que paralisam as plantas por um instante.",
-      base: { dano: 36, recarga: 1.7, area: 1.9, empurrao: 1.6, atordoa: 0.8 } },
+      base: { dano: 42, recarga: 1.6, area: 1.9, empurrao: 1.6, atordoa: 0.8 } },
 
     misseis: { tipo: "misseis", nome: "Mísseis Teleguiados", desc: "Mísseis que perseguem plantas e explodem em área.",
-      base: { dano: 18, recarga: 1.9, qtd: 1, area: 1, vel: 320 },
+      base: { dano: 22, recarga: 1.8, qtd: 1, area: 1, vel: 320 },
       niveis: [
         { qtd: 1, txt: "+1 míssil." },
         { dano: 8, txt: "+8 de dano." },
@@ -99,10 +99,10 @@
         { qtd: 1, recarga: -0.4, txt: "+1 míssil e recarrega 0,4s mais rápido." },
       ], evolui: { com: "refrigeracao", em: "chuva" } },
     chuva: { tipo: "misseis", evo: true, nome: "Chuva de Mísseis", desc: "Uma barragem incessante de mísseis.",
-      base: { dano: 30, recarga: 1.1, qtd: 8, area: 1.5, vel: 400 } },
+      base: { dano: 34, recarga: 1.1, qtd: 8, area: 1.5, vel: 400 } },
 
     tesla: { tipo: "tesla", nome: "Bobina Tesla", desc: "Raios que saltam de planta em planta.",
-      base: { dano: 13, recarga: 1.5, qtd: 1, saltos: 3, area: 1 },
+      base: { dano: 15, recarga: 1.4, qtd: 1, saltos: 3, area: 1 },
       niveis: [
         { saltos: 2, txt: "Salta em +2 plantas." },
         { dano: 7, txt: "+7 de dano." },
@@ -110,10 +110,10 @@
         { saltos: 3, recarga: -0.35, txt: "Salta +3 vezes e recarrega 0,35s mais rápido." },
       ], evolui: { com: "multiplicador", em: "tempestade" } },
     tempestade: { tipo: "tesla", evo: true, nome: "Tempestade Elétrica", desc: "Raios em cadeia e relâmpagos caindo do céu.",
-      base: { dano: 28, recarga: 0.8, qtd: 3, saltos: 10, area: 1.3, ceu: 3 } },
+      base: { dano: 32, recarga: 0.8, qtd: 3, saltos: 10, area: 1.3, ceu: 3 } },
 
     herbicida: { tipo: "herbicida", nome: "Granada Herbicida", desc: "Granadas que deixam poças tóxicas que ferem e deixam as plantas lentas.",
-      base: { dano: 5, recarga: 3.0, qtd: 1, area: 1, duracao: 3 },
+      base: { dano: 7, recarga: 2.8, qtd: 1, area: 1, duracao: 3 },
       niveis: [
         { qtd: 1, txt: "+1 granada." },
         { dano: 3, area: 0.2, txt: "+3 de dano e poça 20% maior." },
@@ -121,10 +121,10 @@
         { qtd: 1, dano: 3, txt: "+1 granada e +3 de dano." },
       ], evolui: { com: "nanobots", em: "nuvem" } },
     nuvem: { tipo: "herbicida", evo: true, nome: "Nuvem Nanotóxica", desc: "Nuvens de nanobots que caçam plantas sozinhas.",
-      base: { dano: 13, recarga: 2.2, qtd: 4, area: 1.6, duracao: 5, segue: 1 } },
+      base: { dano: 16, recarga: 2.0, qtd: 4, area: 1.6, duracao: 5, segue: 1 } },
 
     drone: { tipo: "drone", nome: "Drone de Combate", desc: "Um drone fiel que atira lasers por conta própria.",
-      base: { dano: 9, recarga: 0.75, qtd: 1, area: 1, perfura: 1 },
+      base: { dano: 11, recarga: 0.7, qtd: 1, area: 1, perfura: 1 },
       niveis: [
         { dano: 4, txt: "+4 de dano." },
         { qtd: 1, txt: "+1 drone." },
@@ -132,7 +132,51 @@
         { qtd: 1, txt: "+1 drone." },
       ], evolui: { com: "aprendizado", em: "enxame" } },
     enxame: { tipo: "drone", evo: true, nome: "Enxame Sentinela", desc: "Cinco drones com lasers perfurantes.",
-      base: { dano: 18, recarga: 0.42, qtd: 5, area: 1, perfura: 4 } },
+      base: { dano: 21, recarga: 0.42, qtd: 5, area: 1, perfura: 4 } },
+
+    laser: { tipo: "laser", nome: "Laser de Varredura", desc: "Um feixe longo que gira ao seu redor cortando tudo no caminho.",
+      base: { dano: 18, recarga: 2.0, duracao: 3.0, qtd: 1, area: 1, velRot: 3.0 },
+      niveis: [
+        { dano: 6, txt: "+6 de dano." },
+        { qtd: 1, txt: "+1 feixe." },
+        { area: 0.25, duracao: 0.8, txt: "Feixe 25% mais longo e dura +0,8s." },
+        { dano: 8, recarga: -0.6, txt: "+8 de dano e recarrega 0,6s mais rápido." },
+      ], evolui: { com: "vitalidade", em: "prisma" } },
+    prisma: { tipo: "laser", evo: true, nome: "Prisma Solar", desc: "Três feixes que nunca desligam. Cada planta cortada devolve um pouco de vida.",
+      base: { dano: 30, recarga: 0, duracao: 1, qtd: 3, area: 1.35, velRot: 2.2, permanente: 1, cura: 0.4 } },
+
+    disco: { tipo: "disco", nome: "Disco Bumerangue", desc: "Discos afiados que vão e voltam, cortando tudo duas vezes.",
+      base: { dano: 18, recarga: 1.6, qtd: 1, area: 1, vel: 540 },
+      niveis: [
+        { dano: 6, txt: "+6 de dano." },
+        { qtd: 1, txt: "+1 disco." },
+        { area: 0.3, txt: "Discos 30% maiores e vão mais longe." },
+        { qtd: 1, dano: 6, txt: "+1 disco e +6 de dano." },
+      ], evolui: { com: "propulsor", em: "ciclone" } },
+    ciclone: { tipo: "disco", evo: true, nome: "Ciclone de Lâminas", desc: "Discos dourados gigantes em vaivém sem fim, para todos os lados.",
+      base: { dano: 36, recarga: 1.1, qtd: 5, area: 1.5, vel: 640 } },
+
+    minas: { tipo: "minas", nome: "Minas de Proximidade", desc: "Arremessa minas que explodem quando uma planta pisa nelas.",
+      base: { dano: 40, recarga: 1.8, qtd: 1, area: 1, duracao: 10 },
+      niveis: [
+        { dano: 14, txt: "+14 de dano." },
+        { qtd: 1, txt: "+1 mina por arremesso." },
+        { area: 0.3, txt: "Explosão 30% maior." },
+        { qtd: 1, recarga: -0.4, txt: "+1 mina e recarrega 0,4s mais rápido." },
+      ], evolui: { com: "ima", em: "singularidade" } },
+    singularidade: { tipo: "minas", evo: true, nome: "Minas Gravitacionais", desc: "Minas que sugam as plantas próximas antes de detonar.",
+      base: { dano: 85, recarga: 1.1, qtd: 3, area: 1.5, duracao: 12, puxa: 1 } },
+
+    chicote: { tipo: "chicote", nome: "Chicote de Plasma", desc: "Um açoite de plasma de longo alcance para os lados.",
+      base: { dano: 22, recarga: 1.3, qtd: 1, area: 1 },
+      niveis: [
+        { qtd: 1, txt: "Também corta para o lado oposto." },
+        { dano: 8, txt: "+8 de dano." },
+        { area: 0.25, txt: "Alcance 25% maior." },
+        { dano: 8, recarga: -0.3, txt: "+8 de dano e golpeia mais rápido." },
+      ], evolui: { com: "mira", em: "acoite" } },
+    acoite: { tipo: "chicote", evo: true, nome: "Açoite Estelar", desc: "Golpes gigantes em quatro direções que sempre acertam críticos.",
+      base: { dano: 46, recarga: 0.9, qtd: 4, area: 1.45, critico: 1 } },
   };
   const maxNivelArma = id => (ARMAS[id].evo ? 1 : ARMAS[id].niveis.length + 1);
 
@@ -148,6 +192,7 @@
     multiplicador: { nome: "Duplicador Quântico",     max: 2, por: "+1 projétil em todas as armas.",      tot: n => `+${n} projétil` },
     aprendizado:   { nome: "Chip de Dados",           max: 5, por: "+8% de experiência.",                 tot: n => `+${n * 8}% de experiência` },
     vitalidade:    { nome: "Célula Vital",            max: 5, por: "+20 de vida máxima.",                 tot: n => `+${n * 20} de vida máxima` },
+    mira:          { nome: "Mira Assistida",          max: 5, por: "+4% de chance de crítico (dano dobrado).", tot: n => `+${n * 4}% de crítico` },
   };
 
   // ia: comportamento • kb: resistência a empurrão (1 = normal, 0 = imóvel) • som: altura da sombra
@@ -160,6 +205,9 @@
     cacto:     { nome: "Cacto Blindado",    hp: 120,   vel: 34,  dano: 14, r: 20, xp: 6, sy: 1.0,  ia: null, armadura: 3, kb: 0.3, desc: "Blindado. Solta espinhos ao morrer." },
     raiz:      { nome: "Raiz Emergente",    hp: 50,    vel: 0,   dano: 12, r: 14, xp: 3, sy: 1.1,  ia: "raiz", kb: 0, desc: "Brota do chão sob seus pés." },
     girassol:  { nome: "Girassol Solar",    hp: 55,    vel: 40,  dano: 11, r: 18, xp: 5, sy: 1.5,  ia: "girassol", desc: "Dispara sementes em leque." },
+    cardo:     { nome: "Cardo Rolante",     hp: 34,    vel: 58,  dano: 11, r: 15, xp: 3, sy: 1.0,  ia: "rolar", desc: "Mira em você e sai rolando em disparada." },
+    alada:     { nome: "Semente Alada",     hp: 6,     vel: 126, dano: 5,  r: 9,  xp: 1, sy: 2.2,  ia: "voo", bando: 5, desc: "Voa em revoadas rápidas e frágeis." },
+    baoba:     { nome: "Baobá Andante",     hp: 360,   vel: 30,  dano: 22, r: 27, xp: 14, sy: 1.3, ia: "pisao", armadura: 2, kb: 0.12, desc: "Enorme e lento. Pisa forte quando chega perto." },
     barril:    { nome: "Barril de Suprimentos", hp: 22, vel: 0,  dano: 0,  r: 13, xp: 0, sy: 1.0,  ia: "parado", kb: 0, inofensivo: 1, fixo: 1 },
     rainha:    { nome: "Rainha Dioneia",    hp: 2600,  vel: 62,  dano: 22, r: 44, xp: 60,  sy: 1.1,  ia: "rainha", kb: 0, chefe: 1, desc: "Chefe dos 3 minutos." },
     colosso:   { nome: "Colosso de Cipós",  hp: 7000,  vel: 46,  dano: 26, r: 52, xp: 120, sy: 1.25, ia: "colosso", kb: 0, chefe: 1, desc: "Chefe dos 6 minutos." },
@@ -171,6 +219,7 @@
     iris:  { nome: "Dra. Íris Vale", papel: "Botânica rebelde",    arma: "herbicida", custo: 350,  area: 1.12, bonus: "+12% de área de efeito." },
     t07:   { nome: "Unidade T-07",   papel: "Androide de resgate", arma: "tesla",     custo: 800,  hp: 1.3, vel: 0.93, bonus: "+30% de vida, -7% de velocidade." },
     brasa: { nome: "Brasa",          papel: "Piromaníaca",         arma: "chamas",    custo: 1400, dano: 1.12, hp: 0.85, bonus: "+12% de dano, -15% de vida." },
+    vega:  { nome: "Vega Ribeiro",   papel: "Batedora veloz",      arma: "disco",     custo: 2000, vel: 1.1, ima: 1.25, bonus: "+10% de velocidade e +25% de coleta." },
   };
 
   const OFICINA = [
@@ -189,31 +238,69 @@
   const custoOficina = (u, nivel) => u.custo * (nivel + 1);
 
   // Ondas: até "ate" segundos, nascem "taxa" plantas por segundo, sorteadas pelos pesos
+  // Ondas: até "ate" segundos, nascem "taxa" plantas por segundo, sorteadas pelos pesos.
+  // Quem atira de longe (esporo, girassol) ficou raro: a pressão vem de plantas corpo a corpo.
   const ONDAS = [
     { ate: 45,       taxa: 2.2, tipos: { broto: 1 } },
-    { ate: 90,       taxa: 2.9, tipos: { broto: 6, cipo: 2 } },
-    { ate: 150,      taxa: 3.1, tipos: { broto: 5, cipo: 3, orquidea: 1 } },
-    { ate: 180,      taxa: 3.5, tipos: { broto: 4, cipo: 3, dioneia: 2, orquidea: 1 } },
-    { ate: 240,      taxa: 3.0, tipos: { cipo: 4, dioneia: 3, esporo: 1, broto: 2 } },
-    { ate: 300,      taxa: 5.0, tipos: { broto: 3, cipo: 4, dioneia: 3, esporo: 2, orquidea: 1 } },
-    { ate: 360,      taxa: 6.2, tipos: { cipo: 3, dioneia: 3, esporo: 2, cacto: 2, orquidea: 2 } },
-    { ate: 420,      taxa: 6.0, tipos: { dioneia: 3, esporo: 2, cacto: 3, girassol: 1, broto: 2 } },
-    { ate: 480,      taxa: 8.5, tipos: { broto: 4, dioneia: 3, cacto: 3, girassol: 2, orquidea: 2 } },
-    { ate: 540,      taxa: 10.5, tipos: { cipo: 4, dioneia: 3, cacto: 3, girassol: 3, esporo: 2, orquidea: 3 } },
-    { ate: 600,      taxa: 13,  tipos: { broto: 6, cipo: 4, dioneia: 4, cacto: 4, girassol: 3, orquidea: 3 } },
-    { ate: Infinity, taxa: 4.5, tipos: { broto: 4, cipo: 3, dioneia: 2, orquidea: 2, esporo: 1 } },
+    { ate: 90,       taxa: 2.9, tipos: { broto: 6, cipo: 2, alada: 0.5 } },
+    { ate: 150,      taxa: 3.1, tipos: { broto: 5, cipo: 3, orquidea: 1, alada: 0.7 } },
+    { ate: 180,      taxa: 3.4, tipos: { broto: 4, cipo: 3, dioneia: 2, orquidea: 1, cardo: 1 } },
+    { ate: 240,      taxa: 3.1, tipos: { cipo: 4, dioneia: 3, cardo: 2, broto: 2, alada: 0.6, esporo: 0.4 } },
+    { ate: 300,      taxa: 4.8, tipos: { broto: 3, cipo: 4, dioneia: 3, cardo: 2, orquidea: 1, alada: 0.6, esporo: 0.5 } },
+    { ate: 360,      taxa: 5.8, tipos: { cipo: 3, dioneia: 3, cardo: 2, cacto: 2, orquidea: 2, baoba: 0.5, esporo: 0.4 } },
+    { ate: 420,      taxa: 5.6, tipos: { dioneia: 3, cardo: 3, cacto: 3, broto: 2, baoba: 0.7, alada: 0.8, girassol: 0.4 } },
+    { ate: 480,      taxa: 7.8, tipos: { broto: 4, dioneia: 3, cacto: 3, cardo: 3, orquidea: 2, baoba: 0.9, alada: 0.8, girassol: 0.5 } },
+    { ate: 540,      taxa: 9.6, tipos: { cipo: 4, dioneia: 3, cacto: 3, cardo: 3, orquidea: 3, baoba: 1.1, alada: 1, girassol: 0.6, esporo: 0.5 } },
+    { ate: 600,      taxa: 12,  tipos: { broto: 6, cipo: 4, dioneia: 4, cacto: 4, cardo: 4, orquidea: 3, baoba: 1.4, alada: 1, girassol: 0.6 } },
+    { ate: Infinity, taxa: 4.5, tipos: { broto: 4, cipo: 3, dioneia: 2, orquidea: 2, cardo: 2 } },
   ];
-  // [segundo, tipo, ...parâmetros]
+  // [segundo, tipo, ...parâmetros] — precisa ficar em ordem de tempo
   const EVENTOS = [
-    [60, "elite"], [100, "cerco", "broto", 26], [140, "elite"],
+    [60, "elite"], [100, "cerco", "broto", 26], [120, "revoada", "alada", 30], [140, "elite"],
     [170, "aviso", "rainha"], [180, "chefe", "rainha"],
-    [215, "raizes", 6], [240, "elite"], [270, "enxame", "orquidea", 14], [300, "elite"], [320, "cerco", "cipo", 30],
+    [215, "raizes", 6], [240, "elite"], [255, "estouro", "cardo", 10], [270, "enxame", "orquidea", 14], [300, "elite"], [320, "cerco", "cipo", 30],
     [350, "aviso", "colosso"], [360, "chefe", "colosso"],
-    [400, "elite"], [430, "enxame", "orquidea", 18], [450, "cerco", "dioneia", 24], [480, "elite"],
-    [510, "raizes", 10], [530, "cerco", "cacto", 20], [550, "elite"], [575, "enxame", "orquidea", 24],
+    [390, "revoada", "alada", 45], [400, "elite"], [420, "estouro", "cardo", 14], [440, "enxame", "orquidea", 18], [455, "cerco", "dioneia", 24], [480, "elite"],
+    [500, "tanques", "baoba", 4], [515, "raizes", 10], [530, "cerco", "cacto", 20], [545, "estouro", "cardo", 18], [550, "elite"], [565, "revoada", "alada", 60], [575, "enxame", "orquidea", 24],
     [590, "aviso", "matriarca"], [600, "chefe", "matriarca"],
   ];
+  // Elites ganham um traço especial (mostrado pela cor da aura)
+  const AFIXOS = {
+    veloz:     { nome: "Veloz",        cor: "#ffd34d", sub: "Rápida como o vento" },
+    espinhosa: { nome: "Espinhosa",    cor: "#ff4d6d", sub: "Não chegue perto da aura vermelha" },
+    regenera:  { nome: "Regenerativa", cor: "#4ade80", sub: "Ela se cura — derrube-a rápido" },
+    blindada:  { nome: "Blindada",     cor: "#60a5fa", sub: "Casca grossa e inabalável" },
+  };
   const MAX_INIMIGOS = 420;
+
+  // Equipamentos: encontrados em elites, chefes e caixas; equipados só no bunker (aba Arsenal)
+  const ENCAIXES = { capacete: "Capacete", traje: "Traje", botas: "Botas", acessorio: "Módulo" };
+  const RARIDADES = [
+    { nome: "Comum",    cor: "#a9bfcc", mult: 1,   peso: 60, desmonta: 15 },
+    { nome: "Raro",     cor: "#38bdf8", mult: 1.7, peso: 28, desmonta: 40 },
+    { nome: "Épico",    cor: "#c084fc", mult: 2.6, peso: 10, desmonta: 100 },
+    { nome: "Lendário", cor: "#ffb020", mult: 4,   peso: 2,  desmonta: 250 },
+  ];
+  // st: atributos por "ponto" (multiplicados pela raridade e pelo aprimoramento)
+  const MODELOS = {
+    visor:   { enc: "capacete",  nome: "Visor Tático",         cor: "#ff4d6d", st: { crit: 0.025 } },
+    elmo:    { enc: "capacete",  nome: "Elmo Blindado",        cor: "#94a3b8", st: { armadura: 0.6, vida: 0.03 } },
+    neural:  { enc: "capacete",  nome: "Capacete Neural",      cor: "#22e5ff", st: { xp: 0.05 } },
+    kevlar:  { enc: "traje",     nome: "Colete de Kevlar",     cor: "#a3e635", st: { vida: 0.07 } },
+    exo:     { enc: "traje",     nome: "Exotraje Reativo",     cor: "#60a5fa", st: { armadura: 0.8 } },
+    termal:  { enc: "traje",     nome: "Traje Termal",         cor: "#ff8a1f", st: { duracao: 0.05, area: 0.03 } },
+    corrida: { enc: "botas",     nome: "Botas de Corrida",     cor: "#facc15", st: { vel: 0.045 } },
+    magnet:  { enc: "botas",     nome: "Botas Magnéticas",     cor: "#ef4444", st: { ima: 0.14 } },
+    coturno: { enc: "botas",     nome: "Coturnos de Aço",      cor: "#cbd5e1", st: { armadura: 0.5, vel: 0.02 } },
+    fusao:   { enc: "acessorio", nome: "Núcleo de Fusão",      cor: "#ff2bd6", st: { dano: 0.05 } },
+    cryo:    { enc: "acessorio", nome: "Dissipador Portátil",  cor: "#7dd3fc", st: { recarga: 0.035 } },
+    lente:   { enc: "acessorio", nome: "Lente Grande-Angular", cor: "#c084fc", st: { area: 0.06 } },
+    seiva:   { enc: "acessorio", nome: "Cápsula de Seiva",     cor: "#4ade80", st: { regen: 0.12 } },
+    garimpo: { enc: "acessorio", nome: "Chip Garimpeiro",      cor: "#fbbf24", st: { sucata: 0.07 } },
+  };
+  // a partir de Raro, o item ganha atributos extras sorteados (Lendário ganha dois)
+  const EXTRAS = { dano: 0.025, recarga: 0.02, area: 0.03, vel: 0.025, vida: 0.035, crit: 0.015, ima: 0.08, xp: 0.03, regen: 0.06 };
+  const MAX_NV_ITEM = 5, MAX_INV = 48, CUSTO_CAIXA = 120;
 
   // ========================================================
   // 3. SALVAMENTO
@@ -224,6 +311,7 @@
       sucata: 0, oficina: {}, personagens: ["kai"], escolhido: "kai",
       recordes: { tempo: 0, nivel: 0, abates: 0, maisAbates: 0, vitorias: 0, partidas: 0, chefes: 0 },
       opcoes: { som: true, numeros: true, mouse: "sempre", tremor: true },
+      inventario: [], equip: { capacete: null, traje: null, botas: null, acessorio: null }, proxItem: 1, presente: false,
     };
   }
   function carregar() {
@@ -237,6 +325,14 @@
         m.oficina = Object.assign({}, d.oficina);
         if (!Array.isArray(m.personagens) || !m.personagens.includes("kai")) m.personagens = ["kai", ...(m.personagens || [])];
         if (!PERSONAGENS[m.escolhido] || !m.personagens.includes(m.escolhido)) m.escolhido = "kai";
+        m.inventario = (Array.isArray(d.inventario) ? d.inventario : []).filter(it => it && MODELOS[it.m] && RARIDADES[it.r] && Number.isFinite(it.id))
+          .map(it => ({ id: it.id, m: it.m, r: it.r, n: clamp(it.n | 0, 0, MAX_NV_ITEM), x: (Array.isArray(it.x) ? it.x : []).filter(k => EXTRAS[k]) }));
+        m.equip = Object.assign(metaPadrao().equip, d.equip);
+        for (const enc in m.equip) {
+          const it = m.inventario.find(i => i.id === m.equip[enc]);
+          if (!ENCAIXES[enc] || !it || MODELOS[it.m].enc !== enc) m.equip[enc] = null;
+        }
+        m.proxItem = Math.max(+d.proxItem || 1, ...m.inventario.map(i => i.id + 1), 1);
       }
     } catch (e) { /* save corrompido ou sem armazenamento: começa do zero */ }
     return m;
@@ -244,6 +340,73 @@
   function salvar() { try { localStorage.setItem(CHAVE, JSON.stringify(meta)); } catch (e) { /* sem armazenamento */ } }
   let meta = carregar();
   const nivelOf = id => meta.oficina[id] || 0;
+
+  // ---------- Equipamentos ----------
+  const pctTxt = v => (Math.round(v * 1000) / 10).toLocaleString("pt-BR") + "%";
+  const ATRIB = {
+    dano:     v => `+${pctTxt(v)} de dano`,
+    recarga:  v => `-${pctTxt(v)} de recarga`,
+    area:     v => `+${pctTxt(v)} de área`,
+    duracao:  v => `+${pctTxt(v)} de duração`,
+    vel:      v => `+${pctTxt(v)} de velocidade`,
+    vida:     v => `+${pctTxt(v)} de vida máxima`,
+    armadura: v => `+${v} de armadura`,
+    regen:    v => `+${(Math.round(v * 100) / 100).toLocaleString("pt-BR")} vida/s`,
+    ima:      v => `+${pctTxt(v)} de coleta`,
+    xp:       v => `+${pctTxt(v)} de experiência`,
+    crit:     v => `+${pctTxt(v)} de crítico`,
+    sucata:   v => `+${pctTxt(v)} de sucata`,
+  };
+  const itemPorId = id => (id ? meta.inventario.find(i => i.id === id) : null);
+  const nomeItem = it => MODELOS[it.m].nome + (it.n ? ` +${it.n}` : "");
+  const iconeItem = it => ARTE.iconeEquip(MODELOS[it.m].enc, MODELOS[it.m].cor);
+  const custoAprimorar = it => 30 * (it.r + 1) * (it.n + 1);
+  const valorDesmontar = it => RARIDADES[it.r].desmonta + Math.floor(15 * (it.r + 1) * it.n * (it.n + 1) / 2);
+  function statsItem(it) {
+    const md = MODELOS[it.m], k = RARIDADES[it.r].mult * (1 + 0.15 * it.n), st = {};
+    for (const a in md.st) st[a] = (st[a] || 0) + md.st[a] * k;
+    for (const a of it.x) st[a] = (st[a] || 0) + EXTRAS[a] * k;
+    if (st.armadura) st.armadura = Math.max(1, Math.round(st.armadura));
+    return st;
+  }
+  function somaEquip() {
+    const t = {};
+    for (const enc in ENCAIXES) {
+      const it = itemPorId(meta.equip[enc]);
+      if (!it) continue;
+      const st = statsItem(it);
+      for (const a in st) t[a] = (t[a] || 0) + st[a];
+    }
+    return t;
+  }
+  function sortearIndice(pesos) {
+    const total = pesos.reduce((a, b) => a + b, 0);
+    let r = Math.random() * total;
+    for (let i = 0; i < pesos.length; i++) { r -= pesos[i]; if (r < 0) return i; }
+    return 0;
+  }
+  function novoItem(pesos = RARIDADES.map(r => r.peso), modelo = null) {
+    const ids = Object.keys(MODELOS), m = modelo || ids[RI(0, ids.length - 1)];
+    const r = sortearIndice(pesos), x = [];
+    const pool = Object.keys(EXTRAS).filter(k => !(k in MODELOS[m].st));
+    const n = r >= 3 ? 2 : r >= 1 ? 1 : 0;
+    while (x.length < n) { const k = pool[RI(0, pool.length - 1)]; if (!x.includes(k)) x.push(k); }
+    return { id: meta.proxItem++, m, r, n: 0, x };
+  }
+  // guarda no inventário; se estiver cheio, vira sucata na hora
+  function guardarItem(it) {
+    if (meta.inventario.length >= MAX_INV) { meta.sucata += valorDesmontar(it); return false; }
+    meta.inventario.push(it);
+    return true;
+  }
+  // presente de boas-vindas: o primeiro colete já vem equipado
+  if (!meta.presente) {
+    meta.presente = true;
+    const it = novoItem([1, 0, 0, 0], "kevlar");
+    meta.inventario.push(it);
+    if (!meta.equip.traje) meta.equip.traje = it.id;
+    salvar();
+  }
 
   // ========================================================
   // 4. SOM (sintetizado na hora com WebAudio, sem arquivos)
@@ -300,6 +463,12 @@
       vitoria:  [1,    () => [523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) => tom(f, f, 0.3, "triangle", 0.1, i * 0.14))],
       derrota:  [1,    () => [392, 330, 262, 196].forEach((f, i) => tom(f, f * 0.98, 0.4, "triangle", 0.1, i * 0.22))],
       clique:   [0.04, () => tom(1200, 1200, 0.03, "square", 0.03)],
+      chicote:  [0.12, () => { ruido(0.16, 0.12, 2600, "highpass"); tom(1400, 300, 0.12, "sawtooth", 0.03); }],
+      feixe:    [0.6,  () => { tom(220, 440, 0.5, "sawtooth", 0.035); tom(660, 880, 0.5, "sine", 0.03); }],
+      disco:    [0.12, () => tom(700, 1100, 0.1, "triangle", 0.05)],
+      mina:     [0.15, () => { tom(1600, 1600, 0.04, "square", 0.035); tom(1600, 1600, 0.04, "square", 0.035, 0.08); }],
+      pisao:    [0.2,  () => { tom(90, 35, 0.35, "sine", 0.25); ruido(0.3, 0.12, 300); }],
+      raro:     [0.4,  () => [659, 880, 1175, 1568].forEach((f, i) => tom(f, f, 0.22, "sine", 0.1, i * 0.08))],
     };
     function tocar(nome, arg) {
       if (!ac || !meta.opcoes.som) return;
@@ -401,7 +570,8 @@
       abates: 0, sucata: 0, rerolls: 1 + nivelOf("reroll"), revives: nivelOf("revive"),
       armas: [], passivos: [], evoluidas: [], mod: {},
       inimigos: [], grandes: [], tiros: [], tirosIni: [], gemas: [], itens: [], particulas: [], numeros: [],
-      aneis: [], raios: [], pocas: [], granadas: [], explosoes: [], avisos: [],
+      aneis: [], raios: [], pocas: [], granadas: [], explosoes: [], avisos: [], minas: [], golpes: [], achados: [],
+      eq: somaEquip(),
       evento: 0, acumSpawn: 0, chefe: null, tremor: 0, flashDano: 0, flashBranco: 0,
       proxBarril: 18, proxRaizes: 225, comboGema: 0, tComboGema: 0,
       fimEm: null, vitoria: false, morto: false, chefesMortos: 0,
@@ -412,7 +582,7 @@
   }
 
   function darArma(id) {
-    J.armas.push({ id, nivel: 1, t: 0.4, total: 0, desde: J.tempo, s: null, ativo: 0, ang: 0, tick: 0, rot: 0, pos: [], drones: [] });
+    J.armas.push({ id, nivel: 1, t: 0.4, total: 0, desde: J.tempo, s: null, ativo: 0, ang: 0, tick: 0, rot: Math.random() * TAU, pos: [], drones: [] });
     recalcular();
   }
 
@@ -432,20 +602,21 @@
     return s;
   }
 
+  // Junta passivos da partida, Oficina, personagem e equipamentos em J.mod
   function recalcular() {
-    const P = PERSONAGENS[J.personagem], pv = nivelPassivo, m = J.mod;
-    m.dano = (1 + 0.1 * pv("potencia")) * (1 + 0.05 * nivelOf("dano")) * (P.dano || 1);
-    m.recarga = (1 - 0.08 * pv("refrigeracao")) * (1 - 0.03 * nivelOf("recarga"));
-    m.area = (1 + 0.1 * pv("amplificador")) * (P.area || 1);
-    m.duracao = 1 + 0.12 * pv("bateria");
+    const P = PERSONAGENS[J.personagem], pv = nivelPassivo, m = J.mod, q = J.eq, eq = k => q[k] || 0;
+    m.dano = (1 + 0.1 * pv("potencia")) * (1 + 0.05 * nivelOf("dano")) * (P.dano || 1) * (1 + eq("dano"));
+    m.recarga = (1 - 0.08 * pv("refrigeracao")) * (1 - 0.03 * nivelOf("recarga")) * (1 - eq("recarga"));
+    m.area = (1 + 0.1 * pv("amplificador")) * (P.area || 1) * (1 + eq("area"));
+    m.duracao = (1 + 0.12 * pv("bateria")) * (1 + eq("duracao"));
     m.qtd = pv("multiplicador");
-    m.armadura = pv("blindagem") + nivelOf("armadura");
-    m.vel = 150 * (1 + 0.08 * pv("propulsor")) * (1 + 0.05 * nivelOf("vel")) * (P.vel || 1);
-    m.regen = 0.25 * pv("nanobots") + 0.2 * nivelOf("regen");
-    m.ima = 85 * (1 + 0.25 * pv("ima")) * (1 + 0.15 * nivelOf("ima"));
-    m.xp = (1 + 0.08 * pv("aprendizado")) * (1 + 0.05 * nivelOf("xp"));
-    m.crit = 0.05;
-    const novoMax = Math.round(100 * (P.hp || 1) * (1 + 0.1 * nivelOf("vida")) + 20 * pv("vitalidade"));
+    m.armadura = pv("blindagem") + nivelOf("armadura") + eq("armadura");
+    m.vel = 150 * (1 + 0.08 * pv("propulsor")) * (1 + 0.05 * nivelOf("vel")) * (P.vel || 1) * (1 + eq("vel"));
+    m.regen = 0.25 * pv("nanobots") + 0.2 * nivelOf("regen") + eq("regen");
+    m.ima = 85 * (1 + 0.25 * pv("ima")) * (1 + 0.15 * nivelOf("ima")) * (P.ima || 1) * (1 + eq("ima"));
+    m.xp = (1 + 0.08 * pv("aprendizado")) * (1 + 0.05 * nivelOf("xp")) * (1 + eq("xp"));
+    m.crit = 0.05 + 0.04 * pv("mira") + eq("crit");
+    const novoMax = Math.round((100 * (P.hp || 1) * (1 + 0.1 * nivelOf("vida")) + 20 * pv("vitalidade")) * (1 + eq("vida")));
     if (J.hpMax && novoMax > J.hpMax) J.hp += novoMax - J.hpMax;
     J.hpMax = novoMax;
     J.hp = Math.min(J.hp, J.hpMax);
@@ -548,9 +719,14 @@
       flash: 0, fase: Math.random() * TAU, esq: x > J.px, ia: d.ia || null,
       t: R(0.8, 2), t2: R(3, 5), t3: 6, t4: 0, estado: 0, ang: Math.random() * TAU, bx: 0, by: 0, nasce: 0,
       morto: false, removido: false, lento: 0, atordoado: 0, queima: 0, tickQ: 0, danoQ: 0, armaQ: null,
-      chefe: !!d.chefe, elite: false, grande: false, visita: 0, hitS: -9, inofensivo: !!d.inofensivo,
+      chefe: !!d.chefe, elite: false, grande: false, visita: 0, hitS: -9, hitL: -9, inofensivo: !!d.inofensivo, afixo: null, rot: 0,
     };
-    if (op.elite) { e.elite = true; e.r *= 1.6; e.hp *= 16; e.dano *= 1.4; e.xp = Math.max(10, e.xp * 8); e.vel *= 0.92; e.kbRes = 0.15; }
+    if (op.elite) {
+      e.elite = true; e.r *= 1.6; e.hp *= 16; e.dano *= 1.4; e.xp = Math.max(10, e.xp * 8); e.vel *= 0.92; e.kbRes = 0.15;
+      e.afixo = op.afixo || null;
+      if (e.afixo === "veloz") e.vel *= 1.5;
+      if (e.afixo === "blindada") { e.armadura += 6; e.kbRes = 0; e.hp *= 1.2; }
+    }
     if (tipo === "raiz") { e.nasce = 0.35; e.t3 = 5.5; }
     if (tipo === "rainha") { e.t = 2.5; e.t2 = 5; }
     if (tipo === "colosso") { e.t = 2; e.t2 = 4; }
@@ -574,7 +750,8 @@
       J.acumSpawn -= 1;
       if (J.inimigos.length >= MAX_INIMIGOS) { J.acumSpawn = 0; break; }
       const [x, y] = pontoBorda();
-      criarInimigo(sortearChave(onda.tipos), x, y);
+      const tipo = sortearChave(onda.tipos), n = INIMIGOS[tipo].bando || 1;
+      for (let k = 0; k < n; k++) criarInimigo(tipo, x + (n > 1 ? R(-34, 34) : 0), y + (n > 1 ? R(-34, 34) : 0));
     }
     J.proxBarril -= dt;
     if (J.proxBarril <= 0) {
@@ -614,12 +791,38 @@
     if (J.vitoria) return;
     switch (tipo) {
       case "elite": {
-        const t = sortearChave(ondaAtual().tipos);
+        const pesos = Object.assign({}, ondaAtual().tipos);
+        delete pesos.alada;
+        const t = sortearChave(pesos);
         const [x, y] = pontoBorda(60, true);
-        criarInimigo(t, x, y, { elite: true });
-        faixa("Planta elite à vista!", "Derrote-a para ganhar uma Caixa de Suprimentos", "#ffd34d");
+        const af = J.tempo < 100 ? null : Object.keys(AFIXOS)[RI(0, 3)];
+        criarInimigo(t, x, y, { elite: true, afixo: af });
+        faixa(af ? `Elite ${AFIXOS[af].nome.toLowerCase()} à vista!` : "Planta elite à vista!",
+          af ? `${AFIXOS[af].sub} • ela guarda uma Caixa de Suprimentos` : "Derrote-a para ganhar uma Caixa de Suprimentos", af ? AFIXOS[af].cor : "#ffd34d");
         break;
       }
+      case "revoada": {
+        const [x, y] = pontoBorda(80);
+        for (let i = 0; i < b; i++) criarInimigo(a, x + R(-90, 90), y + R(-90, 90));
+        faixa("Revoada!", "Sementes aladas em bando", "#7dffb0");
+        break;
+      }
+      case "estouro": {
+        // uma fileira de cardos chega de um lado só e já vem rolando
+        const ang = Math.random() * TAU, dist = Math.hypot(VW, VH) / 2 + 40;
+        const cx = J.px + Math.cos(ang) * dist, cy = J.py + Math.sin(ang) * dist;
+        for (let i = 0; i < b; i++) {
+          const o = (i - (b - 1) / 2) * 42;
+          const e = criarInimigo(a, cx - Math.sin(ang) * o, cy + Math.cos(ang) * o);
+          e.t = R(0, 0.5);
+        }
+        faixa("Estouro de cardos!", "Saia da linha de rolagem", "#d58cff");
+        break;
+      }
+      case "tanques":
+        invocarAoRedor(a, b, Math.hypot(VW, VH) / 2 + 40);
+        faixa("Baobás andantes!", "Gigantes lentos — mantenha distância", "#ffb020");
+        break;
       case "cerco": {
         const raio = Math.hypot(VW, VH) / 2 + 30;
         for (let i = 0; i < b; i++) { const ang = i / b * TAU; criarInimigo(a, J.px + Math.cos(ang) * raio, J.py + Math.sin(ang) * raio); }
@@ -686,11 +889,11 @@
         const alvo = maisProximo(J.px, J.py, 420);
         const alvoAng = alvo ? Math.atan2(alvo.y - J.py, alvo.x - J.px) : Math.atan2(J.dirY, J.dirX);
         a.ang = girarPara(a.ang, alvoAng, 5 * dt);
-        const alcance = 135 * a.s.area, abre = 0.42;
+        const alcance = 205 * a.s.area, abre = 0.5;
         const dirs = evo ? [a.ang, a.ang + Math.PI] : [a.ang];
         for (const d of dirs) {
-          for (let k = 0; k < (evo ? 3 : 4); k++) {
-            const aa = d + R(-abre, abre) * 0.85, v = alcance * R(2.3, 3);
+          for (let k = 0; k < (evo ? 4 : 5); k++) {
+            const aa = d + R(-abre, abre) * 0.85, v = alcance * R(3.4, 4.4);
             particula(J.px + Math.cos(d) * 14, J.py - 4 + Math.sin(d) * 14, Math.cos(aa) * v + J.vx, Math.sin(aa) * v + J.vy,
               0.34, R(9, 15), evo ? (Math.random() < 0.5 ? "#5cc8ff" : "#d6f4ff") : (Math.random() < 0.5 ? "#ff8a1f" : "#ffd04a"), 1, 2.4, 0, 2.6);
           }
@@ -707,14 +910,14 @@
               const ex = e.x - J.px, ey = e.y - J.py, de = Math.hypot(ex, ey) || 1;
               const ang = Math.acos(clamp((ex * cx + ey * cy) / de, -1, 1));
               if (ang > abre + e.r / de && de > e.r + 16) continue;
-              ferir(e, a.s.dano, a, cx * 25, cy * 25);
+              ferir(e, a.s.dano, a, cx * 35, cy * 35);
               if (a.s.queima && !e.morto) { e.queima = 2; e.danoQ = a.s.dano * 0.5; e.armaQ = a; }
             }
           }
         }
       } else {
         a.t -= dt;
-        if (a.t <= 0 && maisProximo(J.px, J.py, 230 * a.s.area)) {
+        if (a.t <= 0 && maisProximo(J.px, J.py, 225 * a.s.area)) {
           a.t = a.s.recarga; a.ativo = a.s.duracao; a.tick = 0;
           const alvo = maisProximo(J.px, J.py, 420);
           if (alvo) a.ang = Math.atan2(alvo.y - J.py, alvo.x - J.px);
@@ -735,7 +938,8 @@
         if (a.ativo <= 0) a.t = a.s.recarga;
       }
       a.rot += a.s.velRot * dt;
-      const n = a.s.qtd, raio = 74 * a.s.area, rs = 13 * Math.sqrt(a.s.area);
+      // a órbita "respira" entre ~90 e ~125 px, cobrindo uma faixa larga ao seu redor
+      const n = a.s.qtd, raio = 108 * a.s.area * (1 + 0.16 * Math.sin(a.rot * 0.55)), rs = 19 * Math.sqrt(a.s.area);
       a.pos.length = 0;
       for (let i = 0; i < n; i++) {
         const ang = a.rot + i * TAU / n;
@@ -747,7 +951,7 @@
           if (e.morto || J.tempo - e.hitS < 0.3) continue;
           e.hitS = J.tempo;
           const ex = e.x - J.px, ey = e.y - J.py, de = Math.hypot(ex, ey) || 1;
-          ferir(e, a.s.dano, a, ex / de * 140, ey / de * 140);
+          ferir(e, a.s.dano, a, ex / de * 160, ey / de * 160);
           faiscas(x, y, 3, perm ? "#fff36b" : "#c7f9ff");
         }
       }
@@ -756,7 +960,7 @@
     pulso(a, dt) {
       a.t -= dt;
       if (a.t > 0) return;
-      const rmax = 125 * a.s.area;
+      const rmax = 150 * a.s.area;
       if (!maisProximo(J.px, J.py, rmax + 60)) { a.t = 0.2; return; }
       a.t = a.s.recarga;
       J.aneis.push({ r: 8, rmax, vel: rmax / 0.32, dano: a.s.dano, arma: a, ids: new Set(), fim: 0,
@@ -775,7 +979,7 @@
         J.tiros.push(novoTiro({
           x: J.px, y: J.py - 8, vx: 0, vy: 0, ang: -Math.PI / 2 + R(-1.3, 1.3), vel: 150, velMax: a.s.vel,
           r: 7, dano: a.s.dano, perfura: 1, vida: 3.2, tipo: "missil", arma: a, alvo,
-          explode: 46 * a.s.area, atraso: i * 0.06,
+          explode: 58 * a.s.area, atraso: i * 0.06,
         }));
       }
       Som.tocar("missil");
@@ -784,7 +988,7 @@
     tesla(a, dt) {
       a.t -= dt;
       if (a.t > 0) return;
-      const alc = 240 * a.s.area;
+      const alc = 260 * a.s.area;
       const primeiro = maisProximo(J.px, J.py, alc);
       if (!primeiro) { a.t = 0.15; return; }
       a.t = a.s.recarga;
@@ -838,7 +1042,7 @@
         d.x += (tx - d.x) * f; d.y += (ty - d.y) * f;
         d.t -= dt;
         if (d.t > 0) continue;
-        const alvo = maisProximo(d.x, d.y, 310);
+        const alvo = maisProximo(d.x, d.y, 340);
         if (!alvo) { d.t = 0.15; continue; }
         d.t = a.s.recarga;
         const an = Math.atan2(alvo.y - d.y, alvo.x - d.x);
@@ -847,6 +1051,89 @@
           perfura: a.s.perfura, vida: 0.55, tipo: evo ? "laserEvo" : "laser", arma: a, kb: 30 }));
         Som.tocar("laser");
       }
+    },
+
+    // Feixes que giram ao redor do jogador; cada planta leva um golpe por passada
+    laser(a, dt) {
+      const perm = !!a.s.permanente;
+      if (!perm) {
+        if (a.ativo <= 0) {
+          a.t -= dt; a.pos.length = 0;
+          if (a.t <= 0 && maisProximo(J.px, J.py, 250 * a.s.area)) { a.ativo = a.s.duracao; Som.tocar("feixe"); }
+          return;
+        }
+        a.ativo -= dt;
+        if (a.ativo <= 0) a.t = a.s.recarga;
+      }
+      a.rot += a.s.velRot * dt;
+      const n = a.s.qtd, comp = 250 * a.s.area, larg = 10 * Math.sqrt(a.s.area), oy = J.py - 6;
+      a.pos.length = 0;
+      for (let i = 0; i < n; i++) a.pos.push(a.rot + i * TAU / n);
+      const lst = perto(J.px, oy, comp);
+      for (let k = 0; k < lst.length; k++) {
+        const e = lst[k];
+        if (e.morto || J.tempo - e.hitL < 0.3) continue;
+        const ex = e.x - J.px, ey = e.y - oy;
+        for (let i = 0; i < n; i++) {
+          const cx = Math.cos(a.pos[i]), cy = Math.sin(a.pos[i]);
+          const ao = ex * cx + ey * cy;
+          if (ao < 0 || ao > comp + e.r || Math.abs(ey * cx - ex * cy) > larg + e.r) continue;
+          e.hitL = J.tempo;
+          ferir(e, a.s.dano, a, cx * 50, cy * 50);
+          faiscas(e.x, e.y, 2, perm ? "#fff7b0" : "#ffb3c1");
+          break;
+        }
+      }
+    },
+
+    // Discos que vão até o alcance máximo, freiam e voltam para a sua mão
+    disco(a, dt) {
+      a.t -= dt;
+      if (a.t > 0) return;
+      const alc = 240 * a.s.area;
+      const primeiro = maisProximo(J.px, J.py, alc + 120);
+      if (!primeiro) { a.t = 0.2; return; }
+      a.t = a.s.recarga;
+      const evo = a.id === "ciclone", n = a.s.qtd, v = a.s.vel;
+      const base = Math.atan2(primeiro.y - J.py, primeiro.x - J.px);
+      for (let i = 0; i < n; i++) {
+        const ang = n > 3 ? base + i * TAU / n : base + (i - (n - 1) / 2) * 0.5;
+        J.tiros.push(novoTiro({
+          x: J.px, y: J.py - 6, vx: Math.cos(ang) * v, vy: Math.sin(ang) * v, r: 13 * a.s.area, dano: a.s.dano,
+          perfura: 9999, vida: 5, tipo: evo ? "discoOuro" : "disco", arma: a, kb: 80, atraso: i * 0.05,
+          volta: false, desac: v * v / (2 * alc), velMax: v * 1.15, giro: 0,
+        }));
+      }
+      Som.tocar("disco");
+    },
+
+    // Minas arremessadas perto das plantas; explodem quando alguém pisa
+    minas(a, dt) {
+      a.t -= dt;
+      if (a.t > 0) return;
+      a.t = a.s.recarga;
+      const evo = a.id === "singularidade", max = 6 + 3 * a.s.qtd;
+      for (let i = 0; i < a.s.qtd; i++) {
+        const minhas = J.minas.filter(m => m.arma === a && !m.feita);
+        if (minhas.length >= max) detonar(minhas[0]);
+        const alvo = alvoAleatorio(J.px, J.py, 280);
+        let x, y;
+        if (alvo && Math.random() < 0.65) { x = alvo.x + R(-26, 26); y = alvo.y + R(-26, 26); }
+        else { const an = Math.random() * TAU, d = R(50, 170); x = J.px + Math.cos(an) * d; y = J.py + Math.sin(an) * d; }
+        J.minas.push({ x0: J.px, y0: J.py - 8, x, y, t: -i * 0.1, voo: 0.35, arma: a, armada: 0.35, vida: a.s.duracao, evo, puxando: 0, fase: Math.random() * TAU, feita: false });
+      }
+      Som.tocar("granada");
+    },
+
+    // Chicote: golpes longos para os lados (frente, trás, cima, baixo)
+    chicote(a, dt) {
+      a.t -= dt;
+      if (a.t > 0) return;
+      if (!maisProximo(J.px, J.py, 280 * a.s.area)) { a.t = 0.15; return; }
+      a.t = a.s.recarga;
+      const frente = J.esq ? Math.PI : 0;
+      const dirs = [frente, frente + Math.PI, -Math.PI / 2, Math.PI / 2];
+      for (let i = 0; i < a.s.qtd; i++) J.golpes.push({ ang: dirs[i % 4], t: -(i % 4) * 0.1 - Math.floor(i / 4) * 0.35, vida: 0.24, feito: false, arma: a, lado: i % 2 ? -1 : 1 });
     },
   };
 
@@ -861,7 +1148,19 @@
         p.x = J.px; p.y = J.py - 8;
       }
       p.vida -= dt;
-      if (p.tipo === "missil") {
+      if (p.volta !== undefined) {
+        if (!p.volta) {
+          const v = Math.hypot(p.vx, p.vy), nv = v - p.desac * dt;
+          if (nv <= 50) { p.volta = true; p.vel = 50; p.atingidos.clear(); }
+          else { p.vx *= nv / v; p.vy *= nv / v; }
+        } else {
+          const dx = J.px - p.x, dy = J.py - 6 - p.y, d = Math.hypot(dx, dy) || 1;
+          p.vel = Math.min(p.velMax, p.vel + p.desac * 1.3 * dt);
+          p.vx = dx / d * p.vel; p.vy = dy / d * p.vel;
+          if (d < 20 || J.morto) { p.morto = true; continue; }
+        }
+        p.giro += dt * 20;
+      } else if (p.tipo === "missil") {
         if (!p.alvo || p.alvo.morto) p.alvo = maisProximo(p.x, p.y, 520);
         if (p.alvo) p.ang = girarPara(p.ang, Math.atan2(p.alvo.y - p.y, p.alvo.x - p.x), 5.5 * dt);
         p.vel = Math.min(p.velMax, p.vel + 420 * dt);
@@ -895,10 +1194,76 @@
     Som.tocar("explosao");
   }
 
+  function detonar(m) {
+    if (m.feita) return;
+    m.feita = true;
+    const a = m.arma, rex = 78 * a.s.area * (m.evo ? 1.15 : 1);
+    explosao(m.x, m.y, rex, m.evo ? "#b18cff" : "#ff5a3d");
+    if (meta.opcoes.tremor) J.tremor = Math.min(10, J.tremor + 2);
+    const lst = perto(m.x, m.y, rex);
+    for (let i = 0; i < lst.length; i++) {
+      const e = lst[i];
+      if (e.morto) continue;
+      const dx = e.x - m.x, dy = e.y - m.y, d = Math.hypot(dx, dy) || 1;
+      ferir(e, a.s.dano, a, dx / d * 190, dy / d * 190);
+    }
+    Som.tocar("explosao");
+  }
+  function atualizarMinas(dt) {
+    for (const m of J.minas) {
+      if (m.feita) continue;
+      if (m.t < m.voo) { m.t += dt; continue; }
+      m.vida -= dt;
+      if (m.armada > 0) { m.armada -= dt; if (m.armada <= 0) Som.tocar("mina"); continue; }
+      if (m.puxando > 0) {
+        // mina gravitacional: suga as plantas por meio segundo e então explode
+        m.puxando -= dt;
+        const raio = 170 * m.arma.s.area;
+        const lst = perto(m.x, m.y, raio);
+        for (let i = 0; i < lst.length; i++) {
+          const e = lst[i];
+          if (e.morto || e.chefe || e.vel === 0) continue;
+          const dx = m.x - e.x, dy = m.y - e.y, d = Math.hypot(dx, dy) || 1;
+          const passo = Math.min(d, 300 * dt * (e.elite ? 0.3 : 1));
+          e.x += dx / d * passo; e.y += dy / d * passo;
+        }
+        if (Math.random() < 0.7) { const an = Math.random() * TAU; particula(m.x + Math.cos(an) * raio * 0.8, m.y + Math.sin(an) * raio * 0.8, -Math.cos(an) * 300, -Math.sin(an) * 300, 0.4, R(4, 7), "#c4a1ff", 1, 0, 0, 0); }
+        if (m.puxando <= 0) detonar(m);
+        continue;
+      }
+      if (m.vida <= 0) { detonar(m); continue; }
+      const lst = perto(m.x, m.y, 20);
+      let pisou = false;
+      for (let i = 0; i < lst.length; i++) if (!lst[i].morto && !lst[i].inofensivo) { pisou = true; break; }
+      if (pisou) { if (m.evo) { m.puxando = 0.5; Som.tocar("mina"); } else detonar(m); }
+    }
+    J.minas = J.minas.filter(m => !m.feita);
+  }
+  function atualizarGolpes(dt) {
+    for (const g of J.golpes) {
+      g.t += dt;
+      if (g.feito || g.t < 0) continue;
+      g.feito = true;
+      const a = g.arma, comp = 200 * a.s.area, larg = 62 * a.s.area;
+      const cx = Math.cos(g.ang), cy = Math.sin(g.ang), oy = J.py - 6;
+      const lst = perto(J.px + cx * comp / 2, oy + cy * comp / 2, comp / 2 + larg / 2);
+      for (let i = 0; i < lst.length; i++) {
+        const e = lst[i];
+        if (e.morto) continue;
+        const ex = e.x - J.px, ey = e.y - oy, ao = ex * cx + ey * cy;
+        if (ao < -12 || ao > comp + e.r || Math.abs(ey * cx - ex * cy) > larg / 2 + e.r) continue;
+        ferir(e, a.s.dano, a, cx * 130, cy * 130, !!a.s.critico);
+      }
+      Som.tocar("chicote");
+    }
+    J.golpes = J.golpes.filter(g => g.t < g.vida);
+  }
+
   function atualizarAneis(dt) {
     for (const an of J.aneis) {
       if (an.r < an.rmax) {
         an.r = Math.min(an.rmax, an.r + an.vel * dt);
+        if (an.x !== undefined) continue; // anel decorativo com centro fixo (pisão do baobá)
         const lst = perto(J.px, J.py, an.r);
         for (let i = 0; i < lst.length; i++) {
           const e = lst[i];
@@ -920,7 +1285,7 @@
       if (g.t < g.dur) continue;
       g.feito = true;
       const a = g.arma, evo = a.id === "nuvem", cor = evo ? "#5dffb0" : "#9dff3a";
-      J.pocas.push({ x: g.x1, y: g.y1, r: 50 * a.s.area, vida: a.s.duracao, vidaMax: a.s.duracao, tick: 0, dano: a.s.dano, arma: a, segue: !!a.s.segue, cor, rot: Math.random() * TAU });
+      J.pocas.push({ x: g.x1, y: g.y1, r: 60 * a.s.area, vida: a.s.duracao, vidaMax: a.s.duracao, tick: 0, dano: a.s.dano, arma: a, segue: !!a.s.segue, cor, rot: Math.random() * TAU });
       for (let i = 0; i < 12; i++) { const an = Math.random() * TAU, v = R(40, 160); particula(g.x1, g.y1, Math.cos(an) * v, Math.sin(an) * v * 0.6, 0.5, R(4, 7), cor, 1, 3, 0, 1); }
     }
     J.granadas = J.granadas.filter(g => !g.feito);
@@ -979,15 +1344,43 @@
       if (d < 230) { const lado = e.fase > Math.PI ? 1 : -1; MOV.x = -dx * 0.5 - dy * lado * 0.8; MOV.y = -dy * 0.5 + dx * lado * 0.8; MOV.v *= 0.7; }
       else if (d < 320) MOV.v *= 0.2;
       e.t -= dt;
-      if (e.t <= 0 && d < 460) { e.t = R(2.4, 3.4); tiroInimigo(e.x, e.y - 8, Math.atan2(dy, dx), 140, e.dano, "esporo", 3.6, 0.35); }
+      if (e.t <= 0 && d < 440) { e.t = R(3.6, 4.6); tiroInimigo(e.x, e.y - 8, Math.atan2(dy, dx), 130, e.dano, "esporo", 3.4, 0.16); }
     },
     girassol(e, d, dx, dy, dt) {
       if (d < 300) MOV.v *= 0.15;
       e.t -= dt;
       if (e.t <= 0 && d < 480) {
-        e.t = R(3, 3.8);
+        e.t = R(4.6, 5.6);
         const a = Math.atan2(dy, dx);
-        for (let k = -1; k <= 1; k++) tiroInimigo(e.x, e.y - 10, a + k * 0.28, 180, e.dano * 0.7, "semente", 2.8);
+        for (let k = -1; k <= 1; k++) tiroInimigo(e.x, e.y - 10, a + k * 0.3, 165, e.dano * 0.7, "semente", 2.6);
+      }
+    },
+    // Cardo: para, mira (mostra a linha no chão) e rola em linha reta
+    rolar(e, d, dx, dy, dt) {
+      if (e.estado === 0) { e.t -= dt; if (d < 330 && e.t <= 0) { e.estado = 1; e.t = 0.75; e.bx = dx; e.by = dy; } }
+      else if (e.estado === 1) { MOV.v = 0; e.t -= dt; if (e.t <= 0) { e.estado = 2; e.t = 0.85; e.rot = 0; } }
+      else if (e.estado === 2) { MOV.x = e.bx; MOV.y = e.by; MOV.v = 370; e.rot += dt * 15 * (e.bx < 0 ? -1 : 1); e.t -= dt; if (e.t <= 0) { e.estado = 3; e.t = 0.7; } }
+      else { MOV.v *= 0.3; e.rot *= 0.9; e.t -= dt; if (e.t <= 0) { e.estado = 0; e.t = R(0.9, 1.7); e.rot = 0; } }
+    },
+    voo(e, d, dx, dy) {
+      const w = Math.sin(J.tempo * 4 + e.fase) * 0.65;
+      MOV.x = dx - dy * w; MOV.y = dy + dx * w;
+      const l = Math.hypot(MOV.x, MOV.y) || 1; MOV.x /= l; MOV.y /= l;
+    },
+    // Baobá: quando chega perto, para e dá um pisão em área (com aviso no chão)
+    pisao(e, d, dx, dy, dt) {
+      if (e.estado === 0) { e.t -= dt; if (d < e.r * 3.6 + 20 && e.t <= 0) { e.estado = 1; e.t = 0.85; } }
+      else {
+        MOV.v = 0; e.t -= dt;
+        if (e.t <= 0) {
+          e.estado = 0; e.t = R(2.4, 3.4);
+          const raio = e.r * 3.6;
+          poeira(e.x, e.y + e.r * 0.8, 16);
+          J.aneis.push({ r: 8, rmax: raio, vel: raio / 0.18, dano: 0, arma: null, ids: new Set(), fim: 0, cor: "#ffb020", empurrao: 0, atordoa: 0, x: e.x, y: e.y + e.r * 0.6 });
+          if (meta.opcoes.tremor) J.tremor = Math.min(12, J.tremor + 5);
+          Som.tocar("pisao");
+          if (!J.morto && d < raio + J.r) ferirJogador(e.dano * 0.75);
+        }
       }
     },
     raiz(e, d, dx, dy, dt) {
@@ -1002,13 +1395,14 @@
       if (e.estado === 0) { e.t -= dt; if (e.t <= 0 && d < 560) { e.estado = 1; e.t = 0.7; e.bx = dx; e.by = dy; } }
       else if (e.estado === 1) { MOV.v = 0; e.t -= dt; if (e.t <= 0) { e.estado = 2; e.t = 0.75; } }
       else { MOV.x = e.bx; MOV.y = e.by; MOV.v = 430; e.t -= dt;
-        if (e.t <= 0) { e.estado = 0; e.t = R(2.6, 3.6); if (e.hp < e.hpMax * 0.5) anel(e.x, e.y, 14, 170, e.dano * 0.6, "semente", Math.random() * TAU); } }
+        if (e.t <= 0) { e.estado = 0; e.t = R(2.6, 3.6); if (e.hp < e.hpMax * 0.5) anel(e.x, e.y, 10, 150, e.dano * 0.6, "semente", Math.random() * TAU); } }
     },
     colosso(e, d, dx, dy, dt) {
       const furia = e.hp < e.hpMax * 0.5;
       e.t -= dt;
-      if (e.t <= 0) { e.t = furia ? 2.4 : 3.2; anel(e.x, e.y, 18, 160, e.dano * 0.55, "espinho", e.ang); e.ang += 0.17; if (furia) e.t4 = 0.35; }
-      if (e.t4 > 0) { e.t4 -= dt; if (e.t4 <= 0) anel(e.x, e.y, 18, 130, e.dano * 0.55, "espinho", e.ang + 0.17); }
+      // anéis de espinhos com brechas largas (o chão pisca antes de cada um)
+      if (e.t <= 0) { e.t = furia ? 2.6 : 3.4; anel(e.x, e.y, 13, 145, e.dano * 0.55, "espinho", e.ang); e.ang += 0.24; if (furia) e.t4 = 0.45; }
+      if (e.t4 > 0) { e.t4 -= dt; if (e.t4 <= 0) anel(e.x, e.y, 13, 120, e.dano * 0.55, "espinho", e.ang); }
       e.t2 -= dt;
       if (e.t2 <= 0) { e.t2 = 6.5; erupcao(5, 180); }
     },
@@ -1020,12 +1414,12 @@
       else {
         e.t4 -= dt;
         if (e.t4 <= 0) {
-          e.t4 = 0.13;
+          e.t4 = 0.17;
           const n = fase + 1;
-          for (let k = 0; k < n; k++) tiroInimigo(e.x, e.y - 30, e.ang + k * TAU / n, 150, e.dano * 0.5, "esporo", 5);
-          e.ang += 0.33;
+          for (let k = 0; k < n; k++) tiroInimigo(e.x, e.y - 30, e.ang + k * TAU / n, 135, e.dano * 0.5, "esporo", 4.5);
+          e.ang += 0.3;
         }
-        if (e.t <= 0) { e.estado = 0; e.t = fase === 3 ? 1.6 : 2.6; }
+        if (e.t <= 0) { e.estado = 0; e.t = fase === 3 ? 2 : 3; }
       }
       e.t2 -= dt;
       if (e.t2 <= 0) { e.t2 = [0, 7, 5.5, 4][fase]; erupcao(4 + fase * 2, 220); }
@@ -1054,6 +1448,8 @@
       const dec = Math.max(0, 1 - 9 * dt); e.kx *= dec; e.ky *= dec;
       let dx = J.px - e.x, dy = J.py - e.y;
       const d = Math.hypot(dx, dy) || 1; dx /= d; dy /= d;
+      if (e.afixo === "regenera" && e.hp < e.hpMax) e.hp = Math.min(e.hpMax, e.hp + e.hpMax * 0.02 * dt);
+      if (e.afixo === "espinhosa" && !J.morto && d < e.r * 2.2 + 40 + J.r) ferirJogador(e.dano * 0.35);
       if (e.atordoado > 0) { e.atordoado -= dt; continue; }
       MOV.x = dx; MOV.y = dy; MOV.v = e.vel * (e.lento > J.tempo ? 0.55 : 1);
       if (J.morto) MOV.v *= 0.3;
@@ -1149,9 +1545,9 @@
   // ========================================================
   // 11. DANO, MORTE E COLETÁVEIS
   // ========================================================
-  function ferir(e, dano, arma, kx = 0, ky = 0) {
+  function ferir(e, dano, arma, kx = 0, ky = 0, critForcado = false) {
     if (e.morto) return;
-    const crit = Math.random() < J.mod.crit;
+    const crit = critForcado || Math.random() < J.mod.crit;
     let d = dano * (crit ? 2 : 1);
     if (e.armadura) d = Math.max(d * 0.3, d - e.armadura);
     const efetivo = Math.min(d, e.hp);
@@ -1160,8 +1556,10 @@
     if (arma) arma.total += efetivo;
     if (kx || ky) { e.kx += kx * e.kbRes; e.ky += ky * e.kbRes; }
     if (meta.opcoes.numeros) numero(e.x + R(-6, 6), e.y - e.r * 0.9, d, crit ? 1 : 0);
-    if (e.hp <= 0) matar(e);
-    else Som.tocar("acerto");
+    if (e.hp <= 0) {
+      matar(e);
+      if (arma && arma.s && arma.s.cura && !J.morto && !e.inofensivo) J.hp = Math.min(J.hpMax, J.hp + arma.s.cura);
+    } else Som.tocar("acerto");
   }
 
   function ferirJogador(dano) {
@@ -1179,8 +1577,9 @@
   function matar(e) {
     e.morto = true;
     if (e.tipo === "barril") {
-      const tipo = sortearChave({ cura: 34, ima: 16, bomba: 12, sucata: 38 });
-      soltarItem(tipo, e.x, e.y, tipo === "sucata" ? RI(5, 10) : 1);
+      const tipo = sortearChave({ cura: 34, ima: 16, bomba: 12, sucata: 36, equip: 2 });
+      if (tipo === "equip") soltarItem("equip", e.x, e.y, novoItem());
+      else soltarItem(tipo, e.x, e.y, tipo === "sucata" ? RI(5, 10) : 1);
       for (let i = 0; i < 10; i++) { const a = Math.random() * TAU, v = R(60, 180); particula(e.x, e.y, Math.cos(a) * v, Math.sin(a) * v - 60, 0.6, R(3, 6), Math.random() < 0.5 ? "#d9661f" : "#5a2a12", 0, 1.5, 300); }
       Som.tocar("acerto");
       return;
@@ -1196,9 +1595,10 @@
     if (e.xp > 0) soltarGema(e.x, e.y, e.xp);
     if (Math.random() < 0.015) soltarItem("sucata", e.x + R(-8, 8), e.y + R(-8, 8), RI(1, 3));
     if (Math.random() < 0.005) soltarItem("cura", e.x, e.y);
-    if (e.tipo === "cacto") anel(e.x, e.y, e.elite ? 12 : 6, 140, e.dano * 0.45, "espinho", Math.random() * TAU, 1.1);
+    if (e.tipo === "cacto") anel(e.x, e.y, e.elite ? 8 : 4, 120, e.dano * 0.45, "espinho", Math.random() * TAU, 1.0);
     if (e.elite) {
       soltarItem("bau", e.x, e.y, 1);
+      if (Math.random() < 0.3) soltarItem("equip", e.x - 20, e.y + 10, novoItem());
       soltarItem("sucata", e.x + 20, e.y, RI(8, 14));
       explosao(e.x, e.y, 70, "#ffd34d");
     }
@@ -1209,6 +1609,9 @@
       Som.tocar("bomba");
       soltarItem("bau", e.x, e.y, 3);
       for (let i = 0; i < 10; i++) soltarItem("sucata", e.x + R(-70, 70), e.y + R(-70, 70), RI(3, 6));
+      // chefes sempre deixam equipamento, e os mais fortes deixam itens melhores
+      const pesosChefe = { rainha: [40, 40, 17, 3], colosso: [15, 45, 32, 8], matriarca: [0, 25, 50, 25] }[e.tipo] || undefined;
+      soltarItem("equip", e.x + 40, e.y + 20, novoItem(pesosChefe));
       if (J.chefe === e) J.chefe = J.grandes.find(g => g.chefe && !g.morto) || null;
       if (INIMIGOS[e.tipo].final) vencer();
       else faixa(`${INIMIGOS[e.tipo].nome} derrotado!`, "Pegue a Caixa de Suprimentos", "#ffd34d");
@@ -1278,7 +1681,7 @@
     const ima2 = J.mod.ima * J.mod.ima;
     for (const it of J.itens) {
       const dx = J.px - it.x, dy = J.py - it.y, d2 = dx * dx + dy * dy;
-      const limite = it.tipo === "sucata" ? ima2 : 45 * 45;
+      const limite = it.tipo === "sucata" ? ima2 : it.tipo === "equip" ? 60 * 60 : 45 * 45;
       if (!it.puxado && d2 < limite) { it.puxado = true; it.vel = -100; }
       if (!it.puxado || J.morto) continue;
       it.vel = Math.min(800, it.vel + 1300 * dt);
@@ -1315,6 +1718,14 @@
       case "bau":
         abrirBau(it.valor);
         break;
+      case "equip": {
+        const item = it.valor, rar = RARIDADES[item.r];
+        J.achados.push(item);
+        faixa(nomeItem(item), `${ENCAIXES[MODELOS[item.m].enc]} ${rar.nome.toLowerCase()} — vai para o Arsenal no fim da expedição`, rar.cor);
+        Som.tocar(item.r >= 2 ? "raro" : "item");
+        numero(J.px, J.py - 34, rar.nome, 4);
+        break;
+      }
     }
   }
 
@@ -1597,6 +2008,8 @@
     atualizarAneis(dt);
     atualizarGranadas(dt);
     atualizarPocas(dt);
+    atualizarMinas(dt);
+    atualizarGolpes(dt);
     atualizarAvisos(dt);
     atualizarInimigos(dt);
     separar();
@@ -1701,9 +2114,13 @@
     if (e.tipo === "barril") sy = 1;
     if ((e.ia === "bote" || e.ia === "rainha") && e.estado === 1) { x += R(-2, 2); sx = 1.08; sy = 0.92; }
     if (e.atordoado > 0) { x += R(-1, 1); }
+    if (e.ia === "rolar" && e.estado === 1) { x += R(-1.5, 1.5); sx = 0.92; sy = 1.08; }
+    if (e.ia === "pisao" && e.estado === 1) { sy = 1 + 0.12 * Math.sin(clamp(1 - e.t / 0.85, 0, 1) * Math.PI); }
+    if (e.ia === "voo") y += Math.sin(tAnim * 9 + e.fase) * 3;
     sx /= Math.sqrt(sy);
-    carimbo(ARTE.sprite(e.tipo, q), x, y, tam, e.esq, sx, sy, 0, alfa);
-    if (e.flash > 0) carimbo(ARTE.sprite(e.tipo, q, true), x, y, tam, e.esq, sx, sy, 0, clamp(e.flash / 0.09, 0, 1) * 0.85);
+    const rot = e.ia === "rolar" ? e.rot : 0;
+    carimbo(ARTE.sprite(e.tipo, q), x, y, tam, e.esq, sx, sy, rot, alfa);
+    if (e.flash > 0) carimbo(ARTE.sprite(e.tipo, q, true), x, y, tam, e.esq, sx, sy, rot, clamp(e.flash / 0.09, 0, 1) * 0.85);
     if (e.queima > 0 && Math.random() < 0.3) particula(e.x + R(-e.r, e.r) * 0.6, e.y - R(0, e.r), R(-10, 10), -R(30, 70), 0.4, R(5, 9), "#5cc8ff", 1, 1, 0, 1);
   }
 
@@ -1725,8 +2142,9 @@
     ctx.globalCompositeOperation = "lighter";
     const CORES_GEMA = ["#22d3ee", "#a3e635", "#f472f6", "#ff4d4d"];
     for (const g of v.gemas) if (vis(g.x, g.y, 20)) brilhoEm(CORES_GEMA[g.tier], g.x, g.y, 22 + g.tier * 8, 0.55);
-    for (const e of ORDEM) if (e.elite) brilhoEm("#ff2bd6", e.x, e.y, e.r * 4.2, 0.4 + 0.15 * Math.sin(tAnim * 5));
+    for (const e of ORDEM) if (e.elite) brilhoEm(e.afixo ? AFIXOS[e.afixo].cor : "#ff2bd6", e.x, e.y, e.r * 4.2, 0.4 + 0.15 * Math.sin(tAnim * 5));
     for (const it of v.itens) if (it.tipo === "bau" && vis(it.x, it.y, 40)) brilhoEm("#ffd34d", it.x, it.y, 90, 0.5 + 0.2 * Math.sin(tAnim * 4));
+    for (const it of v.itens) if (it.tipo === "equip" && vis(it.x, it.y, 40)) brilhoEm(RARIDADES[it.valor.r].cor, it.x, it.y, 80 + it.valor.r * 12, 0.55 + 0.2 * Math.sin(tAnim * 5));
     ctx.globalCompositeOperation = "source-over";
 
     // gemas e itens
@@ -1736,7 +2154,8 @@
     }
     for (const it of v.itens) if (vis(it.x, it.y, 30)) {
       const b = Math.sin(tAnim * 3.5 + it.fase) * 3;
-      carimbo(ARTE.sprite(it.tipo), it.x, it.y - 4 + b, ARTE.caixa(it.tipo) * (it.tipo === "sucata" && it.valor > 3 ? 1.3 : 1));
+      const sp = it.tipo === "equip" ? "maleta" : it.tipo;
+      carimbo(ARTE.sprite(sp), it.x, it.y - 4 + b, ARTE.caixa(sp) * (it.tipo === "sucata" && it.valor > 3 ? 1.3 : 1));
     }
 
     // entidades ordenadas por altura (o jogador entra na ordem certa)
@@ -1753,7 +2172,7 @@
       if (tipo === "serras" && a.pos.length) {
         const perm = !!a.s.permanente;
         const alfa = perm ? 1 : clamp(Math.min(a.ativo, a.s.duracao - a.ativo) / 0.15, 0, 1);
-        const img = ARTE.sprite(perm ? "serraOuro" : "serra"), tam = ARTE.caixa(perm ? "serraOuro" : "serra") * Math.sqrt(a.s.area);
+        const img = ARTE.sprite(perm ? "serraOuro" : "serra"), tam = ARTE.caixa(perm ? "serraOuro" : "serra") * Math.sqrt(a.s.area) * (perm ? 1.25 : 1.4);
         for (let i = 0; i < a.pos.length; i += 2) carimbo(img, a.pos[i], a.pos[i + 1], tam, false, 1, 1, tAnim * 16, alfa);
       }
       if (tipo === "drone") for (const d of a.drones) {
@@ -1770,6 +2189,17 @@
       carimbo(ARTE.sprite("granada"), x, y - h, 22, false, 1, 1, g.t * 14);
     }
 
+    // minas no ar
+    for (const m of v.minas) {
+      if (m.t < 0 || m.t >= m.voo) continue;
+      const p = m.t / m.voo, x = m.x0 + (m.x - m.x0) * p, y = m.y0 + (m.y - m.y0) * p, h = Math.sin(Math.PI * p) * 50;
+      carimbo(ARTE.sprite(m.evo ? "minaEvo" : "mina", 1), x, y - h, m.evo ? 26 : 22, false, 1, 1, m.t * 12);
+    }
+    // discos
+    for (const p of v.tiros) if (p.volta !== undefined && p.atraso <= 0 && vis(p.x, p.y, 40)) {
+      const ouro = p.tipo === "discoOuro";
+      carimbo(ARTE.sprite(p.tipo), p.x, p.y, ARTE.caixa(p.tipo) * p.r / (ouro ? 17 : 13), false, 1, 1, p.giro);
+    }
     // mísseis (corpo sólido)
     for (const p of v.tiros) if (p.tipo === "missil" && p.atraso <= 0 && vis(p.x, p.y, 20)) carimbo(ARTE.sprite("missil"), p.x, p.y, 30, false, 1, 1, p.ang);
     // projéteis inimigos sólidos
@@ -1814,7 +2244,44 @@
     }
     for (const a of v.armas) if (ARMAS[a.id].tipo === "serras" && a.pos.length) {
       const cor = a.s.permanente ? "#ffd34d" : "#22e5ff";
-      for (let i = 0; i < a.pos.length; i += 2) brilhoEm(cor, a.pos[i], a.pos[i + 1], 40, 0.35);
+      for (let i = 0; i < a.pos.length; i += 2) brilhoEm(cor, a.pos[i], a.pos[i + 1], 58 * Math.sqrt(a.s.area), 0.35);
+    }
+    for (const p of v.tiros) if (p.volta !== undefined && p.atraso <= 0 && vis(p.x, p.y, 40)) brilhoEm(p.tipo === "discoOuro" ? "#ffd34d" : "#ff4fd8", p.x, p.y, p.r * 4, 0.45);
+    // feixes do laser
+    for (const a of v.armas) if (ARMAS[a.id].tipo === "laser" && a.pos.length) {
+      const perm = !!a.s.permanente, comp = 250 * a.s.area, oy = v.py - 6;
+      const alfa = perm ? 1 : clamp(Math.min(a.ativo, a.s.duracao - a.ativo) / 0.15, 0, 1);
+      const cor = perm ? "#ffd34d" : "#ff4d6d";
+      ctx.lineCap = "round";
+      for (const ang of a.pos) {
+        const ex = v.px + Math.cos(ang) * comp, ey = oy + Math.sin(ang) * comp;
+        ctx.globalAlpha = alfa * 0.35; ctx.strokeStyle = cor; ctx.lineWidth = 22 * Math.sqrt(a.s.area);
+        ctx.beginPath(); ctx.moveTo(v.px, oy); ctx.lineTo(ex, ey); ctx.stroke();
+        ctx.globalAlpha = alfa * 0.8; ctx.lineWidth = 8 * Math.sqrt(a.s.area); ctx.stroke();
+        ctx.globalAlpha = alfa; ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2.5; ctx.stroke();
+        ctx.globalAlpha = 1;
+        brilhoEm(cor, ex, ey, 46, alfa);
+        if (Math.random() < 0.5) particula(ex, ey, R(-60, 60), R(-60, 60), 0.25, R(4, 7), cor, 1, 3);
+      }
+      brilhoEm(cor, v.px, oy, 44, alfa);
+    }
+    // golpes do chicote: um arco de plasma que some rápido
+    for (const g of v.golpes) {
+      if (g.t < 0) continue;
+      const a = g.arma, p = clamp(g.t / g.vida, 0, 1), comp = 200 * a.s.area, larg = 62 * a.s.area;
+      const cx = Math.cos(g.ang), cy = Math.sin(g.ang), nx = -cy * g.lado, ny = cx * g.lado, oy = v.py - 6;
+      const evo = !!a.s.critico, cor = evo ? "#ffd34d" : "#22e5ff";
+      const alc = comp * (0.35 + 0.65 * Math.min(1, p * 3));
+      const arco = () => {
+        ctx.beginPath(); ctx.moveTo(v.px + cx * 10, oy + cy * 10);
+        ctx.quadraticCurveTo(v.px + cx * alc * 0.5 + nx * larg * 0.6, oy + cy * alc * 0.5 + ny * larg * 0.6, v.px + cx * alc, oy + cy * alc);
+      };
+      ctx.lineCap = "round";
+      ctx.globalAlpha = (1 - p) * 0.45; ctx.strokeStyle = cor; ctx.lineWidth = larg * 0.55; arco(); ctx.stroke();
+      ctx.globalAlpha = (1 - p) * 0.9; ctx.lineWidth = 9; arco(); ctx.stroke();
+      ctx.globalAlpha = 1 - p; ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 3; arco(); ctx.stroke();
+      ctx.globalAlpha = 1;
+      brilhoEm(cor, v.px + cx * alc, oy + cy * alc, 50, 1 - p);
     }
     for (const p of v.particulas) if (p.tipo === 1 && vis(p.x, p.y, 30)) brilhoEm(p.cor, p.x, p.y, p.tam * 2, clamp(p.vida / p.vidaMax, 0, 1));
     for (const r of v.raios) {
@@ -1892,6 +2359,47 @@
       ctx.restore();
     }
     ctx.globalAlpha = 1;
+    // avisos de ataque corpo a corpo e auras de elite
+    for (const e of ORDEM) {
+      if (e.ia === "rolar" && e.estado === 1) {
+        const p = 1 - e.t / 0.75, comp = 370 * 0.85;
+        ctx.strokeStyle = `rgba(213,140,255,${0.18 + 0.3 * p})`; ctx.lineWidth = e.r * 2; ctx.lineCap = "round";
+        ctx.beginPath(); ctx.moveTo(e.x, e.y); ctx.lineTo(e.x + e.bx * comp, e.y + e.by * comp); ctx.stroke();
+        ctx.strokeStyle = `rgba(255,255,255,${0.25 + 0.5 * p})`; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(e.x, e.y); ctx.lineTo(e.x + e.bx * comp * p, e.y + e.by * comp * p); ctx.stroke();
+      }
+      if (e.ia === "pisao" && e.estado === 1) {
+        const p = 1 - e.t / 0.85, raio = e.r * 3.6, y = e.y + e.r * 0.6;
+        ctx.fillStyle = `rgba(255,150,40,${0.1 + 0.22 * p})`;
+        ctx.beginPath(); ctx.arc(e.x, y, raio, 0, TAU); ctx.fill();
+        ctx.strokeStyle = `rgba(255,190,90,${0.5 + 0.5 * Math.abs(Math.sin(tAnim * 12))})`; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(e.x, y, raio, 0, TAU); ctx.stroke();
+        ctx.beginPath(); ctx.arc(e.x, y, raio * p, 0, TAU); ctx.stroke();
+      }
+      if (e.afixo === "espinhosa") {
+        const raio = e.r * 2.2 + 40;
+        ctx.fillStyle = "rgba(255,60,90,.08)"; ctx.beginPath(); ctx.arc(e.x, e.y, raio, 0, TAU); ctx.fill();
+        ctx.setLineDash([8, 7]); ctx.lineDashOffset = -tAnim * 30;
+        ctx.strokeStyle = "rgba(255,90,120,.75)"; ctx.lineWidth = 2.5; ctx.stroke();
+        ctx.setLineDash([]);
+      }
+      if (e.tipo === "colosso" && (e.t < 0.7 || (e.t4 > 0 && e.t4 < 0.45))) {
+        const p = Math.abs(Math.sin(tAnim * 18));
+        ctx.strokeStyle = `rgba(243,236,203,${0.25 + 0.5 * p})`; ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.arc(e.x, e.y, e.r * 1.25, 0, TAU); ctx.stroke();
+      }
+    }
+    // minas no chão (piscam mais rápido quando armadas)
+    for (const m of J.minas) {
+      if (m.t < m.voo || !vis(m.x, m.y, 30)) continue;
+      const q = m.armada > 0 ? 0 : Math.floor(tAnim * (m.vida < 2 ? 10 : 3) + m.fase) & 1;
+      if (m.puxando > 0) {
+        const raio = 170 * m.arma.s.area * (m.puxando / 0.5);
+        ctx.strokeStyle = "rgba(177,140,255,.6)"; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(m.x, m.y, raio, 0, TAU); ctx.stroke();
+      }
+      ctx.drawImage(ARTE.sprite(m.evo ? "minaEvo" : "mina", q), m.x - (m.evo ? 17 : 15), m.y - (m.evo ? 17 : 15), m.evo ? 34 : 30, m.evo ? 34 : 30);
+    }
     for (const av of J.avisos) {
       const p = av.t / av.dur;
       ctx.fillStyle = `rgba(255,40,60,${0.12 + 0.3 * p})`;
@@ -1903,7 +2411,7 @@
     ctx.globalCompositeOperation = "lighter";
     for (const an of J.aneis) {
       const a = an.r >= an.rmax ? clamp(1 - an.fim / 0.2, 0, 1) : 1;
-      ctx.fillStyle = an.cor; ctx.globalAlpha = 0.06 * a; ctx.beginPath(); ctx.arc(J.px, J.py - 4, an.r, 0, TAU); ctx.fill();
+      ctx.fillStyle = an.cor; ctx.globalAlpha = 0.06 * a; ctx.beginPath(); ctx.arc(an.x ?? J.px, an.y ?? J.py - 4, an.r, 0, TAU); ctx.fill();
       ctx.strokeStyle = an.cor; ctx.globalAlpha = 0.45 * a; ctx.lineWidth = 12; ctx.stroke();
       ctx.globalAlpha = 0.95 * a; ctx.lineWidth = 3; ctx.strokeStyle = "#ffffff"; ctx.stroke();
     }
@@ -1935,6 +2443,7 @@
     };
     if (J.chefe && !J.chefe.morto) seta(J.chefe.x, J.chefe.y, "#ff2bd6");
     for (const it of J.itens) if (it.tipo === "bau") seta(it.x, it.y, "#ffd34d");
+    for (const it of J.itens) if (it.tipo === "equip") seta(it.x, it.y, RARIDADES[it.valor.r].cor);
     // joystick de toque
     if (entrada.toque && estado === "jogando") {
       const t = entrada.toque;
@@ -1960,10 +2469,10 @@
     VX0 = cx - vw / 2; VY0 = cy - vh / 2; VX1 = VX0 + vw; VY1 = VY0 + vh;
     desenharChao();
     if (J && estado !== "menu") {
-      desenharChaoEfeitos();
       ORDEM.length = 0;
-      for (const e of J.inimigos) if (!e.morto && vis(e.x, e.y, e.r * 3)) ORDEM.push(e);
+      for (const e of J.inimigos) if (!e.morto && vis(e.x, e.y, e.r * 3 + 60)) ORDEM.push(e);
       ORDEM.sort((a, b) => a.y - b.y);
+      desenharChaoEfeitos();
       desenharJogo(dt);
     } else {
       // vitrine do menu
@@ -2107,8 +2616,12 @@
     const tempoEf = Math.min(J.tempo, DURACAO);
     const bonusTempo = Math.floor(tempoEf / 6), bonusAbates = Math.floor(J.abates / 25), bonusVit = vitoria ? 200 : 0;
     const bruto = J.sucata + bonusTempo + bonusAbates + bonusVit;
-    const ganho = Math.round(bruto * (1 + 0.1 * nivelOf("sucata")));
+    const multSucata = (1 + 0.1 * nivelOf("sucata")) * (1 + (J.eq.sucata || 0));
+    const ganho = Math.round(bruto * multSucata);
     meta.sucata += ganho;
+    // equipamentos achados vão para o inventário (mesmo se você morreu)
+    let viraramSucata = 0;
+    for (const it of J.achados) if (!guardarItem(it)) viraramSucata++;
     const rec = meta.recordes;
     const recorde = J.tempo > rec.tempo + 0.5 && rec.tempo > 0;
     rec.tempo = Math.max(rec.tempo, J.tempo);
@@ -2134,7 +2647,10 @@
         <td>${d.evo ? "EVO" : a.nivel}</td><td>${fmt(a.total)}</td><td>${fmt(a.total / dur)}</td></tr>`;
     }).join("");
     $("fim-ganho").innerHTML = `<img src="${ARTE.icone("sucata")}" alt="" style="width:22px;height:22px;vertical-align:-5px"> <b>+${fmt(ganho)}</b> de sucata
-      <small>coletada ${fmt(J.sucata)} + tempo ${bonusTempo} + abates ${bonusAbates}${bonusVit ? " + vitória " + bonusVit : ""}${nivelOf("sucata") ? ` × ${(1 + 0.1 * nivelOf("sucata")).toLocaleString("pt-BR")} (Garimpeiro)` : ""}</small>`;
+      <small>coletada ${fmt(J.sucata)} + tempo ${bonusTempo} + abates ${bonusAbates}${bonusVit ? " + vitória " + bonusVit : ""}${multSucata > 1.001 ? ` × ${(Math.round(multSucata * 100) / 100).toLocaleString("pt-BR")} (bônus de sucata)` : ""}</small>`;
+    $("fim-achados").innerHTML = J.achados.length ? `<h3>Equipamentos encontrados</h3><div class="achados">${J.achados.map(it =>
+      `<div class="achado" style="--r:${RARIDADES[it.r].cor}"><img src="${iconeItem(it)}" alt=""><div><b>${nomeItem(it)}</b><small>${RARIDADES[it.r].nome} • ${ENCAIXES[MODELOS[it.m].enc]}</small></div></div>`).join("")}</div>
+      <p class="dica-achados">Equipe-os na aba <b>Arsenal</b> do bunker.${viraramSucata ? ` (${viraramSucata} viraram sucata: inventário cheio)` : ""}</p>` : "";
     $("m-fim").hidden = false;
     $("m-nivel").hidden = true; $("m-bau").hidden = true; $("m-pausa").hidden = true;
   }
@@ -2148,6 +2664,85 @@
     if (palco.classList.contains("cheio")) { palco.classList.remove("cheio"); redimensionar(); }
     renderMenu();
   }
+
+  // ---------- Arsenal (equipamentos) ----------
+  let itemSel = null, itemNovo = null, confirmarDesmontar = false;
+  const linhasStats = st => Object.entries(st).map(([k, v]) => `<li>${ATRIB[k](v)}</li>`).join("");
+  function renderArsenal() {
+    $("equipados").innerHTML = Object.entries(ENCAIXES).map(([enc, nome]) => {
+      const it = itemPorId(meta.equip[enc]);
+      if (!it) return `<div class="eq-slot vazio"><img src="${ARTE.iconeEquip(enc, "#3b5566")}" alt=""><div><b>${nome}</b><small>vazio</small></div></div>`;
+      const rar = RARIDADES[it.r];
+      return `<button class="eq-slot ${itemSel === it.id ? "sel" : ""}" data-item="${it.id}" style="--r:${rar.cor}"><img src="${iconeItem(it)}" alt=""><div><b>${nomeItem(it)}</b><small>${nome} • ${rar.nome}</small></div></button>`;
+    }).join("");
+    const tot = somaEquip();
+    $("eq-resumo").innerHTML = Object.keys(tot).length
+      ? `<h3>Bônus do equipamento</h3><ul>${linhasStats(tot)}</ul>` : `<h3>Bônus do equipamento</h3><p>Nenhum item equipado.</p>`;
+    const inv = meta.inventario.slice().sort((a, b) => b.r - a.r || b.n - a.n || a.m.localeCompare(b.m) || a.id - b.id);
+    $("inv-titulo").textContent = `Inventário (${meta.inventario.length}/${MAX_INV})`;
+    $("inventario").innerHTML = inv.map(it => {
+      const eq = meta.equip[MODELOS[it.m].enc] === it.id;
+      return `<button class="inv-item ${eq ? "equipado" : ""} ${itemSel === it.id ? "sel" : ""} ${itemNovo === it.id ? "novo" : ""}" data-item="${it.id}" style="--r:${RARIDADES[it.r].cor}" title="${nomeItem(it)} (${RARIDADES[it.r].nome})">
+        <img src="${iconeItem(it)}" alt="">${it.n ? `<span class="nv">+${it.n}</span>` : ""}${eq ? `<span class="eq">E</span>` : ""}</button>`;
+    }).join("") || `<p class="vazio-inv">Nenhum equipamento ainda. Elites, chefes e barris podem deixar maletas — ou abra uma caixa.</p>`;
+    const bc = $("btn-caixa-eq");
+    bc.disabled = meta.sucata < CUSTO_CAIXA;
+    bc.innerHTML = `<img src="${ARTE.icone("sucata")}" alt="">Caixa de equipamento • ${CUSTO_CAIXA}`;
+    renderDetalhe();
+  }
+  function renderDetalhe() {
+    const it = itemPorId(itemSel), box = $("detalhe-item");
+    if (!it) { box.style.removeProperty("--r"); box.innerHTML = `<p class="dica">Toque em um equipamento para ver os detalhes, equipar, aprimorar ou desmontar.</p>`; return; }
+    const md = MODELOS[it.m], rar = RARIDADES[it.r], enc = md.enc, eq = meta.equip[enc] === it.id;
+    const atual = eq ? null : itemPorId(meta.equip[enc]);
+    const custo = custoAprimorar(it), max = it.n >= MAX_NV_ITEM;
+    box.style.setProperty("--r", rar.cor);
+    box.innerHTML = `<img src="${iconeItem(it)}" alt="">
+      <div class="info"><b>${nomeItem(it)}</b><span class="rar">${rar.nome} • ${ENCAIXES[enc]}${eq ? " • equipado" : ""}</span>
+        <div class="pips">${pips(it.n, MAX_NV_ITEM)}</div><ul>${linhasStats(statsItem(it))}</ul>
+        ${atual ? `<small>No lugar de: ${nomeItem(atual)} (${Object.entries(statsItem(atual)).map(([k, v]) => ATRIB[k](v)).join(", ")})</small>` : ""}</div>
+      <div class="acoes">
+        <button class="btn-sec" data-acao="equipar">${eq ? "Desequipar" : "Equipar"}</button>
+        <button class="comprar" data-acao="aprimorar" ${max || meta.sucata < custo ? "disabled" : ""}>${max ? "Nível máx." : `<img src="${ARTE.icone("sucata")}" alt="">Aprimorar • ${custo}`}</button>
+        <button class="btn-sec perigo" data-acao="desmontar">${confirmarDesmontar ? "Confirmar?" : `Desmontar (+${valorDesmontar(it)})`}</button>
+      </div>`;
+  }
+  $("aba-arsenal").addEventListener("click", e => {
+    const bi = e.target.closest("[data-item]"), ba = e.target.closest("[data-acao]");
+    Som.iniciar();
+    if (e.target.closest("#btn-caixa-eq")) {
+      if (meta.sucata < CUSTO_CAIXA) return;
+      meta.sucata -= CUSTO_CAIXA;
+      const it = novoItem();
+      if (guardarItem(it)) { itemSel = itemNovo = it.id; }
+      salvar(); renderMenu();
+      Som.tocar(it.r >= 2 ? "raro" : "bau");
+      return;
+    }
+    if (bi) { itemSel = +bi.dataset.item; confirmarDesmontar = false; Som.tocar("clique"); renderArsenal(); return; }
+    if (!ba) return;
+    const it = itemPorId(itemSel);
+    if (!it) return;
+    const enc = MODELOS[it.m].enc;
+    if (ba.dataset.acao === "equipar") {
+      meta.equip[enc] = meta.equip[enc] === it.id ? null : it.id;
+      Som.tocar("item");
+    } else if (ba.dataset.acao === "aprimorar") {
+      const custo = custoAprimorar(it);
+      if (it.n >= MAX_NV_ITEM || meta.sucata < custo) return;
+      meta.sucata -= custo; it.n++;
+      Som.tocar("evolucao");
+    } else if (ba.dataset.acao === "desmontar") {
+      if (!confirmarDesmontar) { confirmarDesmontar = true; renderDetalhe(); Som.tocar("clique"); return; }
+      meta.sucata += valorDesmontar(it);
+      if (meta.equip[enc] === it.id) meta.equip[enc] = null;
+      meta.inventario = meta.inventario.filter(x => x !== it);
+      itemSel = null;
+      Som.tocar("sucata");
+    }
+    confirmarDesmontar = false;
+    salvar(); renderMenu();
+  });
 
   // ---------- Menu inicial ----------
   let abaAtual = "sobrev";
@@ -2181,13 +2776,15 @@
     $("combos-menu").innerHTML = combosHTML();
     $("bestiario").innerHTML = Object.entries(INIMIGOS).filter(([, d]) => d.desc).map(([id, d]) =>
       `<div class="besta ${d.chefe ? "chefe" : ""}"><img src="${ARTE.retratoSprite(id, 92)}" alt=""><div>${d.nome}<small>${d.desc}</small></div></div>`).join("");
+    renderArsenal();
   }
   $("abas").addEventListener("click", e => {
     const b = e.target.closest("[data-aba]");
     if (!b) return;
     abaAtual = b.dataset.aba;
     for (const x of $("abas").children) x.classList.toggle("ativa", x === b);
-    for (const id of ["sobrev", "oficina", "arquivo", "como"]) $("aba-" + id).hidden = id !== abaAtual;
+    for (const id of ["sobrev", "oficina", "arsenal", "arquivo", "como"]) $("aba-" + id).hidden = id !== abaAtual;
+    itemNovo = null;
     Som.iniciar(); Som.tocar("clique");
   });
   $("lista-sobrev").addEventListener("click", e => {
@@ -2256,6 +2853,10 @@
       recalcular(); renderSlots();
     }],
     ["sucata", "+1000 sucata", () => { meta.sucata += 1000; salvar(); if (estado === "menu") renderMenu(); }],
+    ["equip", "Dar equipamento", () => {
+      if (J && estado !== "menu") { soltarItem("equip", J.px + 50, J.py, novoItem([0, 3, 2, 1])); return; }
+      const it = novoItem([0, 3, 2, 1]); guardarItem(it); itemSel = it.id; salvar(); renderMenu();
+    }],
   ];
   function renderDebug() {
     $("debug-bts").innerHTML = DEBUG_BTS.map(([id, nome]) => {

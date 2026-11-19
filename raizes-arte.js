@@ -488,6 +488,75 @@ const ARTE = (() => {
       c.beginPath(); c.moveTo(8, 0); c.lineTo(-5, -2.6); c.lineTo(-3, 0); c.lineTo(-5, 2.6); c.closePath();
       c.fillStyle = linear(c, -5, 0, 8, 0, [[0, "#6b4a2e"], [1, "#f3eccb"]]); c.fill(); contornar(c, 1.2);
     }},
+
+    // ------------------------------------------------------
+    // PLANTAS NOVAS (corpo a corpo)
+    // ------------------------------------------------------
+    cardo: { caixa: 58, quadros: 2, desenhar(c, q) {
+      const n = 18;
+      for (let i = 0; i < n; i++) { const a = i / n * TAU + (q ? 0.09 : 0); espinho(c, Math.cos(a) * 14, Math.sin(a) * 14, a, 9, "#f3e0ff"); }
+      elipse(c, 0, 0, 16, 16);
+      c.fillStyle = radial(c, -5, -6, 22, [[0, "#f3c0ff"], [0.45, "#a23ad9"], [1, "#3b0a5c"]]); c.fill(); contornar(c, 2.2);
+      for (let i = 0; i < 10; i++) {
+        const a = i / 10 * TAU + 0.3;
+        c.save(); c.translate(Math.cos(a) * 11, Math.sin(a) * 11); c.rotate(a + Math.PI / 2);
+        c.beginPath(); c.moveTo(-4, 2); c.quadraticCurveTo(0, -5, 4, 2); encher(c, "rgba(70,150,70,.9)"); contornar(c, 1);
+        c.restore();
+      }
+      elipse(c, 0, 1, 10, 8); encher(c, "rgba(40,6,60,.55)");
+      olho(c, -4.5, 0, 3, "#fff36b"); olho(c, 4.5, 0, 3, "#fff36b");
+      c.beginPath(); c.moveTo(-9, -5); c.lineTo(-2, -3); c.moveTo(9, -5); c.lineTo(2, -3); contornar(c, 2.2);
+      c.beginPath(); c.moveTo(-4, 6); c.lineTo(-2, 4.5); c.lineTo(0, 6); c.lineTo(2, 4.5); c.lineTo(4, 6); contornar(c, 1.4, "#f4f0d0");
+    }},
+
+    alada: { caixa: 40, quadros: 2, desenhar(c, q) {
+      const ab = q ? 1 : 0.6;
+      for (const s of [-1, 1]) {
+        c.save(); c.scale(s, 1); c.rotate(-0.25 * ab);
+        c.beginPath(); c.moveTo(2, 0); c.bezierCurveTo(7, -12 * ab, 18, -11 * ab, 17, -2); c.bezierCurveTo(14, 2, 8, 3, 2, 2); c.closePath();
+        c.fillStyle = linear(c, 2, 0, 17, -6, [[0, "rgba(200,255,220,.95)"], [1, "rgba(110,220,255,.6)"]]); c.fill(); contornar(c, 1.3);
+        c.beginPath(); c.moveTo(3, 1); c.quadraticCurveTo(10, -4, 16, -3); c.strokeStyle = "rgba(20,80,60,.55)"; c.lineWidth = 0.9; c.stroke();
+        c.restore();
+      }
+      elipse(c, 0, 3, 5.5, 6.5); c.fillStyle = radial(c, -2, 1, 8, [[0, "#ecfccb"], [0.5, "#84cc16"], [1, "#365314"]]); c.fill(); contornar(c, 1.6);
+      olho(c, 1.5, 2.5, 2.3, "#22e5ff");
+    }},
+
+    baoba: { caixa: 104, quadros: 2, desenhar(c, q) {
+      const w = q ? 1 : -1;
+      for (const [x, d] of [[-13, -1], [-5, -0.3], [5, 0.3], [13, 1]]) {
+        traco(c, () => { c.beginPath(); c.moveTo(x, 20); c.quadraticCurveTo(x + d * 6, 30, x + d * 9 + (x < 0 ? w : -w) * 2.5, 36); }, 5, "#4a2c1a");
+      }
+      c.beginPath(); c.moveTo(-20, 26); c.bezierCurveTo(-27, 4, -19, -14, -12, -24); c.lineTo(12, -24); c.bezierCurveTo(19, -14, 27, 4, 20, 26); c.closePath();
+      c.fillStyle = linear(c, -24, 0, 24, 0, [[0, "#2e1a10"], [0.45, "#8a5a3a"], [0.6, "#a06e48"], [1, "#2e1a10"]]); c.fill(); contornar(c, 2.6);
+      for (const x of [-14, -7, 7, 14]) { c.beginPath(); c.moveTo(x, 23); c.quadraticCurveTo(x * 1.2, 2, x * 0.7, -20); c.strokeStyle = "rgba(0,0,0,.3)"; c.lineWidth = 1.7; c.stroke(); }
+      rr(c, -15, 6, 30, 12, 3); c.fillStyle = linear(c, 0, 6, 0, 18, [[0, "#9aa4b1"], [1, "#3b424c"]]); c.fill(); contornar(c, 1.8);
+      for (const x of [-11, 11]) { elipse(c, x, 12, 1.4, 1.4); encher(c, "#1c2026"); }
+      brilhar(c, "#ffb020", 8, () => { c.fillStyle = "#ffd08a"; c.fillRect(-8, 11, 16, 2.4); });
+      for (const [x, y, r] of [[-17, -30, 13], [17, -30, 13], [0, -38, 16], [-7, -26, 11], [8, -26, 11]]) {
+        elipse(c, x, y, r, r * 0.8);
+        c.fillStyle = radial(c, x - r * 0.3, y - r * 0.4, r * 1.3, [[0, "#86e566"], [0.6, "#2e7d32"], [1, "#123d17"]]); c.fill(); contornar(c, 2);
+      }
+      for (const [x, y] of [[-13, -34], [6, -44], [18, -31], [-2, -29], [-20, -26]]) brilhar(c, "#ff3fd8", 8, () => { elipse(c, x, y, 2.3, 2.3); encher(c, "#ff8ef0"); });
+      olho(c, -7, -10, 3.4, "#ffb020"); olho(c, 7, -10, 3.4, "#ffb020");
+      c.beginPath(); c.moveTo(-12, -15); c.lineTo(-3, -12); c.moveTo(12, -15); c.lineTo(3, -12); contornar(c, 2.4);
+      c.beginPath(); c.moveTo(-9, -2); c.quadraticCurveTo(0, q ? 5 : 3, 9, -2); c.quadraticCurveTo(0, 1, -9, -2); encher(c, "#160b06"); contornar(c, 1.4);
+      for (const x of [-5, 0, 5]) { c.beginPath(); c.moveTo(x - 1.4, -1); c.lineTo(x, 1.8); c.lineTo(x + 1.4, -1); encher(c, "#f4f0d0"); }
+    }},
+
+    // ------------------------------------------------------
+    // ARMAS NOVAS E ITENS
+    // ------------------------------------------------------
+    disco: { caixa: 34, quadros: 1, desenhar(c) { disco(c, 12, "#ff4fd8", "#ffd6f7"); } },
+    discoOuro: { caixa: 46, quadros: 1, desenhar(c) { disco(c, 16, "#ffd34d", "#fff7c2"); } },
+    mina: { caixa: 30, quadros: 2, desenhar(c, q) { mina(c, q, "#ff3b3b", "#ff9b9b"); } },
+    minaEvo: { caixa: 34, quadros: 2, desenhar(c, q) { c.scale(1.12, 1.12); mina(c, q, "#b18cff", "#e9ddff"); } },
+    maleta: { caixa: 34, quadros: 1, desenhar(c) {
+      rr(c, -5, -13, 10, 5, 2); contornar(c, 2.6); contornar(c, 1.2, "#94a3b8");
+      rr(c, -12, -9, 24, 18, 3); c.fillStyle = linear(c, 0, -9, 0, 9, [[0, "#475569"], [1, "#0f172a"]]); c.fill(); contornar(c, 2);
+      brilhar(c, "#ffffff", 8, () => { c.fillStyle = "#e0f2fe"; c.fillRect(-12, -1.2, 24, 2.4); });
+      rr(c, -3, -3, 6, 5, 1); encher(c, "#fbbf24"); contornar(c, 1.2);
+    }},
   };
 
   function gema(c, r, cor, claro, escuro) {
@@ -508,6 +577,27 @@ const ARTE = (() => {
     c.fillStyle = radial(c, x - r * 0.3, y - r * 0.3, r * 1.3, [[0, "#fff4c2"], [0.4, cor], [1, escuro]]); c.fill();
     if (contorno) contornar(c, 1.5);
     elipse(c, x, y, r * 0.32, r * 0.32); encher(c, escuro);
+  }
+
+  function disco(c, r, cor, claro) {
+    c.beginPath();
+    for (let i = 0; i < 6; i++) {
+      const a = i / 6 * TAU;
+      c.lineTo(Math.cos(a) * r * 0.62, Math.sin(a) * r * 0.62);
+      c.quadraticCurveTo(Math.cos(a + 0.35) * r * 1.25, Math.sin(a + 0.35) * r * 1.25, Math.cos(a + 0.75) * r * 0.95, Math.sin(a + 0.75) * r * 0.95);
+    }
+    c.closePath();
+    c.fillStyle = radial(c, -r * 0.3, -r * 0.3, r * 1.3, [[0, "#ffffff"], [0.5, "#cbd5e1"], [1, "#475569"]]); c.fill(); contornar(c, 1.8);
+    brilhar(c, cor, 10, () => { elipse(c, 0, 0, r * 0.55, r * 0.55); c.strokeStyle = cor; c.lineWidth = 3; c.stroke(); });
+    elipse(c, 0, 0, r * 0.3, r * 0.3); encher(c, claro); contornar(c, 1.4);
+  }
+  function mina(c, q, cor, claro) {
+    for (let i = 0; i < 6; i++) { const a = i / 6 * TAU; c.save(); c.translate(Math.cos(a) * 10, Math.sin(a) * 6.5 + 1); rr(c, -2, -2, 4, 4, 1); encher(c, "#64748b"); contornar(c, 1); c.restore(); }
+    elipse(c, 0, 3, 11, 6.5); encher(c, "#111827"); contornar(c, 1.6);
+    elipse(c, 0, 0, 11, 6.5); c.fillStyle = linear(c, 0, -6, 0, 6, [[0, "#6b7280"], [1, "#1f2937"]]); c.fill(); contornar(c, 1.8);
+    elipse(c, 0, 0, 6, 3.5); contornar(c, 1, "rgba(0,0,0,.5)");
+    if (q) brilhar(c, cor, 12, () => { elipse(c, 0, -0.5, 3, 2); encher(c, claro); });
+    else { elipse(c, 0, -0.5, 3, 2); encher(c, "#3b0a0a"); }
   }
 
   function sprite(tipo, q = 0, branco = false) {
@@ -797,6 +887,7 @@ const ARTE = (() => {
     kai:   { jaqueta: "#d9601c", sombra: "#8a3410", calca: "#2b3340", capuz: "#3c4654", visor: "#22e5ff", cachecol: "#ffc23d", mochila: "#4b5563" },
     iris:  { jaqueta: "#e8edf2", sombra: "#9aa6b4", calca: "#2f5d46", cabelo: "#f8fafc", visor: "#b6ff3b", cachecol: "#ff6fb5", mochila: "#6b4f3a" },
     t07:   { robo: true, jaqueta: "#aab4c0", sombra: "#5f6b7a", calca: "#4b5563", capuz: "#7b8796", visor: "#ff3b3b", mochila: "#374151" },
+    vega:  { jaqueta: "#0f766e", sombra: "#064e3b", calca: "#27272a", capuz: "#1f2937", visor: "#ff4fd8", cachecol: "#e879f9", mochila: "#3f3f46" },
     brasa: { jaqueta: "#8b1e1e", sombra: "#4c0d0d", calca: "#1f2229", capuz: "#16181d", visor: "#ff9a3d", cachecol: "#ff4d2e", mochila: "#c2410c", tanque: true },
   };
 
@@ -1104,6 +1195,52 @@ const ARTE = (() => {
       elipse(c, 0, 0, 13, 13); encher(c, "#0f172a"); contornar(c, 2.5);
       brilhar(c, "#facc15", 8, () => { c.beginPath(); c.moveTo(2, -10); c.lineTo(-6, 2); c.lineTo(0, 2); c.lineTo(-2, 10); c.lineTo(6, -2); c.lineTo(0, -2); c.closePath(); encher(c, "#facc15"); });
     },
+    laser(c, evo) {
+      const cor = evo ? "#fff36b" : "#ff4d6d";
+      c.translate(32, 32);
+      const feixes = evo ? [-0.9, 0.15, 1.2] : [-0.55];
+      for (const a of feixes) brilhar(c, cor, 12, () => {
+        c.beginPath(); c.moveTo(0, 0); c.lineTo(Math.cos(a) * 30, Math.sin(a) * 30);
+        c.strokeStyle = cor; c.lineWidth = 6; c.stroke(); c.strokeStyle = "#ffffff"; c.lineWidth = 2.2; c.stroke();
+      });
+      c.beginPath(); for (let i = 0; i < 6; i++) { const a = i / 6 * TAU; c.lineTo(Math.cos(a) * 13, Math.sin(a) * 13); } c.closePath();
+      c.fillStyle = linear(c, 0, -13, 0, 13, [[0, "#94a3b8"], [1, "#1e293b"]]); c.fill(); contornar(c, 2.5);
+      brilhar(c, cor, 12, () => { elipse(c, 0, 0, 6, 6); encher(c, evo ? "#fffbe0" : "#ffc2cc"); });
+      elipse(c, 0, 0, 6, 6); contornar(c, 1.8);
+    },
+    disco(c, evo) {
+      c.translate(32, 32); c.rotate(0.3);
+      if (evo) { c.save(); c.translate(-9, 9); disco(c, 11, "#ffd34d", "#fff7c2"); c.restore(); c.translate(7, -6); disco(c, 16, "#ffd34d", "#fff7c2"); }
+      else {
+        brilhar(c, "#ff4fd8", 10, () => { c.beginPath(); c.arc(0, 0, 25, 2.2, 3.4); c.strokeStyle = "#ff8ef0"; c.lineWidth = 3; c.stroke(); });
+        disco(c, 19, "#ff4fd8", "#ffd6f7");
+      }
+    },
+    minas(c, evo) {
+      c.translate(32, 36); c.scale(2.3, 2.3);
+      if (evo) brilhar(c, "#b18cff", 6, () => { elipse(c, 0, 0, 13, 9); c.strokeStyle = "rgba(177,140,255,.8)"; c.lineWidth = 1.2; c.stroke(); });
+      mina(c, 1, evo ? "#b18cff" : "#ff3b3b", evo ? "#e9ddff" : "#ff9b9b");
+    },
+    chicote(c, evo) {
+      const cor = evo ? "#ffd34d" : "#22e5ff", claro = evo ? "#fff7c2" : "#c5fbff";
+      c.translate(32, 32);
+      const curva = () => { c.beginPath(); c.moveTo(-14, 16); c.bezierCurveTo(-30, -14, 6, -30, 26, -12); };
+      brilhar(c, cor, 14, () => { curva(); c.strokeStyle = cor; c.lineWidth = 7; c.stroke(); });
+      curva(); c.strokeStyle = claro; c.lineWidth = 2.5; c.stroke();
+      if (evo) brilhar(c, cor, 8, () => { c.beginPath(); c.moveTo(-10, 20); c.bezierCurveTo(10, 26, 24, 10, 28, 2); c.strokeStyle = claro; c.lineWidth = 2.5; c.stroke(); });
+      c.save(); c.translate(-14, 18); c.rotate(-0.9);
+      rr(c, -3.5, -2, 7, 16, 2.5); c.fillStyle = linear(c, -3.5, 0, 3.5, 0, [[0, "#1e293b"], [0.5, "#64748b"], [1, "#1e293b"]]); c.fill(); contornar(c, 2);
+      c.fillStyle = cor; c.fillRect(-3.5, 1, 7, 2);
+      c.restore();
+    },
+    mira(c) {
+      c.translate(32, 32);
+      brilhar(c, "#ff4d6d", 10, () => {
+        elipse(c, 0, 0, 18, 18); c.strokeStyle = "#ff4d6d"; c.lineWidth = 3.5; c.stroke();
+        c.beginPath(); for (const [x, y] of [[0, -1], [0, 1], [-1, 0], [1, 0]]) { c.moveTo(x * 10, y * 10); c.lineTo(x * 26, y * 26); } c.lineWidth = 3.5; c.stroke();
+      });
+      elipse(c, 0, 0, 4, 4); encher(c, "#ffffff"); contornar(c, 1.5);
+    },
     relogio(c) {
       c.translate(32, 32);
       elipse(c, 0, 0, 22, 22); encher(c, "#0f172a"); contornar(c, 3);
@@ -1123,5 +1260,52 @@ const ARTE = (() => {
     return url;
   }
 
-  return { E, LAJE, sprite, caixa, brilho, poca, laje, prop, chunk, PROPS, desenharJogador, retrato, retratoSprite, icone, PALETAS };
+  // Ícones de equipamento: o desenho vem do encaixe, a cor do modelo
+  const EQUIP = {
+    capacete(c, cor) {
+      c.translate(32, 34);
+      c.beginPath(); c.moveTo(-20, 10); c.bezierCurveTo(-22, -24, 22, -24, 20, 10); c.lineTo(14, 16); c.lineTo(-14, 16); c.closePath();
+      c.fillStyle = linear(c, 0, -22, 0, 16, [[0, "#94a3b8"], [1, "#1e293b"]]); c.fill(); contornar(c, 2.5);
+      brilhar(c, cor, 12, () => { rr(c, -15, -4, 30, 9, 4); encher(c, cor); });
+      rr(c, -15, -4, 30, 9, 4); contornar(c, 2);
+      c.fillStyle = "rgba(255,255,255,.55)"; c.fillRect(-10, -2, 8, 2);
+      c.beginPath(); c.moveTo(0, -20); c.lineTo(0, -9); contornar(c, 2, "rgba(0,0,0,.4)");
+    },
+    traje(c, cor) {
+      c.translate(32, 32);
+      c.beginPath(); c.moveTo(-10, -22); c.lineTo(-22, -14); c.lineTo(-18, 2); c.lineTo(-14, 0); c.lineTo(-14, 22); c.lineTo(14, 22); c.lineTo(14, 0); c.lineTo(18, 2); c.lineTo(22, -14); c.lineTo(10, -22); c.quadraticCurveTo(0, -14, -10, -22); c.closePath();
+      c.fillStyle = linear(c, -22, 0, 22, 0, [[0, "#1e293b"], [0.5, "#64748b"], [1, "#1e293b"]]); c.fill(); contornar(c, 2.5);
+      brilhar(c, cor, 10, () => { rr(c, -9, -6, 18, 14, 3); encher(c, cor); });
+      rr(c, -9, -6, 18, 14, 3); contornar(c, 2);
+      c.beginPath(); c.moveTo(-14, 14); c.lineTo(14, 14); contornar(c, 2, "rgba(0,0,0,.5)");
+    },
+    botas(c, cor) {
+      c.translate(30, 30);
+      c.beginPath(); c.moveTo(-12, -22); c.lineTo(6, -22); c.lineTo(6, 2); c.lineTo(22, 8); c.quadraticCurveTo(26, 14, 22, 20); c.lineTo(-14, 20); c.closePath();
+      c.fillStyle = linear(c, 0, -22, 0, 20, [[0, "#64748b"], [1, "#0f172a"]]); c.fill(); contornar(c, 2.5);
+      brilhar(c, cor, 10, () => { c.fillStyle = cor; c.fillRect(-12, -12, 18, 5); c.fillRect(-14, 12, 36, 4); });
+      c.beginPath(); c.moveTo(-12, -12); c.lineTo(6, -12); c.lineTo(6, -7); c.lineTo(-12, -7); c.closePath(); contornar(c, 1.6);
+    },
+    acessorio(c, cor) {
+      c.translate(32, 32);
+      c.beginPath(); for (let i = 0; i < 6; i++) { const a = i / 6 * TAU + Math.PI / 6; c.lineTo(Math.cos(a) * 23, Math.sin(a) * 23); } c.closePath();
+      c.fillStyle = linear(c, 0, -23, 0, 23, [[0, "#475569"], [1, "#0f172a"]]); c.fill(); contornar(c, 2.5);
+      for (let i = 0; i < 6; i++) { const a = i / 6 * TAU; c.beginPath(); c.moveTo(Math.cos(a) * 12, Math.sin(a) * 12); c.lineTo(Math.cos(a) * 20, Math.sin(a) * 20); contornar(c, 2, cor); }
+      brilhar(c, cor, 14, () => { elipse(c, 0, 0, 10, 10); c.fillStyle = radial(c, -3, -3, 12, [[0, "#ffffff"], [0.45, cor], [1, "#0f172a"]]); c.fill(); });
+      elipse(c, 0, 0, 10, 10); contornar(c, 2);
+    },
+  };
+  function iconeEquip(encaixe, cor) {
+    const k = "eq|" + encaixe + "|" + cor;
+    if (cache.has(k)) return cache.get(k);
+    const cv = tela(96, 96);
+    const c = cv.getContext("2d");
+    c.scale(1.5, 1.5); c.lineJoin = "round"; c.lineCap = "round";
+    EQUIP[encaixe](c, cor);
+    const url = cv.toDataURL();
+    cache.set(k, url);
+    return url;
+  }
+
+  return { E, LAJE, sprite, caixa, brilho, poca, laje, prop, chunk, PROPS, desenharJogador, retrato, retratoSprite, icone, iconeEquip, PALETAS };
 })();
