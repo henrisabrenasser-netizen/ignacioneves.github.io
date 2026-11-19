@@ -352,8 +352,55 @@
     .pergaminho button.acao { background: var(--vinho); color: #ffe7b0; font-family: "Cinzel", serif; font-size: .95rem; width: auto; padding: 9px 28px; }
     .pergaminho button.acao:hover { background: #942828; }
 
+    /* ---------- Rodada 2: patronos, expedições, relíquias, escolhas ---------- */
+    .painel button.patrono {
+      display: block; width: 100%; margin: 6px 0 0; padding: 6px 10px; border-radius: 6px;
+      background: rgba(63,107,42,.15); color: var(--tinta); border: 1px solid var(--musgo);
+      font-family: "Cinzel", serif; font-size: .85rem; font-weight: 600;
+    }
+    .painel button.patrono.escolher { background: var(--musgo); color: #fff6d8; animation: pulsa 1s infinite alternate; }
+    .painel button.patrono:disabled { cursor: default; opacity: 1; }
+
+    .exped { display: grid; gap: 6px; }
+    .destino {
+      display: grid; grid-template-columns: 34px 1fr auto; gap: 8px; align-items: center; text-align: left;
+      background: rgba(255,255,255,.35); color: var(--tinta); border: 1px solid var(--borda-p); border-radius: 6px;
+      padding: 7px 10px; font-family: inherit; font-weight: 400; font-size: .9rem; line-height: 1.25;
+    }
+    .destino:hover:not(:disabled) { background: rgba(255,255,255,.6); }
+    .destino.pode { border-color: var(--ouro-escuro); box-shadow: inset 4px 0 0 var(--ouro); }
+    .destino:disabled { opacity: .6; cursor: default; }
+    .destino .de-emoji { font-size: 1.5rem; text-align: center; }
+    .destino b { font-family: "Cinzel", serif; font-size: .88rem; }
+    .destino small { color: var(--tinta-clara); }
+    .destino .de-custo { font-weight: 600; white-space: nowrap; }
+    .viagem { background: rgba(75,58,122,.12); border: 1px solid #4b3a7a; border-radius: 6px; padding: 8px 10px; }
+    .viagem .mi-barra div { background: #4b3a7a; }
+
+    .h3-linha { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .painel .h3-linha button.leve { padding: 2px 8px; font-size: .8rem; }
+
+    .edif .e-tempo { display: block; font-size: .8rem; color: var(--tinta-clara); white-space: nowrap; }
+
+    .opcoes { display: grid; gap: 8px; margin-top: 6px; }
+    .opcao {
+      display: block; width: 100%; text-align: left; padding: 10px 14px; border-radius: 6px;
+      background: rgba(255,255,255,.45); color: var(--tinta); border: 2px solid var(--borda-p);
+      font-family: inherit; font-weight: 400; font-size: 1rem; line-height: 1.35;
+    }
+    .opcao:hover { background: rgba(255,255,255,.75); border-color: var(--vinho); }
+    .opcao b { font-family: "Cinzel", serif; color: var(--vinho); display: block; }
+    .opcao small { color: var(--tinta-clara); }
+    .pergaminho p.escolhido { font-size: .95rem; text-align: center; background: rgba(122,31,31,.08); border-radius: 6px; padding: 6px; }
+
+    .abas button { position: relative; }
+    .abas button.alerta::after {
+      content: ""; position: absolute; top: 6px; right: calc(50% - 20px);
+      width: 10px; height: 10px; border-radius: 50%; background: #e33; box-shadow: 0 0 6px #e33;
+    }
+
     @media (prefers-reduced-motion: reduce) {
-      .bandido { animation: none; }
+      .bandido, .painel button.patrono.escolher { animation: none; }
     }
   </style>
 </head>
@@ -376,6 +423,7 @@
       <section class="painel ativa" id="p-reino">
         <button class="nome-reino" id="nome-reino" title="Clique para renomear seu reino">—</button>
         <div class="rank" id="rank">Acampamento</div>
+        <button class="patrono" id="btn-patrono" style="display:none"></button>
         <button class="moeda" id="moeda" aria-label="Cobrar impostos">👑</button>
         <div class="fervor" id="fervor">
           <div class="fervor-barra"><div id="fervor-fill"></div></div>
@@ -424,7 +472,9 @@
         <h3 style="margin-top:0">📋 Missões do Conselho</h3>
         <div class="missoes" id="missoes"></div>
         <div class="missoes-info" id="missoes-info"></div>
-        <h3>🔧 Melhorias</h3>
+        <h3>🗺️ Expedições</h3>
+        <div class="exped" id="expedicoes"></div>
+        <h3 class="h3-linha"><span>🔧 Melhorias</span><button class="leve" id="btn-todas">Comprar todas</button></h3>
         <div class="melhorias" id="lista-melh"></div>
         <h3>🏆 Conquistas <span class="fraco" id="conq-cont"></span></h3>
         <div class="conquistas" id="lista-conq"></div>
@@ -444,6 +494,10 @@
 
         <h3>💎 Dons da Linhagem · <span id="joias">0</span> Joias</h3>
         <div class="dons" id="dons"></div>
+
+        <h3>🏺 Relíquias <span class="fraco" id="rel-cont"></span></h3>
+        <div class="conquistas" id="lista-rel"></div>
+        <div class="conq-info" id="rel-info"><span class="fraco">Relíquias vêm das Expedições e duram para sempre, em todas as dinastias.</span></div>
 
         <h3>📖 A Coroa Perdida</h3>
         <div class="capitulos" id="capitulos"></div>
@@ -475,9 +529,10 @@
 
   <div class="modal escondido" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
     <div class="pergaminho">
-      <div class="p-selo">📜</div>
+      <div class="p-selo" id="modal-selo">📜</div>
       <h2 id="modal-titulo"></h2>
       <div id="modal-texto"></div>
+      <div class="opcoes" id="modal-opcoes"></div>
       <button class="acao" id="modal-ok">Continuar</button>
     </div>
   </div>
@@ -500,7 +555,8 @@
       { id: "castelo",  emoji: "🏰",   nome: "Castelo",         plural: "Castelos",         custo: 2e7,    prod: 7800,  desc: "Protege as terras e cobra pedágio.",           primeira: "Um castelo de pedra ergue-se sobre a colina." },
       { id: "catedral", emoji: "⛪",   nome: "Catedral",        plural: "Catedrais",        custo: 3.3e8,  prod: 44000, desc: "Peregrinos vêm de longe trazer oferendas.",    primeira: "Os sinos da catedral tocam pela primeira vez." },
       { id: "mago",     emoji: "🧙",   nome: "Torre do Mago",   plural: "Torres do Mago",   custo: 5.1e9,  prod: 260000, desc: "Alquimia: transforma chumbo em ouro.",        primeira: "Um mago misterioso se instalou na torre." },
-      { id: "dragao",   emoji: "🐉",   nome: "Ninho do Dragão", plural: "Ninhos do Dragão", custo: 7.5e10, prod: 1.6e6, desc: "Filhotes de dragão chocam sobre pilhas de ouro.", primeira: "O ovo do cofre real eclodiu. Um filhote de dragão dorme sobre suas moedas!" },
+      { id: "dragao",   emoji: "🐉",   nome: "Ninho do Dragão", plural: "Ninhos do Dragão", custo: 7.5e10, prod: 1.6e6, desc: "Filhotes de dragão chocam sobre pilhas de ouro.", primeira: "Um ovo de dragão eclodiu no reino. Um filhote dorme sobre suas moedas!" },
+      { id: "observ",   emoji: "🔭",   nome: "Observatório Astral", plural: "Observatórios Astrais", custo: 1.1e12, prod: 1e7, desc: "Lê nas estrelas onde há ouro escondido.", primeira: "Astrônomos apontam lunetas para o céu e encontram veios de ouro guiados pelas estrelas." },
     ];
     const EDIF_POR_ID = Object.fromEntries(EDIFICIOS.map(b => [b.id, b]));
 
@@ -520,6 +576,7 @@
       catedral: ["Vitrais coloridos", "Sinos de bronze", "Dízimo", "Relíquia sagrada", "Grande peregrinação"],
       mago:     ["Grimório antigo", "Bola de cristal", "Aprendizes", "Pedra filosofal", "Alquimia perfeita"],
       dragao:   ["Ninho aquecido", "Montanha de tesouros", "Sela de dragão", "Fogo dourado", "Pacto ancestral"],
+      observ:   ["Lentes polidas", "Mapas celestes", "Cometa dourado", "Alinhamento dos astros", "Olho do cosmos"],
     };
 
     // Marcos: ao ter 25, 50, 100... unidades de uma construção, ela produz o dobro
@@ -569,7 +626,7 @@
       { emoji: "🌸", nome: "Primavera", boost: ["campones", "fazenda", "catedral"], extra: "" },
       { emoji: "☀️", nome: "Verão",     boost: ["serraria", "feira", "dragao"],     extra: "caravanas mais frequentes" },
       { emoji: "🍂", nome: "Outono",    boost: ["ferraria", "mina", "castelo"],     extra: "" },
-      { emoji: "❄️", nome: "Inverno",   boost: ["mago"],                             extra: "cliques ×2" },
+      { emoji: "❄️", nome: "Inverno",   boost: ["mago", "observ"],                   extra: "cliques ×2" },
     ];
     const estacaoIdx = () => Math.floor(Date.now() / DUR_ESTACAO) % 4;
     const estacao = () => ESTACOES[estacaoIdx()];
@@ -604,39 +661,120 @@
     ];
     const DOM_POR_ID = Object.fromEntries(DONS.map(d => [d.id, d]));
 
+    // Patronos: a cada dinastia você jura lealdade a uma facção (escolha uma vez por dinastia)
+    const PATRONOS = [
+      { id: "grifo",    emoji: "🦅", nome: "Ordem do Grifo",        desc: "Cavaleiros andantes. Cliques ×2, +5% de crítico e saque de bandidos ×2." },
+      { id: "guilda",   emoji: "⚖️", nome: "Guilda dos Mercadores", desc: "Construções 15% mais baratas, caravanas 2× mais frequentes e missões +50%." },
+      { id: "arcano",   emoji: "🔮", nome: "Círculo Arcano",        desc: "Decretos recarregam 2× mais rápido e duram 50% mais. Torres do Mago ×3." },
+      { id: "colheita", emoji: "🌾", nome: "Irmandade da Colheita", desc: "Camponeses e Fazendas ×5, produção +25% e 100% de renda com o jogo fechado." },
+    ];
+    const PATRONO_POR_ID = Object.fromEntries(PATRONOS.map(x => [x.id, x]));
+
+    // Expedições: mande uma comitiva e volte depois. Custo e retorno em segundos de produção.
+    const DESTINOS = [
+      { id: "floresta", emoji: "🌲", nome: "Floresta Sombria",    dur: 180,  custo: 120,  ganho: 600,   chance: 0.15, desc: "Trilhas curtas, perigos pequenos." },
+      { id: "montanha", emoji: "⛰️", nome: "Montanhas Cinzentas", dur: 900,  custo: 600,  ganho: 3600,  chance: 0.40, desc: "Ruínas anãs esquecidas." },
+      { id: "norte",    emoji: "❄️", nome: "Terras do Norte",     dur: 2700, custo: 1800, ganho: 12000, chance: 0.80, desc: "O reino de gelo. Relíquias raras.", raro: true },
+    ];
+    const DEST_POR_ID = Object.fromEntries(DESTINOS.map(d => [d.id, d]));
+
+    // Relíquias: achados das expedições. Permanentes, valem em todas as dinastias.
+    const RELIQUIAS = [
+      { id: "adaga",     emoji: "🗡️", nome: "Adaga do Corvo",         desc: "+3% de chance de crítico." },
+      { id: "hidromel",  emoji: "🍯", nome: "Hidromel Eterno",        desc: "O Fervor enche 25% mais rápido." },
+      { id: "bussola",   emoji: "🧭", nome: "Bússola Dourada",        desc: "Caravanas 30% mais frequentes." },
+      { id: "rosario",   emoji: "📿", nome: "Rosário do Peregrino",   desc: "Catedrais ×2." },
+      { id: "pedra",     emoji: "🪨", nome: "Pedra Rúnica",           desc: "Construções 5% mais baratas." },
+      { id: "casca",     emoji: "🥚", nome: "Casca de Ovo de Dragão", desc: "Ninhos do Dragão ×2." },
+      { id: "sino",      emoji: "🔔", nome: "Sino de Prata",          desc: "Decretos recarregam 15% mais rápido." },
+      { id: "botas",     emoji: "👢", nome: "Botas de Sete Léguas",   desc: "Expedições 25% mais rápidas." },
+      { id: "pena",      emoji: "🪶", nome: "Pena de Grifo",          desc: "Cliques ×2." },
+      { id: "girassol",  emoji: "🌻", nome: "Girassol de Ouro",       desc: "Camponeses e Fazendas ×3." },
+      { id: "anel",      emoji: "💍", nome: "Anel do Tesoureiro",     desc: "Toda a produção +10%." },
+      { id: "lagrima",   emoji: "💧", nome: "Lágrima da Rainha",      desc: "Toda a produção +25%.", raro: true },
+      { id: "fragmento", emoji: "🧊", nome: "Fragmento da Coroa de Gelo", desc: "Cada ponto de Legado dá +2% a mais.", raro: true },
+      { id: "astrolabio", emoji: "🌠", nome: "Astrolábio Estelar",    desc: "Observatórios Astrais ×3.", raro: true },
+    ];
+    const REL_POR_ID = Object.fromEntries(RELIQUIAS.map(r => [r.id, r]));
+
     // História: um capítulo para cada título do reino
+    // Ato I acontece na primeira linhagem; o Ato II começa a partir da 2ª dinastia.
+    // Alguns capítulos pedem uma decisão: ela vale para sempre e muda o rumo da história.
+    const ovoGuardado = () => S.escolhas[5] !== 1;
     const CAPITULOS = [
-      { titulo: "Prólogo · As Cinzas", texto: n => [
+      { titulo: "Prólogo · As Cinzas", cond: () => S.rankMax >= 0, texto: n => [
           `Há uma geração, <b>Morgrath, o Devorador de Ouro</b>, desceu das montanhas e levou o tesouro e a coroa de ${n}. Do reino restaram cinzas e uma criança: você.`,
           `Hoje você finca sua bandeira num acampamento entre as ruínas. Cada moeda de imposto é um passo de volta ao trono.`],
         novidade: "Clique na coroa para cobrar impostos. Treine o Coletor para cada clique render mais." },
-      { titulo: "Capítulo I · Fumaça nas Chaminés", texto: n => [
+      { titulo: "Capítulo I · Fumaça nas Chaminés", cond: () => S.rankMax >= 1, texto: n => [
           `Famílias que fugiram voltam ao ver sua bandeira. Um velho conselheiro aparece com um baú de pergaminhos.`,
-          `— Majestade, o povo precisa de mais que esperança. Precisa de ordens.`],
-        novidade: "Decretos Reais e Missões do Conselho foram liberados." },
-      { titulo: "Capítulo II · Sombras na Estrada", texto: n => [
+          `— Majestade, o povo precisa de mais que esperança. Precisa de ordens. E de aliados: quatro ordens antigas ainda servem a quem paga bem.`],
+        novidade: "Decretos Reais, Missões do Conselho e Patronos foram liberados." },
+      { titulo: "Capítulo II · Sombras na Estrada", cond: () => S.rankMax >= 2, texto: n => [
           `Com a prosperidade vêm os abutres. Os <b>Corvos Negros</b>, um bando que vivia dos restos do reino, rondam as estradas de ${n}.`,
-          `Quando aparecerem, expulse-os depressa, antes que levem seu ouro.`],
-        novidade: "Bandidos podem aparecer. Clique neles várias vezes para expulsá-los e tomar o saque." },
-      { titulo: "Capítulo III · O Mercador de Olho de Vidro", texto: n => [
-          `Um mercador estrangeiro jura ter visto Morgrath dormindo sobre uma montanha de moedas.`,
-          `— Ele não gasta nada, Majestade. Só junta. Você começa a se perguntar o que um dragão quer com tanto ouro.`],
-        novidade: "Novo decreto: Convocar Caravana." },
-      { titulo: "Capítulo IV · O Mago da Torre", texto: n => [
+          `Seus guardas capturam um deles, um garoto magro que roubava pão. Ele jura que o bando só rouba porque não há trabalho.`],
+        novidade: "Bandidos podem aparecer. Clique neles várias vezes para expulsá-los.",
+        escolha: [
+          { rotulo: "Caçar os Corvos até o último", desc: "Saque dos bandidos ×3 e +2% de crítico." },
+          { rotulo: "Oferecer perdão e trabalho", desc: "Ex-bandidos viram cobradores: cobradores ×1,5 e bandidos aparecem menos." },
+        ] },
+      { titulo: "Capítulo III · O Mercador de Olho de Vidro", cond: () => S.rankMax >= 3, texto: n => [
+          `Um mercador estrangeiro jura ter visto Morgrath dormindo sobre uma montanha de moedas. — Ele não gasta nada, Majestade. Só junta.`,
+          `Ele abre um rolo de mapas: florestas, montanhas, ruínas cheias de relíquias. — Posso vendê-los... ou servir à sua corte.`],
+        novidade: "Expedições liberadas no Conselho. Novo decreto: Convocar Caravana.",
+        escolha: [
+          { rotulo: "Comprar os mapas", desc: "Expedições 20% mais rápidas." },
+          { rotulo: "Nomeá-lo tesoureiro real", desc: "Feiras ×2 e caravanas pagam 50% a mais." },
+        ] },
+      { titulo: "Capítulo IV · O Mago da Torre", cond: () => S.rankMax >= 4, texto: n => [
           `Um mago sobe a colina e pede abrigo. Diz conhecer Morgrath há séculos.`,
           `— O dragão foi amaldiçoado. Cada moeda que toca acalma, por um instante, uma dor antiga. Ele não é um ladrão. Está doente.`],
         novidade: "Novo decreto: Toque de Midas." },
-      { titulo: "Capítulo V · O Ovo", texto: n => [
+      { titulo: "Capítulo V · O Ovo", cond: () => S.rankMax >= 5, texto: n => [
           `Num túnel profundo, seus mineiros encontram um ovo de dragão ainda morno. Os nobres exigem que seja destruído.`,
-          `Você manda guardá-lo no cofre mais quente do castelo, sobre uma cama de moedas.`],
-        novidade: "Novo decreto: Ritual do Mago." },
-      { titulo: "Capítulo VI · Asas sobre a Capital", texto: n => [
+          `O mago pede o ovo para estudar a maldição. Seu tesoureiro sugere guardá-lo no cofre mais quente do castelo.`],
+        novidade: "Novo decreto: Ritual do Mago.",
+        escolha: [
+          { rotulo: "Guardar o ovo no cofre real", desc: "Ninhos do Dragão ×2." },
+          { rotulo: "Confiar o ovo ao mago", desc: "Torres do Mago ×2 e decretos 15% mais rápidos." },
+        ] },
+      { titulo: "Capítulo VI · Asas sobre a Capital", cond: () => S.rankMax >= 6, texto: n => ovoGuardado() ? [
           `Uma sombra cobre o sol. Morgrath sobrevoa ${n}, mas não ataca: pousa diante do castelo e encara o cofre onde o ovo está.`,
-          `— Você guardou o que eu perdi — diz, com voz de trovão.`] },
-      { titulo: "Epílogo · A Coroa Devolvida", texto: n => [
+          `— Você guardou o que eu perdi — diz, com voz de trovão.`] : [
+          `Uma sombra cobre o sol. Morgrath pousa sobre a torre do mago, e as pedras gemem sob suas garras.`,
+          `O mago desce com o ovo nos braços, sem medo. — Majestade, ele não quer guerra. Quer o filho. E eu descobri como quebrar a maldição.`] },
+      { titulo: "Epílogo · A Coroa Devolvida", cond: () => S.rankMax >= 7, texto: n => ovoGuardado() ? [
           `Morgrath deposita a coroa perdida aos seus pés. — A maldição era a solidão. Fique com seu ouro. Eu fico com meu filho.`,
-          `${n} volta a ser um império, agora com um dragão como aliado. Mas toda coroa um dia passa adiante... Até onde sua linhagem pode chegar?`],
-        novidade: "Fim da história. Passe a coroa e fortaleça sua linhagem!" },
+          `${n} volta a ser um império, agora com um dragão como aliado. Mas toda coroa um dia passa adiante...`] : [
+          `O mago devolve o ovo, e com ele uma runa que apaga a maldição. Pela primeira vez em séculos, Morgrath não sente fome de ouro.`,
+          `Ele deixa a coroa perdida aos seus pés e parte com o filho para as montanhas. ${n} volta a ser um império. Mas toda coroa um dia passa adiante...`],
+        novidade: "Fim do Ato I. Lenda da linhagem: +10% de produção para sempre. Passe a coroa para começar o Ato II." },
+
+      // ---------------- ATO II · O Inverno Sem Fim ----------------
+      { titulo: "Ato II · Neve no Verão", selo: "❄️", cond: () => S.dinastia >= 2 && rankIdx() >= 1, texto: n => [
+          `Gerações se passaram desde o pacto com Morgrath. Então, em pleno verão, começa a nevar sobre ${n}.`,
+          `Um batedor chega meio congelado: no norte despertou a <b>Rainha Hiemal</b>, a feiticeira que, séculos atrás, amaldiçoou o dragão com a solidão.`],
+        novidade: "Novo destino de expedição: Terras do Norte, onde estão as relíquias mais raras." },
+      { titulo: "Ato II · A Carta de Gelo", selo: "❄️", cond: () => S.dinastia >= 2 && rankIdx() >= 3, texto: n => [
+          `Um corvo branco traz uma carta escrita em gelo: "Entregue-me o dragão e seus filhotes, e pouparei ${n} do inverno eterno."`,
+          `A corte se divide. Os cavaleiros pedem guerra. Os mercadores lembram que a neve já fechou metade das estradas.`],
+        escolha: [
+          { rotulo: "Rasgar a carta diante da corte", desc: "O povo se inflama: cliques ×1,5." },
+          { rotulo: "Responder com diplomacia", desc: "Enviados viajam ao norte: missões dão 50% a mais." },
+        ] },
+      { titulo: "Ato II · A Muralha Branca", selo: "❄️", cond: () => S.dinastia >= 2 && rankIdx() >= 5, texto: n => [
+          `Uma muralha de gelo, alta como dez castelos, ergue-se na fronteira norte. Nenhuma caravana passa.`,
+          `Morgrath oferece seu fogo. Seus engenheiros juram que podem abrir túneis sem acordar a fúria da rainha.`],
+        escolha: [
+          { rotulo: "Pedir o fogo de Morgrath", desc: "Ninhos do Dragão ×2." },
+          { rotulo: "Mandar os engenheiros", desc: "Castelos ×2 e construções 5% mais baratas." },
+        ] },
+      { titulo: "Epílogo II · O Degelo", selo: "🌸", cond: () => S.dinastia >= 2 && rankIdx() >= 7, texto: n => S.escolhas[9] === 1 ? [
+          `Seus enviados voltam acompanhados de uma mulher de cabelos brancos. A Rainha Hiemal ajoelha-se diante do trono.`,
+          `— Amaldiçoei o dragão porque ele levou meu reino, há mil anos. Vocês me mostraram que é possível perdoar. A neve derrete, e ${n} conhece a primavera mais longa da sua história.`] : [
+          `Seus exércitos marcham sob as asas de Morgrath. A muralha cai, o palácio de gelo racha, e a Rainha Hiemal se desfaz em neve fina ao vento.`,
+          `Quando o sol volta, os camponeses de ${n} dançam na lama do degelo. O inverno sem fim terminou.`],
+        novidade: "Fim do Ato II e da história da sua linhagem. Lenda: mais +10% de produção para sempre!" },
     ];
 
     const CONQUISTAS = [
@@ -674,7 +812,13 @@
       { id: "p1",  emoji: "👑", nome: "Nova dinastia",           desc: "Passe a coroa uma vez.",          ok: () => S.dinastia >= 2 },
       { id: "p2",  emoji: "🌳", nome: "Linhagem antiga",         desc: "Chegue à 5ª dinastia.",           ok: () => S.dinastia >= 5 },
       { id: "j1",  emoji: "💍", nome: "Joalheiro real",          desc: "Tenha 5 Dons da Linhagem.",       ok: () => S.dons.length >= 5 },
-      { id: "h1",  emoji: "📖", nome: "A coroa devolvida",       desc: "Chegue ao epílogo da história.",  ok: () => S.capitulos.includes(7) },
+      { id: "h1",  emoji: "📖", nome: "A coroa devolvida",       desc: "Chegue ao fim do Ato I.",         ok: () => S.capitulos.includes(7) },
+      { id: "h2",  emoji: "🌸", nome: "O degelo",                desc: "Chegue ao fim do Ato II.",        ok: () => S.capitulos.includes(11) },
+      { id: "d2",  emoji: "🔭", nome: "Olhos no céu",            desc: "Tenha um Observatório Astral.",   ok: () => qtd("observ") >= 1 },
+      { id: "pt",  emoji: "🤝", nome: "Sob proteção",            desc: "Escolha um patrono.",             ok: () => !!S.patrono },
+      { id: "x1",  emoji: "🧳", nome: "Explorador",              desc: "Complete 5 expedições.",          ok: () => S.expedicoes >= 5 },
+      { id: "x2",  emoji: "🏺", nome: "Colecionador",            desc: "Encontre 6 relíquias.",           ok: () => S.reliquias.length >= 6 },
+      { id: "x3",  emoji: "🏛️", nome: "Museu real",              desc: "Encontre todas as relíquias.",    ok: () => S.reliquias.length >= RELIQUIAS.length },
     ];
 
     const NOMES_REINO = ["Valdoria", "Pedra Alta", "Corválio", "Montebranco", "Rocaverde", "Lisarna", "Altafonte", "Brumália", "Ferrovale", "Torre Velha"];
@@ -696,6 +840,7 @@
       criticos: 0, fervorCheios: 0, bandidos: 0, decretosUsados: 0,
       cd: {}, missoes: [], missoesFeitas: 0, trocaAte: 0,
       capitulos: [], rankMax: 0,
+      patrono: null, escolhas: {}, reliquias: [], expedicao: null, expedicoes: 0,
     });
     let S = novoEstado();
     let temMelh = new Set();
@@ -708,18 +853,34 @@
     const totalEdif = () => EDIFICIOS.reduce((s, b) => s + qtd(b.id), 0);
     const temDom = id => S.dons.includes(id);
     const ativo = ate => Date.now() < ate;
-    const bonusLegado = () => (temDom("sangue") ? 0.15 : 0.10) * S.legado;
+    const temRel = id => S.reliquias.includes(id);
+    const escolheu = (cap, i) => S.escolhas[cap] === i;
+    const patrono = id => S.patrono === id;
+    const atosCompletos = () => (S.capitulos.includes(7) ? 1 : 0) + (S.capitulos.includes(11) ? 1 : 0);
+    const bonusLegado = () => ((temDom("sangue") ? 0.15 : 0.10) + (temRel("fragmento") ? 0.02 : 0)) * S.legado;
 
     function multEdif(id) {
       let m = 1;
       for (let t = 0; t < NIVEIS.length; t++) if (temMelh.has(`${id}-${t}`)) m *= 2;
       m *= 2 ** marcosAtingidos(qtd(id));
       if (estacao().boost.includes(id)) m *= temDom("estacoes") ? 3 : 2;
+      // Relíquias, escolhas da história e patrono
+      if ((id === "campones" || id === "fazenda")) { if (temRel("girassol")) m *= 3; if (patrono("colheita")) m *= 5; }
+      if (id === "catedral" && temRel("rosario")) m *= 2;
+      if (id === "dragao") { if (temRel("casca")) m *= 2; if (escolheu(5, 0)) m *= 2; if (escolheu(10, 0)) m *= 2; }
+      if (id === "mago") { if (escolheu(5, 1)) m *= 2; if (patrono("arcano")) m *= 3; }
+      if (id === "observ" && temRel("astrolabio")) m *= 3;
+      if (id === "feira" && escolheu(3, 1)) m *= 2;
+      if (id === "castelo" && escolheu(10, 1)) m *= 2;
       return m;
     }
     function multGlobal() {
       let m = (1 + bonusLegado()) * (1 + 0.01 * S.conq.length);
       temMelh.forEach(id => { const u = MELH_POR_ID[id]; if (u && u.tipo === "global") m *= 1 + u.val; });
+      if (temRel("anel")) m *= 1.10;
+      if (temRel("lagrima")) m *= 1.25;
+      if (patrono("colheita")) m *= 1.25;
+      m *= 1 + 0.10 * atosCompletos();
       if (ativo(S.bencaoAte)) m *= 7;
       if (ativo(S.festaAte)) m *= 3;
       return m;
@@ -741,8 +902,11 @@
     function cliqueBase(nivel = S.nivelColetor) {
       let v = baseColetor(nivel);
       temMelh.forEach(id => { const u = MELH_POR_ID[id]; if (u && u.tipo === "cliqueX") v *= u.val; });
-      v *= (1 + bonusLegado()) * (1 + 0.01 * S.conq.length);
+      v *= (1 + bonusLegado()) * (1 + 0.01 * S.conq.length) * (1 + 0.10 * atosCompletos());
       if (estacaoIdx() === 3) v *= 2;
+      if (temRel("pena")) v *= 2;
+      if (patrono("grifo")) v *= 2;
+      if (escolheu(9, 0)) v *= 1.5;
       return v;
     }
     function pctClique() {
@@ -752,7 +916,7 @@
     }
     const multFervor = () => 1 + (S.fervor / 100) * (temDom("coracao") ? 2 : 1);
     function chanceCrit() {
-      let c = 0.03 + (temDom("sorte") ? 0.05 : 0);
+      let c = 0.03 + (temDom("sorte") ? 0.05 : 0) + (temRel("adaga") ? 0.03 : 0) + (escolheu(2, 0) ? 0.02 : 0) + (patrono("grifo") ? 0.05 : 0);
       temMelh.forEach(id => { const u = MELH_POR_ID[id]; if (u && u.tipo === "crit") c += u.val; });
       return c;
     }
@@ -765,7 +929,7 @@
     }
     // Cada cobrador cobra meio clique-base por segundo, sozinho
     function multCobr() {
-      let m = 0.5;
+      let m = escolheu(2, 1) ? 0.75 : 0.5;
       temMelh.forEach(id => { const u = MELH_POR_ID[id]; if (u && u.tipo === "cobr") m *= u.val; });
       if (ativo(S.coletaAte)) m *= 10;
       return m;
@@ -776,7 +940,11 @@
       return gpsEdif + gpsCobr;
     }
 
-    const desconto = () => temDom("arquitetos") ? 0.9 : 1;
+    const desconto = () => (temDom("arquitetos") ? 0.9 : 1) * (temRel("pedra") ? 0.95 : 1) * (patrono("guilda") ? 0.85 : 1) * (escolheu(10, 1) ? 0.95 : 1);
+    const multRecarga = () => (temDom("selo") ? 0.6 : 1) * (temRel("sino") ? 0.85 : 1) * (escolheu(5, 1) ? 0.85 : 1) * (patrono("arcano") ? 0.5 : 1);
+    const multDuracao = () => patrono("arcano") ? 1.5 : 1;
+    const multExpedicao = () => (temRel("botas") ? 0.75 : 1) * (escolheu(3, 0) ? 0.8 : 1);
+    const rendaOffline = () => temDom("memoria") || patrono("colheita");
     const custoLote = (b, k) => b.custo * desconto() * Math.pow(1.15, qtd(b.id)) * (Math.pow(1.15, k) - 1) / 0.15;
     function maxCompravel(b) {
       const c0 = b.custo * desconto() * Math.pow(1.15, qtd(b.id));
@@ -834,7 +1002,7 @@
 
     let ultimoClique = 0, fervorCheio = false;
     $("moeda").addEventListener("click", e => {
-      S.fervor = Math.min(100, S.fervor + (temMelh.has("fervor-0") ? 7.5 : 5));
+      S.fervor = Math.min(100, S.fervor + (temMelh.has("fervor-0") ? 7.5 : 5) * (temRel("hidromel") ? 1.25 : 1));
       if (S.fervor >= 100 && !fervorCheio) { fervorCheio = true; S.fervorCheios++; }
       ultimoClique = Date.now();
       let v = valorClique();
@@ -928,6 +1096,7 @@
         nome: S.nome, inicio: S.inicio, compra: S.compra, cronicas: S.cronicas,
         criticos: S.criticos, fervorCheios: S.fervorCheios, bandidos: S.bandidos, decretosUsados: S.decretosUsados,
         missoesFeitas: S.missoesFeitas, capitulos: S.capitulos, rankMax: S.rankMax,
+        escolhas: S.escolhas, reliquias: S.reliquias, expedicao: S.expedicao, expedicoes: S.expedicoes,
       };
       S = Object.assign(novoEstado(), manter);
       temMelh = new Set();
@@ -951,10 +1120,10 @@
       const agora = Date.now();
       if (!d || S.rankMax < d.rank || agora < (S.cd[id] || 0)) return;
       if (id === "coleta") {
-        S.coletaAte = agora + 15000;
+        S.coletaAte = agora + 15000 * multDuracao();
         toast("⚔️ Coleta Forçada!", "Cliques ×3 e cobradores ×10 por 15 segundos.");
       } else if (id === "festa") {
-        S.festaAte = agora + 45000;
+        S.festaAte = agora + 45000 * multDuracao();
         toast("🎉 Festa da Colheita!", "Toda a produção ×3 por 45 segundos.");
       } else if (id === "caravana") {
         if (caravanaEl) caravanaFim = agora + duracaoCaravana(); else mostrarCaravana();
@@ -967,7 +1136,7 @@
         DECRETOS.forEach(o => { if (o.id !== "ritual") S.cd[o.id] = 0; });
         toast("🔮 Ritual do Mago!", "Todos os outros decretos estão prontos.");
       }
-      S.cd[id] = agora + d.cd * 1000 * (temDom("selo") ? 0.6 : 1);
+      S.cd[id] = agora + d.cd * 1000 * multRecarga();
       S.decretosUsados++;
       cronica(`📣 Decreto proclamado: <b>${d.nome}</b>.`);
       gpsAtual = calcGps();
@@ -1019,7 +1188,8 @@
       while (S.missoes.length < 3) S.missoes.push(gerarMissao());
     }
     function recompensaMissao() {
-      return Math.max(100 * (1 + S.missoesFeitas), gpsAtual * 300) * (temDom("conselho") ? 2 : 1);
+      return Math.max(100 * (1 + S.missoesFeitas), gpsAtual * 300) * (temDom("conselho") ? 2 : 1)
+        * (patrono("guilda") ? 1.5 : 1) * (escolheu(9, 1) ? 1.5 : 1);
     }
     function receberMissao(i) {
       const m = S.missoes[i];
@@ -1042,6 +1212,60 @@
       completarMissoes();
       S.trocaAte = Date.now() + 60000;
       renderMissoes(true);
+    }
+
+    // ---- Patrono ----
+    function escolherPatrono(id) {
+      const p = PATRONO_POR_ID[id];
+      if (!p || S.patrono || S.rankMax < 1) return;
+      S.patrono = id;
+      toast(`${p.emoji} ${p.nome}`, p.desc);
+      cronica(`${p.emoji} A ${ordinal(S.dinastia)} dinastia jura lealdade à <b>${p.nome}</b>.`);
+      fecharModal();
+      gpsAtual = calcGps();
+      renderTudo();
+    }
+
+    // ---- Expedições ----
+    const expedLiberadas = () => S.rankMax >= 3;
+    const destinoLiberado = d => !d.raro || S.capitulos.includes(8);
+    const custoExped = d => Math.max(50, gpsAtual * d.custo);
+    function enviarExpedicao(id) {
+      const d = DEST_POR_ID[id];
+      if (!d || S.expedicao || !expedLiberadas() || !destinoLiberado(d)) return;
+      const c = custoExped(d);
+      if (c > S.ouro) return;
+      S.ouro -= c;
+      S.expedicao = { dest: id, fim: Date.now() + d.dur * 1000 * multExpedicao(), valor: Math.max(200, gpsAtual * d.ganho) };
+      cronica(`${d.emoji} Uma comitiva parte rumo à <b>${d.nome}</b>.`);
+      renderExpedicoes(true);
+    }
+    function receberExpedicao() {
+      const e = S.expedicao;
+      if (!e || Date.now() < e.fim) return;
+      const d = DEST_POR_ID[e.dest];
+      S.expedicao = null;
+      S.expedicoes++;
+      ganhar(e.valor);
+      let achado = "";
+      if (Math.random() < d.chance) {
+        const pool = RELIQUIAS.filter(r => !temRel(r.id) && (d.raro || !r.raro));
+        if (pool.length) {
+          const r = pool[rint(pool.length)];
+          S.reliquias.push(r.id);
+          achado = ` e uma relíquia: ${r.emoji} ${r.nome}!`;
+          cronica(`🏺 Relíquia encontrada: <b>${r.emoji} ${r.nome}</b> (${r.desc})`);
+          renderReliquias();
+        } else {
+          S.joias++;
+          achado = " e uma 💎 Joia (todas as relíquias daqui já são suas).";
+        }
+      }
+      toast(`${d.emoji} A comitiva voltou!`, `Trouxe ${fmt(e.valor)} de ouro${achado || "."}`);
+      cronica(`${d.emoji} A comitiva voltou da ${d.nome} com <b>${fmt(e.valor)}</b> de ouro.`);
+      gpsAtual = calcGps();
+      renderExpedicoes(true);
+      atualizarMais();
     }
 
     // ========================================================
@@ -1072,6 +1296,8 @@
       let div = temMelh.has("car-0") ? 2 : 1;
       if (temDom("mercadores")) div *= 1.5;
       if (estacaoIdx() === 1) div *= 1.5;
+      if (temRel("bussola")) div *= 1.3;
+      if (patrono("guilda")) div *= 2;
       proxCaravana = Date.now() + rand(90, 240) * 1000 / div;
     }
     function clicarCaravana(e) {
@@ -1079,7 +1305,7 @@
       const agora = Date.now();
       S.caravanas++;
       if (r < 0.5) {
-        const v = Math.min(S.ouro * 0.15, gpsAtual * 900) + 13;
+        const v = (Math.min(S.ouro * 0.15, gpsAtual * 900) + 13) * (escolheu(3, 1) ? 1.5 : 1);
         ganhar(v);
         flutuar(e.clientX, e.clientY, "+" + fmt(v));
         toast("🐎 Mercador generoso!", `Pagou ${fmt(v)} de ouro em tributos.`);
@@ -1115,14 +1341,14 @@
     function esconderBandido(agendar = true) {
       if (bandidoEl) bandidoEl.remove();
       bandidoEl = null;
-      if (agendar) proxBandido = Date.now() + rand(180, 360) * 1000;
+      if (agendar) proxBandido = Date.now() + rand(180, 360) * 1000 * (escolheu(2, 1) ? 1.4 : 1);
     }
     function golpearBandido(e) {
       bandidoVida--;
       bandidoEl.classList.remove("golpe"); void bandidoEl.offsetWidth; bandidoEl.classList.add("golpe");
       bandidoEl.querySelector("i").style.width = (bandidoVida / bandidoVidaMax * 100) + "%";
       if (bandidoVida > 0) return;
-      const v = Math.max(50, gpsAtual * 120);
+      const v = Math.max(50, gpsAtual * 120) * (escolheu(2, 0) ? 3 : 1) * (patrono("grifo") ? 2 : 1);
       ganhar(v);
       S.bandidos++;
       flutuar(e.clientX, e.clientY, "Saque +" + fmt(v));
@@ -1142,34 +1368,87 @@
     // 8. HISTÓRIA
     // ========================================================
     const filaHistoria = [];
+    let modalTravado = false;   // capítulo com decisão pendente: não fecha sem escolher
     function verificarHistoria() {
       const r = rankIdx();
       if (r > S.rankMax) S.rankMax = r;
-      let nova = -1;
-      for (let i = 0; i <= S.rankMax; i++) if (!S.capitulos.includes(i)) { S.capitulos.push(i); nova = i; }
-      if (nova >= 0) {
-        // Se várias partes chegaram de uma vez (ex.: save antigo), mostra só a mais recente
-        filaHistoria.push(nova);
+      let mudou = false;
+      CAPITULOS.forEach((c, i) => {
+        if (!S.capitulos.includes(i) && c.cond()) { S.capitulos.push(i); filaHistoria.push(i); mudou = true; }
+      });
+      if (mudou) {
         if (S.rankMax >= 1) completarMissoes();
         renderCapitulos();
         if ($("modal").classList.contains("escondido")) proximaHistoria();
       }
     }
+    // Saves antigos: capítulos já lidos que ainda pedem uma decisão voltam para a fila
+    function decisoesPendentes() {
+      CAPITULOS.forEach((c, i) => {
+        if (c.escolha && S.capitulos.includes(i) && S.escolhas[i] === undefined && !filaHistoria.includes(i)) filaHistoria.push(i);
+      });
+    }
+    function abrirModal({ selo, titulo, html, opcoes, ok, travado }) {
+      $("modal-selo").textContent = selo || "📜";
+      $("modal-titulo").textContent = titulo;
+      $("modal-texto").innerHTML = html;
+      $("modal-opcoes").innerHTML = opcoes || "";
+      $("modal-ok").style.display = ok ? "" : "none";
+      $("modal-ok").textContent = ok || "";
+      modalTravado = !!travado;
+      $("modal").classList.remove("escondido");
+      ($("modal-ok").style.display ? $("modal-opcoes").querySelector("button") : $("modal-ok"))?.focus();
+    }
     function mostrarCapitulo(i) {
       const c = CAPITULOS[i];
       const n = `<b>${esc(S.nome)}</b>`;
-      $("modal-titulo").textContent = c.titulo;
-      $("modal-texto").innerHTML = c.texto(n).map(p => `<p>${p}</p>`).join("") +
-        (c.novidade ? `<p class="novidade">${c.novidade}</p>` : "");
-      $("modal").classList.remove("escondido");
-      $("modal-ok").focus();
+      let html = c.texto(n).map(p => `<p>${p}</p>`).join("");
+      if (c.novidade) html += `<p class="novidade">${c.novidade}</p>`;
+      const dec = S.escolhas[i];
+      if (c.escolha && dec === undefined) {
+        html += `<p class="novidade">O que Vossa Majestade decide? A escolha vale para sempre.</p>`;
+        const opcoes = c.escolha.map((o, k) => `<button class="opcao" data-cap="${i}" data-i="${k}"><b>${o.rotulo}</b><small>${o.desc}</small></button>`).join("");
+        abrirModal({ selo: c.selo, titulo: c.titulo, html, opcoes, travado: true });
+      } else {
+        if (c.escolha) html += `<p class="escolhido">Você escolheu: <b>${c.escolha[dec].rotulo}</b><br>${c.escolha[dec].desc}</p>`;
+        abrirModal({ selo: c.selo, titulo: c.titulo, html, ok: "Continuar" });
+      }
+    }
+    function escolherCaminho(cap, i) {
+      const c = CAPITULOS[cap];
+      if (!c || !c.escolha || S.escolhas[cap] !== undefined || !c.escolha[i]) return;
+      S.escolhas[cap] = i;
+      toast("📜 " + c.escolha[i].rotulo, c.escolha[i].desc);
+      cronica(`📜 Decisão real: <b>${c.escolha[i].rotulo}</b>.`);
+      gpsAtual = calcGps();
+      renderTudo();
+      modalTravado = false;
+      proximaHistoria();
+    }
+    function mostrarPatronos() {
+      if (S.patrono || S.rankMax < 1) return;
+      const opcoes = PATRONOS.map(p => `<button class="opcao" data-patrono="${p.id}"><b>${p.emoji} ${p.nome}</b><small>${p.desc}</small></button>`).join("");
+      abrirModal({ selo: "🛡️", titulo: "Escolha um patrono",
+        html: `<p>Quatro ordens antigas oferecem apoio à ${ordinal(S.dinastia)} dinastia. Só uma pode ter sua lealdade, até a coroa passar ao herdeiro.</p>`,
+        opcoes, ok: "Decidir depois" });
+    }
+    function fecharModal() {
+      modalTravado = false;
+      proximaHistoria();
     }
     function proximaHistoria() {
+      if (modalTravado) return;
       if (filaHistoria.length) mostrarCapitulo(filaHistoria.shift());
       else $("modal").classList.add("escondido");
     }
-    $("modal-ok").addEventListener("click", proximaHistoria);
+    $("modal-ok").addEventListener("click", fecharModal);
     $("modal").addEventListener("click", e => { if (e.target.id === "modal") proximaHistoria(); });
+    $("modal-opcoes").addEventListener("click", e => {
+      const b = e.target.closest("button");
+      if (!b) return;
+      if (b.dataset.patrono) escolherPatrono(b.dataset.patrono);
+      else escolherCaminho(+b.dataset.cap, +b.dataset.i);
+    });
     document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("modal").classList.contains("escondido")) proximaHistoria(); });
 
     // ========================================================
@@ -1223,7 +1502,7 @@
             <span class="e-desc">${b.desc}</span>
             <span class="e-prod"></span>
           </span>
-          <span class="e-lado"><span class="e-qtd"></span><span class="e-custo"></span></span>
+          <span class="e-lado"><span class="e-qtd"></span><span class="e-custo"></span><span class="e-tempo"></span></span>
         </button>`).join("");
       const prox = EDIFICIOS[edifVisiveis];
       if (prox) html += `
@@ -1250,6 +1529,7 @@
         const custoEl = el.querySelector(".e-custo");
         custoEl.textContent = `${k > 1 ? "×" + k + " " : ""}🪙 ${fmt(Math.ceil(c))}`;
         custoEl.classList.toggle("caro", !pode);
+        el.querySelector(".e-tempo").textContent = !pode && gpsAtual > 0 ? "⏳ " + tempo((c - S.ouro) / gpsAtual) : "";
         const pu = prodUnidade(b);
         let txt = `+${fmt(pu)}/s cada`;
         if (n > 0 && gpsAtual > 0) txt += ` · total ${fmt(pu * n)}/s (${Math.round(pu * n / gpsAtual * 100)}%)`;
@@ -1315,6 +1595,75 @@
       $("missoes-info").textContent = S.rankMax >= 1
         ? `Recompensa: ~${fmt(recompensaMissao())} de ouro · ${S.missoesFeitas} cumpridas · a cada 5, +1 💎`
         : "";
+    }
+
+    // ---- Expedições ----
+    let chaveExp = "";
+    function renderExpedicoes(forcar) {
+      const e = S.expedicao;
+      const agora = Date.now();
+      const chave = !expedLiberadas() ? "bloq" : e ? `v:${e.dest}:${agora >= e.fim}` : "livre:" + DESTINOS.filter(destinoLiberado).length;
+      if (chave !== chaveExp || forcar) {
+        chaveExp = chave;
+        if (!expedLiberadas()) {
+          $("expedicoes").innerHTML = `<div class="vazio-m">🔒 Expedições chegam quando o reino virar <b>Burgo</b>.</div>`;
+        } else if (e) {
+          const d = DEST_POR_ID[e.dest];
+          $("expedicoes").innerHTML = `<div class="viagem">
+            <b>${d.emoji} Comitiva na ${d.nome}</b><br>
+            <small class="fraco">Retorno: ${fmt(e.valor)} de ouro · ${Math.round(d.chance * 100)}% de chance de relíquia</small>
+            <div class="mi-barra"><div id="exp-barra"></div></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+              <small id="exp-tempo"></small>
+              ${agora >= e.fim ? `<button class="mini" id="btn-exp-receber">Receber</button>` : ""}
+            </div></div>`;
+        } else {
+          $("expedicoes").innerHTML = DESTINOS.map(d => destinoLiberado(d) ? `
+            <button class="destino" data-dest="${d.id}">
+              <span class="de-emoji">${d.emoji}</span>
+              <span><b>${d.nome}</b><br><small>${d.desc} ${tempo(d.dur * multExpedicao())} · ${Math.round(d.chance * 100)}% relíquia</small></span>
+              <span class="de-custo"></span>
+            </button>` : `
+            <button class="destino" disabled>
+              <span class="de-emoji">🔒</span>
+              <span><b>???</b><br><small>Um destino gelado, revelado no Ato II.</small></span><span></span>
+            </button>`).join("");
+        }
+      }
+      if (!expedLiberadas()) return;
+      if (e) {
+        const d = DEST_POR_ID[e.dest];
+        const total = d.dur * 1000 * multExpedicao();
+        const resta = Math.max(0, e.fim - agora);
+        $("exp-barra").style.width = Math.min(100, (1 - resta / total) * 100) + "%";
+        $("exp-tempo").textContent = resta > 0 ? "⏳ " + tempo(resta / 1000) : "✅ A comitiva voltou!";
+      } else {
+        document.querySelectorAll("#expedicoes .destino[data-dest]").forEach(el => {
+          const c = custoExped(DEST_POR_ID[el.dataset.dest]);
+          const pode = c <= S.ouro;
+          el.disabled = !pode;
+          el.classList.toggle("pode", pode);
+          el.querySelector(".de-custo").textContent = "🪙 " + fmt(c);
+        });
+      }
+    }
+
+    // ---- Relíquias ----
+    function renderReliquias() {
+      $("lista-rel").innerHTML = RELIQUIAS.map(r => {
+        const tem = temRel(r.id);
+        return `<button class="conq ${tem ? "" : "bloq"}" data-id="${r.id}" aria-label="${tem ? r.nome : "Relíquia desconhecida"}">${tem ? r.emoji : "❔"}</button>`;
+      }).join("");
+      $("rel-cont").textContent = `${S.reliquias.length}/${RELIQUIAS.length}`;
+    }
+
+    // ---- Avisos nas abas do celular ----
+    function atualizarAlertas() {
+      const missaoPronta = S.missoes.some(m => progMissao(m) >= m.meta);
+      const expPronta = S.expedicao && Date.now() >= S.expedicao.fim;
+      document.querySelector('#abas [data-aba="p-melh"]').classList.toggle("alerta", !!(missaoPronta || expPronta));
+      document.querySelector('#abas [data-aba="p-mais"]').classList.toggle("alerta", DONS.some(d => !temDom(d.id) && S.joias >= d.custo));
+      document.querySelector('#abas [data-aba="p-reino"]').classList.toggle("alerta", S.rankMax >= 1 && !S.patrono);
     }
 
     // ---- Conquistas ----
@@ -1413,6 +1762,13 @@
       $("nome-reino").textContent = S.nome;
       $("nome-barra").textContent = S.nome;
       $("dinastia-barra").textContent = S.legado ? `👑 ${S.legado} de Legado` : "";
+      const bp = $("btn-patrono");
+      bp.style.display = S.rankMax >= 1 ? "" : "none";
+      const pat = PATRONO_POR_ID[S.patrono];
+      bp.classList.toggle("escolher", !pat);
+      bp.disabled = !!pat;
+      bp.textContent = pat ? `${pat.emoji} Patrono: ${pat.nome}` : "🛡️ Escolha um patrono para esta dinastia!";
+      bp.title = pat ? pat.desc : "";
       $("valor-clique").textContent = fmt(valorClique());
       const e = estacao();
       $("crit-info").textContent = `💥 ${Math.round(chanceCrit() * 100)}% de crítico (×${multCrit()})` +
@@ -1448,13 +1804,13 @@
     }
     function renderCapitulos() {
       $("capitulos").innerHTML = CAPITULOS.map((c, i) => S.capitulos.includes(i)
-        ? `<button class="leve" data-cap="${i}">${c.titulo.split(" · ")[0]}</button>`
+        ? `<button class="leve" data-cap="${i}">${c.titulo.split(" · ")[c.titulo.startsWith("Ato II") ? 1 : 0]}${c.escolha && S.escolhas[i] === undefined ? " ⚠️" : ""}</button>`
         : `<button class="leve" disabled title="Ainda não descoberto">🔒</button>`).join("");
     }
     function atualizarMais() {
       const g = legadoGanho();
       $("legado").textContent = S.legado;
-      $("legado-bonus").textContent = Math.round(bonusLegado() * 100);
+      $("legado-bonus").textContent = Math.round(bonusLegado() * 100) + (atosCompletos() ? ` · Lenda +${atosCompletos() * 10}` : "");
       $("legado-ganho").textContent = g;
       const prox = legadoPotencial() + 1;
       const falta = prox ** 3 * 1e8 - S.totalEver;
@@ -1475,11 +1831,14 @@
         ["Bandidos expulsos", S.bandidos],
         ["Decretos proclamados", S.decretosUsados],
         ["Missões cumpridas", S.missoesFeitas],
+        ["Expedições", S.expedicoes],
+        ["Relíquias", `${S.reliquias.length}/${RELIQUIAS.length}`],
+        ["Patrono", PATRONO_POR_ID[S.patrono]?.nome || "—"],
         ["Dinastia", ordinal(S.dinastia)],
         ["Tempo de reinado", tempo((Date.now() - S.inicio) / 1000)],
       ];
       $("stats").innerHTML = linhas.map(([a, b]) => `<dt>${a}</dt><dd>${b}</dd>`).join("");
-      $("offline-info").textContent = temDom("memoria")
+      $("offline-info").textContent = rendaOffline()
         ? "O jogo salva sozinho neste navegador. Fechado, o reino continua rendendo 100%, por até 24 horas."
         : "O jogo salva sozinho neste navegador. Fechado, o reino continua rendendo (metade, até 8 horas).";
     }
@@ -1494,10 +1853,13 @@
       renderMissoes(true);
       renderConq();
       renderCapitulos();
+      renderExpedicoes(true);
+      renderReliquias();
       atualizarTopo();
       atualizarFervor();
       atualizarReino();
       atualizarMais();
+      atualizarAlertas();
     }
 
     // ---- Cliques nas listas e botões ----
@@ -1526,6 +1888,32 @@
     $("capitulos").addEventListener("click", e => {
       const el = e.target.closest("button[data-cap]");
       if (el) mostrarCapitulo(+el.dataset.cap);
+    });
+    $("expedicoes").addEventListener("click", e => {
+      const d = e.target.closest(".destino[data-dest]");
+      if (d && !d.disabled) enviarExpedicao(d.dataset.dest);
+      if (e.target.closest("#btn-exp-receber")) receberExpedicao();
+    });
+    $("lista-rel").addEventListener("click", e => {
+      const el = e.target.closest(".conq");
+      if (!el) return;
+      const r = REL_POR_ID[el.dataset.id];
+      $("rel-info").innerHTML = temRel(r.id)
+        ? `<b>${r.emoji} ${r.nome}</b><br><span class="fraco">${r.desc}</span>`
+        : `<b>❔ Relíquia desconhecida</b><br><span class="fraco">${r.raro ? "Só existe nas Terras do Norte." : "Pode ser encontrada em qualquer expedição."}</span>`;
+    });
+    $("btn-patrono").addEventListener("click", mostrarPatronos);
+    $("btn-todas").addEventListener("click", () => {
+      const disp = MELHORIAS.filter(m => !temMelh.has(m.id) && m.req()).sort((a, b) => a.custo - b.custo);
+      let n = 0;
+      for (const m of disp) {
+        if (m.custo > S.ouro) break;
+        S.ouro -= m.custo; S.melh.push(m.id); temMelh.add(m.id); n++;
+      }
+      if (!n) return toast("🔧 Sem ouro", "Nenhuma melhoria cabe no tesouro agora.");
+      cronica(`🔧 O conselho aprovou <b>${n}</b> melhoria${n > 1 ? "s" : ""} de uma vez.`);
+      gpsAtual = calcGps();
+      renderMelh(true); renderEdif(); atualizarTopo();
     });
     $("btn-coletor").addEventListener("click", () => treinarColetor(1));
     $("btn-coletor-max").addEventListener("click", () => treinarColetor(maxColetor()));
@@ -1578,6 +1966,10 @@
       if (!S.cd || typeof S.cd !== "object") S.cd = {};
       S.melh = S.melh.filter(id => MELH_POR_ID[id]);
       S.dons = (S.dons || []).filter(id => DOM_POR_ID[id]);
+      S.reliquias = (S.reliquias || []).filter(id => REL_POR_ID[id]);
+      if (!S.escolhas || typeof S.escolhas !== "object") S.escolhas = {};
+      if (S.patrono && !PATRONO_POR_ID[S.patrono]) S.patrono = null;
+      if (S.expedicao && !DEST_POR_ID[S.expedicao.dest]) S.expedicao = null;
       temMelh = new Set(S.melh);
     }
     function carregar() {
@@ -1622,7 +2014,7 @@
       gpsAtual = calcGps();
       const fora = (Date.now() - S.ultimo) / 1000;
       if (fora > 60 && gpsAtual > 0) {
-        const memoria = temDom("memoria");
+        const memoria = rendaOffline();
         const seg = Math.min(fora, (memoria ? 24 : 8) * 3600);
         const g = gpsAtual * seg * (memoria ? 1 : 0.5);
         ganhar(g);
@@ -1635,7 +2027,10 @@
     gpsAtual = calcGps();
     if (S.rankMax >= 1 || rankIdx() >= 1) completarMissoes();
     renderTudo();
+    decisoesPendentes();
     verificarHistoria();
+    if (filaHistoria.length && $("modal").classList.contains("escondido")) proximaHistoria();
+    if (S.expedicao && Date.now() >= S.expedicao.fim) toast("🗺️ A comitiva voltou!", "Receba os tesouros da expedição no Conselho.");
 
     let ultimoTick = Date.now(), contador = 0, estacaoAnterior = estacaoIdx();
     setInterval(() => {
@@ -1666,7 +2061,7 @@
       atualizarEdif();
       atualizarFervor();
       contador++;
-      if (contador % 3 === 0) { renderMelh(); atualizarReino(); renderMissoes(); verificarHistoria(); }
+      if (contador % 3 === 0) { renderMelh(); atualizarReino(); renderMissoes(); renderExpedicoes(); verificarHistoria(); atualizarAlertas(); }
       if (contador % 10 === 0) { verificarConq(); atualizarMais(); }
       if (contador % 100 === 0) salvar();
     }, 100);
