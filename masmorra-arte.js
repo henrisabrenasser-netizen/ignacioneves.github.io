@@ -1020,13 +1020,13 @@ const ARTE_EXTERNA = {
   const CARTAS = { atk: "espada", hp: "coracao", def: "escudo", crit: "alvo", esq: "vento", critm: "explosao", pocao: "ervas", cura: "coracao-brilho" };
   const RARIDADE_CARTA = { atk: "comum", hp: "comum", def: "comum", crit: "rara", esq: "rara", pocao: "rara", critm: "epica", cura: "epica" };
   const SALAS = { combate: "espadas-cruzadas", elite: "caveira-chifres", tesouro: "bau", fogueira: "fogueira", mercador: "bolsa", evento: "interrogacao", chefe: "cabeca-dragao" };
-  const EVENTOS = { altar: "altar", fonte: "fonte", bau: "bau", ermitao: "lampiao", restos: "ossos" };
-  const LOJA = { pocao: "pocao", cura: "coracao-brilho", afiar: "espada" };
-  const INTENCOES = { atk: "espada", pesado: "marreta", multi: "garras", defesa: "escudo", veneno: "gota-veneno", cura: "coracao-verde", furia: "furia", sopro: "chama" };
+  const EVENTOS = { altar: "altar", fonte: "fonte", bau: "bau", ermitao: "lampiao", restos: "ossos", pagina: "pergaminho", ferreiro: "marreta", prisioneiro: "elmo", santuario: "escama" };
+  const LOJA = { pocao: "pocao", cura: "coracao-brilho", afiar: "espada", vigor: "gota-sangue" };
+  const INTENCOES = { atk: "espada", pesado: "marreta", multi: "garras", defesa: "escudo", veneno: "gota-veneno", cura: "coracao-verde", furia: "furia", sopro: "chama", atordoado: "estrela" };
   // Emojis que o jogo passa para a tela de resultado → sprite equivalente
   const EMOJIS = {
     "😴": "lua", "🗡️": "espada", "🌿": "ervas", "💰": "bau-aberto", "🩸": "gota-sangue", "🚶": "pegadas", "💧": "gota-agua",
-    "🧪": "pocao", "🎒": "bolsa", "🕷️": "aranha", "⚰️": "lapide", "📜": "pergaminho", "🎁": "bau-aberto", "📦": "mimico",
+    "🧪": "pocao", "🎒": "bolsa", "🛡️": "escudo", "🗝️": "elmo-pluma", "💠": "escama", "🕷️": "aranha", "⚰️": "lapide", "📜": "pergaminho", "🎁": "bau-aberto", "📦": "mimico",
   };
 
   // ==========================================================

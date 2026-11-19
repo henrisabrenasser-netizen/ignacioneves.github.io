@@ -234,7 +234,7 @@
     .intencao.perigo b { color: #fca5a5; }
     .intencao.perigo .rotulo { border-color: #dc2626; color: #fca5a5; }
     .intencao.calmo b { color: #93c5fd; }
-    .intencao.vs-chefe { left: 30%; top: 24%; }
+    .intencao.vs-chefe { left: auto; right: 4%; top: 92px; transform: none; }
 
     /* Cenas de evento (palco com um objeto central) */
     .objeto-central { position: absolute; left: 50%; bottom: 36px; width: 170px; height: 170px; transform: translateX(-50%); }
@@ -410,6 +410,45 @@
     .legenda { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; font-size: .78rem; color: var(--fraco); margin: -4px 0 8px; }
     .legenda i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 4px; }
 
+    /* ---------- História ---------- */
+    .historia-texto { max-width: 580px; margin: 0 auto 6px; text-align: center; }
+    .historia-texto .sub-hist { font-family: "Cinzel", serif; color: var(--fraco); letter-spacing: .12em; text-transform: uppercase; font-size: .8rem; margin-bottom: 8px; }
+    .historia-texto p { color: #e4ddcd; font-size: 1rem; line-height: 1.45; margin-bottom: 6px; }
+    .historia-texto:not(.citacao) p:first-of-type::first-letter { font-family: "Cinzel", serif; font-size: 1.5em; color: var(--tocha-2); }
+    .historia-texto.citacao p { font-style: italic; }
+    .camada.hist .objeto-central::before { --brilho: 251,191,36; }
+    .dragao-caido { position: absolute; right: 50%; bottom: 20px; width: 300px; height: 230px; transform: translateX(50%); filter: grayscale(.6) brightness(.55) drop-shadow(0 0 20px rgba(220,38,38,.4)); }
+    .fala-dragao {
+      position: absolute; top: 14px; left: 14px; z-index: 5; max-width: 280px;
+      background: #f3ead6; color: #1c1306; font-style: italic; font-size: .92rem; line-height: 1.35;
+      padding: 9px 13px; border-radius: 14px; border: 2px solid #7f1d1d; box-shadow: 0 6px 18px rgba(0,0,0,.6);
+      animation: aparece calc(.4s / var(--vel)) ease-out;
+    }
+    .fala-dragao::after { content: ""; position: absolute; right: -16px; top: 50%; border: 8px solid transparent; border-left-color: #7f1d1d; }
+    .acao .a-info.interrompe { color: #fde047; font-weight: 700; }
+    .tag.contra { color: #fde047; border-color: #a16207; box-shadow: 0 0 8px rgba(253,224,71,.35); }
+    .intencao.atordoado b { color: #fde047; }
+
+    /* Crônicas (diário de história na Guilda) */
+    .cronicas-fundo { position: fixed; inset: 0; z-index: 80; background: rgba(0,0,0,.7); display: grid; place-items: center; padding: 16px; }
+    .cronicas-fundo[hidden] { display: none; }
+    .cronicas { width: 100%; max-width: 760px; max-height: 88vh; overflow: hidden; display: grid; grid-template-columns: 250px 1fr; background: #16130f; border: 2px solid #7a5a1c; border-radius: 12px; box-shadow: 0 0 40px rgba(245,158,11,.2); }
+    .cronicas .lista { overflow-y: auto; padding: 14px; border-right: 1px solid #3a2f1c; background: #110f0c; }
+    .cronicas .lista h3 { font-size: .8rem; color: var(--tocha); letter-spacing: .1em; text-transform: uppercase; margin: 12px 0 6px; }
+    .cronicas .lista h3:first-child { margin-top: 0; }
+    .cronicas .item-cr { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; background: none; border: 1px solid transparent; color: var(--texto-m); font-family: inherit; font-weight: 600; font-size: .9rem; padding: 6px 8px; border-radius: 8px; }
+    .cronicas .item-cr .spr { width: 22px; height: 22px; flex: none; }
+    #jogo .cronicas .item-cr:hover:not(:disabled), .cronicas .item-cr.ativo { background: #2a2217; border-color: #7a5a1c; }
+    .cronicas .item-cr:disabled { color: #5b5f68; cursor: default; }
+    .cronicas .leitura { overflow-y: auto; padding: 22px 26px; }
+    .cronicas .leitura h2 { font-size: 1.3rem; color: var(--tocha-2); margin-bottom: 2px; }
+    .cronicas .leitura .sub-hist { font-family: "Cinzel", serif; color: var(--fraco); font-size: .8rem; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 14px; }
+    .cronicas .leitura p { line-height: 1.6; margin-bottom: 10px; color: #e4ddcd; }
+    .cronicas .fechar { position: sticky; top: 0; float: right; }
+    .trofeus { display: flex; gap: 6px; margin-top: 6px; }
+    .trofeus .t { width: 40px; height: 34px; border-radius: 8px; padding: 2px; background: #1a1714; border: 1px solid #3a332a; }
+    .trofeus .t.off { filter: grayscale(1) brightness(.35); }
+
     /* ---------- Painel de cheats (debug) ---------- */
     .cheats-fundo { position: fixed; inset: 0; z-index: 80; background: rgba(0,0,0,.65); display: grid; place-items: center; padding: 16px; }
     .cheats-fundo[hidden] { display: none; }
@@ -536,6 +575,10 @@
       .titulo-palco { font-size: 1.4rem; }
       .objeto-central { width: 130px; height: 130px; }
       .acoes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .cronicas { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+      .cronicas .lista { max-height: 34vh; border-right: none; border-bottom: 1px solid #3a2f1c; }
+      .fala-dragao { top: 8px; left: 8px; max-width: 40%; font-size: .78rem; padding: 6px 9px; }
+      .dragao-caido { width: 220px; height: 170px; }
       .cartas, .cartas.c5 { grid-template-columns: minmax(0, 1fr); }
       .carta { grid-template-columns: 52px 1fr; justify-items: start; text-align: left; align-items: center; padding: 10px 12px; gap: 2px 12px; }
       .carta .c-ico { grid-row: span 4; width: 48px; height: 48px; }
@@ -544,7 +587,7 @@
       .ator.caido { left: 6%; bottom: -6px; width: 110px; height: 110px; }
       .porta { width: 100%; }
       .ator-heroi.heroi-centro { left: calc(50% - 58px); }
-      .intencao.vs-chefe { left: 30%; top: 46%; }
+      .intencao.vs-chefe { left: auto; right: 2%; top: 92px; transform: none; }
       /* painel do herói compacto no celular */
       #p-heroi.em-run-heroi { padding: 10px 12px; }
       #p-heroi.em-run-heroi .heroi-topo { margin-bottom: 6px; }
@@ -589,11 +632,16 @@
       <aside class="painel" id="p-lado"></aside>
     </div>
 
+    <div class="cronicas-fundo" id="cronicas-fundo" hidden>
+      <div class="cronicas" id="cronicas" role="dialog" aria-label="Crônicas"></div>
+    </div>
+
     <div class="cheats-fundo" id="cheats-fundo" hidden>
       <div class="cheats" id="cheats" role="dialog" aria-label="Painel de debug"></div>
     </div>
   </div>
 
+  <script src="masmorra-historia.js"></script>
   <script src="masmorra-arte.js"></script>
 
   <script>
@@ -744,12 +792,14 @@
       escamas: 0, totalEscamas: 0, guilda: {}, recorde: 1, dragoes: 0, expedicoes: 0, abates: 0, checkpoint: 0,
       auto: { combate: false, explorar: false, reiniciar: false }, vel: 1,
       cheats: novosCheats(),
+      trofeus: [], capitulos: [], paginas: [], prologo: false, epilogo: false,
     });
     let meta = novaMeta();
     let run = null;          // a expedição atual (null = no acampamento)
     let registro = [];       // mensagens do diário
     let ocupado = false;     // true enquanto o inimigo "pensa"
     let fila = [];           // efeitos visuais esperando a tela ser desenhada
+    let historiaPend = null; // cartão de história esperando o fim da vitória
 
     const nivelG = id => meta.guilda[id] || 0;
     const tem = id => run && run.reliquias.includes(id);
@@ -758,6 +808,9 @@
     const multXp = () => (1 + 0.10 * nivelG("sabedoria")) * (tem("tomo") ? 1.3 : 1) * C().xp;
     const multEscamas = () => (1 + 0.10 * nivelG("saque")) * C().escamas;
     const xpProx = n => Math.round(15 * Math.pow(1.28, n - 1));
+    // Cada dragão derrotado pela primeira vez vira um troféu: +8% de ataque e vida para sempre
+    const multTrofeus = () => 1 + 0.08 * meta.trofeus.length;
+    const idxDoBioma = andar => Math.min(BIOMAS.length - 1, Math.floor((andar - 1) / 10));
 
     // Atributos atuais do herói (base da expedição + relíquias)
     function H() {
@@ -793,6 +846,8 @@
         fase: "escolha", opcoes: [], inimigo: null, cd: 0, bloqueio: 0, veneno: 0,
         fenixUsada: false, niveisPend: 0, cartas: null, escolhaReliq: null, evento: null, loja: null, resultado: null,
       };
+      run.hpMax = Math.round(run.hpMax * multTrofeus());
+      run.atk = Math.round(run.atk * multTrofeus());
       run.hp = run.hpMax;
       registro = [];
       log(`🔥 Você acende a tocha e desce à masmorra${inicio > 1 ? ` pelo atalho até o andar ${inicio}` : ""}.`, "sist");
@@ -807,7 +862,31 @@
       run.hp = H().hpMax;
       gerarOpcoes();
       meta.expedicoes++;
+      if (!meta.prologo) { meta.prologo = true; contarHistoria(Object.assign({ tipo: "prologo" }, HISTORIA.prologo)); }
+      capituloSeNovo(inicio);
       tela(); salvar();
+    }
+
+    // ---- História: cartões que aparecem entre as salas ----
+    function contarHistoria(h, depois = "escolha") {
+      run.historias = (run.historias || []).concat([h]);
+      if (run.fase !== "historia") { run.depoisHistoria = depois; run.fase = "historia"; }
+    }
+    function continuarHistoria() {
+      if (!run || run.fase !== "historia") return;
+      run.historias.shift();
+      if (run.historias.length) { tela(); salvar(); return; }
+      const depois = run.depoisHistoria;
+      run.depoisHistoria = null;
+      if (depois === "proxFase") return proxFase();
+      run.fase = "escolha";
+      tela(); salvar();
+    }
+    function capituloSeNovo(andar) {
+      const i = idxDoBioma(andar);
+      if (meta.capitulos.includes(i) || !HISTORIA.capitulos[i]) return;
+      meta.capitulos.push(i);
+      contarHistoria(Object.assign({ tipo: "capitulo", bioma: i }, HISTORIA.capitulos[i]));
     }
 
     function reliquiaAleatoria(qtd = 1) {
@@ -838,6 +917,8 @@
       const m = escala(run.andar);
       let hp = tpl.hp * m * C().vidaInimigo, atk = tpl.atk * m * C().danoInimigo;
       if (rank === "elite") { hp *= 1.7; atk *= 1.25; }
+      // Dragões: desafio, não paredão. O primeiro é calibrado para quem ainda não tem melhorias.
+      if (rank === "chefe") { const primeiro = run.andar <= 10; hp *= primeiro ? 0.6 : 0.8; atk *= primeiro ? 0.65 : 0.8; }
       return {
         nome: tpl.nome + (rank === "elite" ? " Campeão" : ""), emoji: tpl.emoji, filtro: tpl.filtro || "",
         hp: Math.round(hp), hpMax: Math.round(hp), atk: Math.max(1, Math.round(atk)),
@@ -868,6 +949,7 @@
         ops.push(criarSala(t));
       }
       if (f % 10 === 9 && !ops.some(o => o.tipo === "fogueira")) ops[2] = criarSala("fogueira");
+      if (f % 10 === 5 && !ops.some(o => o.tipo === "mercador")) ops[1] = criarSala("mercador");
       run.opcoes = ops;
     }
 
@@ -878,7 +960,7 @@
       if (s.tipo === "tesouro") return abrirTesouro();
       if (s.tipo === "fogueira") { run.fase = "fogueira"; log("🔥 Você encontra uma fogueira crepitante.", "sist"); }
       if (s.tipo === "mercador") { run.loja = gerarLoja(); run.fase = "loja"; log("🛒 Um mercador encapuzado abre sua mochila.", "sist"); }
-      if (s.tipo === "evento") { run.evento = sortear(Object.keys(EVENTOS)); run.fase = "evento"; }
+      if (s.tipo === "evento") { run.evento = sortear(Object.keys(EVENTOS).filter(k => !EVENTOS[k].disponivel || EVENTOS[k].disponivel())); run.fase = "evento"; }
       tela(); salvar();
     }
 
@@ -912,6 +994,7 @@
         case "cura":   return { txt: `💚 Vai se curar (+${it.cura})`, perigo: false };
         case "furia":  return { txt: `💢 Vai se enfurecer (+20% ataque)`, perigo: false };
         case "sopro":  return { txt: `🔥 SOPRO DE DRAGÃO: ${it.dano} (ignora defesa)`, perigo: true };
+        case "atordoado": return { txt: "💫 Atordoado: perde o turno", perigo: false };
       }
     }
 
@@ -920,7 +1003,11 @@
       run.cd = 0; run.bloqueio = 0;
       run.fase = "combate";
       escolherIntencao(e);
-      if (e.rank === "chefe") log(`🐉 O chão treme... ${e.nome} desperta!`, "epico");
+      if (e.rank === "chefe") {
+        log(`🐉 O chão treme... ${e.nome} desperta!`, "epico");
+        const d = HISTORIA.dragoes[e.nome];
+        if (d) { e.fala = d.fala; log(`"${d.fala}"`, "epico"); }
+      }
       else log(`${e.emoji} ${e.nome} bloqueia o caminho!`, "sist");
       tela(); salvar();
     }
@@ -936,7 +1023,7 @@
 
     function danoPrevisto(mult) {
       const h = H();
-      let d = h.atk * mult;
+      let d = h.atk * mult * (run.contra ? 1.5 : 1);
       if (tem("olho") && run.inimigo && run.inimigo.rank === "chefe") d *= 2;
       d *= C().danoHeroi;
       return Math.round(d);
@@ -945,9 +1032,10 @@
     function golpe(mult) {
       const h = H(), e = run.inimigo;
       if (e.esquiva && Math.random() < e.esquiva) {
-        log(`${e.nome} se esquivou!`, "sist"); fx("inimigo", "Errou", "miss"); return;
+        log(`${e.nome} se esquivou!`, "sist"); fx("inimigo", "Errou", "miss"); return false;
       }
       let d = h.atk * mult * R(0.85, 1.15);
+      if (run.contra) { d *= 1.5; run.contra = false; log("⚔️ Contra-ataque! (+50% de dano)", "bom"); }
       const crit = Math.random() < h.crit;
       if (crit) d *= h.critMult;
       if (tem("olho") && e.rank === "chefe") d *= 2;
@@ -961,6 +1049,7 @@
       fx("inimigo", real ? (crit ? `-${real}!` : `-${real}`) : "Bloqueado", real ? (crit ? "crit" : "dano") : "bloq");
       if (tem("adaga")) e.veneno += 2 + Math.floor(run.andar / 4);
       if (tem("vampiro") && real > 0) curar(real * 0.15);
+      return true;
     }
 
     function acao(tipo) {
@@ -981,12 +1070,25 @@
       if (tipo === "habilidade") {
         if (run.cd > 0) return;
         log("🏹 Golpe do Caçador!", "bom");
-        golpe(tem("cristal") ? 4 : 2.5);
+        const it = e.intencao;
+        const acertou = golpe(tem("cristal") ? 4 : 2.5);
         run.cd = tem("runa") ? 2 : 3;
+        if (acertou && e.hp > 0 && (it.tipo === "pesado" || it.tipo === "sopro")) {
+          if (e.rank === "chefe") {
+            it.dano = Math.round(it.dano / 2);
+            log(`💫 Você acerta ${e.nome} no meio do fôlego: o ataque perde metade da força!`, "bom");
+            fx("inimigo", "ENGASGOU", "miss");
+          } else {
+            e.intencao = { tipo: "atordoado" };
+            log(`💫 Golpe no tempo certo! ${e.nome} perde o equilíbrio e não vai atacar.`, "bom");
+            fx("inimigo", "INTERROMPIDO", "miss");
+          }
+        }
       }
       if (tipo === "defender") {
         const b = Math.round((h.atk * 0.6 + h.def * 2 + 4) * (tem("escudo") ? 1.6 : 1));
         run.bloqueio += b;
+        run.defendeu = true;
         log(`🛡️ Você ergue a guarda (+${b} de bloqueio).`, "sist");
         fx("heroi", `+${b} 🛡️`, "bloq");
       }
@@ -1041,7 +1143,10 @@
         if (e.hp <= 0) return vitoria();
       }
       const it = e.intencao;
+      const hpAntes = run.hp;
+      e.turnos = (e.turnos || 0) + 1;
       switch (it.tipo) {
+        case "atordoado": log(`💫 ${e.nome} cambaleia e perde o turno.`, "bom"); break;
         case "atk": case "pesado": atingir(it.dano); break;
         case "sopro": log(`🔥 ${e.nome} cospe fogo!`, "dano"); atingir(it.dano, true); break;
         case "multi": for (let i = 0; i < it.golpes && run.hp > 0; i++) atingir(it.dano); break;
@@ -1057,6 +1162,13 @@
       }
       if (run.hp <= 0) return morte();
       if (e.hp <= 0) return vitoria();
+      // Defesa perfeita: aparou um ataque sem perder vida → próximo golpe é um contra-ataque
+      if (run.defendeu && ["atk", "pesado", "multi", "veneno", "sopro"].includes(it.tipo) && run.hp >= hpAntes && !run.contra) {
+        run.contra = true;
+        log("⚔️ Defesa perfeita! Seu próximo golpe será um contra-ataque (+50%).", "bom");
+        fx("heroi", "CONTRA-ATAQUE!", "bloq");
+      }
+      run.defendeu = false;
 
       // Fim do turno
       run.bloqueio = 0;
@@ -1089,15 +1201,30 @@
         meta.checkpoint = Math.max(meta.checkpoint, f);
         log(`🐉 ${e.nome} tomba! Você arranca ${25 * tier} escamas do dragão!`, "epico");
         curar(H().hpMax * 0.3);
+        const d = HISTORIA.dragoes[e.nome];
+        if (d) log(`"${d.queda}"`, "epico");
+        if (!meta.trofeus.includes(e.nome)) {
+          meta.trofeus.push(e.nome);
+          log(`🏆 Novo troféu para a Guilda: todos os próximos caçadores ganham +8% de ataque e vida.`, "epico");
+          if (d) historiaPend = Object.assign({ tipo: "dragao", inimigo: e.nome, titulo: d.selo, subtitulo: e.nome,
+            texto: [`"${d.queda}"`, "Você arranca do peito do dragão uma escama-troféu. Pendurada na Guilda, ela vai fortalecer todos os próximos caçadores: +8% de ataque e de vida, para sempre."] });
+        }
       } else {
         run.escamas += mult === 2 ? 5 : 1;
         if (e.rank === "elite") run.elites++;
         log(`🏆 ${e.nome} foi derrotado!`, "bom");
       }
       log(`+${ouro} de ouro, +${xp} de experiência.`, "ouro");
-      run.inimigo = null; run.veneno = 0; run.bloqueio = 0; run.cd = 0;
+      run.inimigo = null; run.veneno = 0; run.bloqueio = 0; run.cd = 0; run.contra = false; run.defendeu = false;
       ganharXp(xp);
       if (mult > 1) run.escolhaReliq = reliquiaAleatoria(3);
+      if (historiaPend) {
+        const h = historiaPend; historiaPend = null;
+        contarHistoria(h, "proxFase");
+        if (h.inimigo === "Nihilux, o Dragão do Vazio" && !meta.epilogo) { meta.epilogo = true; contarHistoria(Object.assign({ tipo: "epilogo" }, HISTORIA.epilogo)); }
+        tela(); salvar();
+        return;
+      }
       proxFase();
     }
 
@@ -1113,12 +1240,15 @@
 
     function morte() {
       run.hp = 0;
-      const ganho = Math.round(run.escamas * multEscamas());
+      const doOuro = Math.floor(run.ouro / 40);
+      run.escamasOuro = doOuro;
+      const ganho = Math.round((run.escamas + doOuro) * multEscamas());
       meta.escamas += ganho;
       meta.totalEscamas += ganho;
       run.ganho = ganho;
       run.fase = "morto";
       ocupado = false;
+      if (doOuro) log(`💰 A Guilda troca seus ${run.ouro} de ouro por ${doOuro} escamas.`, "ouro");
       log(`💀 Você caiu no andar ${run.andar}. A guilda recupera ${ganho} escamas.`, "epico");
       tela(); salvar();
     }
@@ -1138,6 +1268,7 @@
       if ((run.andar - 1) % 10 === 0) log(`🌑 Você entra em: ${biomaDo(run.andar).nome}.`, "epico");
       log(`⬇️ Você desce ao andar ${run.andar}.`, "sist");
       gerarOpcoes();
+      capituloSeNovo(run.andar);
       tela(); salvar();
     }
     function resultado(emoji, titulo, texto) {
@@ -1226,10 +1357,16 @@
       const itens = [
         { id: "pocao", emoji: "🧪", nome: "Poção de Cura", desc: "Cura 40% da vida.", preco: 20 + f * 3, estoque: 2 },
         { id: "cura",  emoji: "💖", nome: "Curandeiro", desc: "Recupera toda a vida.", preco: 30 + f * 4, estoque: 1 },
-        { id: "afiar", emoji: "🪨", nome: "Pedra de Amolar", desc: "+20% de ataque.", preco: 50 + f * 6, estoque: 1 },
+        { id: "afiar", emoji: "🪨", nome: "Pedra de Amolar", desc: `+${bonusLoja("afiar")} de ataque.`, preco: 50 + f * 6, estoque: 1 },
+        { id: "vigor", emoji: "🍷", nome: "Elixir de Vigor", desc: `+${bonusLoja("vigor")} de vida máxima.`, preco: 45 + f * 6, estoque: 1 },
       ];
       reliquiaAleatoria(2).forEach(id => itens.push({ id: "reliq", reliq: id, emoji: RELIQUIAS[id].emoji, nome: RELIQUIAS[id].nome, desc: RELIQUIAS[id].desc, preco: 90 + f * 10, estoque: 1 }));
       return itens;
+    }
+    // Bônus do mercador: valores fixos que crescem com o andar (não se multiplicam entre si)
+    function bonusLoja(id) {
+      if (id === "afiar") return Math.max(2, Math.round(2 + run.andar * 0.35));
+      if (id === "vigor") return Math.round(8 + run.andar * 1.5);
     }
     function comprar(i) {
       const it = run.loja[i];
@@ -1238,7 +1375,8 @@
       it.estoque--;
       if (it.id === "pocao") run.pocoes++;
       if (it.id === "cura") curar(H().hpMax);
-      if (it.id === "afiar") run.atk += valorCarta("atk");
+      if (it.id === "afiar") run.atk += bonusLoja("afiar");
+      if (it.id === "vigor") { const v = bonusLoja("vigor"); run.hpMax += v; run.hp += v; }
       if (it.id === "reliq") ganharReliquia(it.reliq, "Você compra");
       log(`🛒 Comprou: ${it.nome} (−${it.preco} de ouro).`, "ouro");
       tela(); salvar();
@@ -1322,6 +1460,75 @@
           { txt: "Dar um enterro digno (cura 15%)", fazer: () => { const c = curar(H().hpMax * 0.15); return ["⚰️", "Paz", `Você se sente em paz. +${c} de vida.`]; } },
         ],
         auto: () => 0,
+      },
+      pagina: {
+        emoji: "📜", titulo: "Página Rasgada",
+        texto: "Presa sob uma pedra, uma folha de pergaminho manchada de fuligem. A letra apressada é inconfundível: é de Aldric, seu mestre.",
+        disponivel: () => meta.paginas.length < HISTORIA.paginas.length,
+        opcoes: [
+          { txt: "Ler a página", fazer: () => {
+            const n = meta.paginas.length;
+            meta.paginas.push(n);
+            const x = Math.round(xpProx(run.nivel) * 0.3);
+            ganharXp(x);
+            log(`📜 Você guarda a página ${n + 1} do diário de Aldric (+${x} de experiência).`, "epico");
+            contarHistoria({ tipo: "pagina", titulo: `Diário de Aldric · página ${n + 1} de ${HISTORIA.paginas.length}`, subtitulo: "Página Rasgada", sprite: "pergaminho", texto: [`"${HISTORIA.paginas[n]}"`] }, "proxFase");
+            tela(); salvar();
+            return null;
+          } },
+        ],
+        auto: () => 0,
+      },
+      ferreiro: {
+        emoji: "🔨", titulo: "Ferreiro Anão",
+        texto: "Um anão de barba chamuscada martela uma bigorna improvisada. \"Ponha ouro na mesa e eu deixo sua lâmina digna de um dragão.\"",
+        opcoes: [
+          { txt: () => `Afiar a lâmina: +25% de ataque (${40 + run.andar * 6} de ouro)`, pode: () => run.ouro >= 40 + run.andar * 6, fazer: () => {
+            run.ouro -= 40 + run.andar * 6;
+            const v = Math.max(2, Math.round(run.atk * 0.25));
+            run.atk += v;
+            return ["🗡️", "Fio de navalha", `O anão devolve sua espada cantando no ar. +${v} de ataque.`];
+          } },
+          { txt: () => `Reforçar a armadura: +${2 + Math.floor(run.andar / 4)} de defesa (${35 + run.andar * 5} de ouro)`, pode: () => run.ouro >= 35 + run.andar * 5, fazer: () => {
+            run.ouro -= 35 + run.andar * 5;
+            const v = 2 + Math.floor(run.andar / 4);
+            run.def += v;
+            return ["🛡️", "Placas novas", `Rebites novos, placas mais grossas. +${v} de defesa.`];
+          } },
+          { txt: "Recusar e seguir", fazer: () => ["🚶", "Talvez outro dia", "\"Volte quando tiver ouro de verdade\", resmunga o anão."] },
+        ],
+        auto: () => run.ouro >= 40 + run.andar * 6 ? 0 : run.ouro >= 35 + run.andar * 5 ? 1 : 2,
+      },
+      prisioneiro: {
+        emoji: "⛓️", titulo: "Prisioneiro na Jaula",
+        texto: "Um caçador da Guilda, magro e ferido, balança numa jaula pendurada sobre o abismo. \"Me tire daqui e eu lhe dou tudo o que tenho.\"",
+        opcoes: [
+          { txt: "Libertá-lo (−15% da vida)", fazer: () => {
+            run.hp = Math.max(1, run.hp - Math.round(H().hpMax * 0.15));
+            const id = reliquiaAleatoria();
+            if (id) ganharReliquia(id, "O prisioneiro entrega");
+            return ["🗝️", "Um caçador a mais", `Você força as grades até cortar as mãos. Ele lhe entrega ${id ? `${RELIQUIAS[id].emoji} ${RELIQUIAS[id].nome}` : "um aperto de mão"} e sobe em direção à luz. "Aldric passou por aqui. Ele falava de você."`];
+          } },
+          { txt: "Seguir em frente", fazer: () => ["🚶", "Peso na consciência", "Você segue. Os gritos ecoam pelos corredores por muito tempo."] },
+        ],
+        auto: () => run.hp > H().hpMax * 0.5 ? 0 : 1,
+      },
+      santuario: {
+        emoji: "💠", titulo: "Santuário de Escamas",
+        texto: "Escamas de dragões antigos cobrem um altar de osso. Arrancá-las queima a pele e a alma, mas a Guilda pagaria muito bem por elas.",
+        opcoes: [
+          { txt: () => `Arrancar escamas: +${6 + run.andar} escamas (−15% da vida máxima nesta expedição)`, fazer: () => {
+            const perda = Math.max(1, Math.round(run.hpMax * 0.15));
+            run.hpMax -= perda;
+            run.hp = Math.min(run.hp, H().hpMax);
+            const ganho = 6 + run.andar;
+            run.escamas += ganho;
+            log(`💠 Santuário: +${ganho} escamas para a Guilda, −${perda} de vida máxima.`, "epico");
+            return ["💠", "Escamas ardentes", `As escamas queimam suas mãos. +${ganho} escamas, mas sua vida máxima cai ${perda} até o fim da expedição.`];
+          } },
+          { txt: "Deixar o santuário em paz", fazer: () => ["🚶", "Respeito", "Algumas coisas devem ficar onde estão."] },
+        ],
+        auto: () => run.hp > H().hpMax * 0.6 ? 0 : 1,
       },
     };
     function opcaoEvento(i) {
@@ -1411,6 +1618,7 @@
       if (run.bloqueio > 0) tags.push(tag("bloq", "escudo", run.bloqueio));
       if (run.veneno > 0) tags.push(tag("ven", "gota-veneno", run.veneno));
       if (tem("berserker") && run.hp < h.hpMax * 0.5) tags.push(tag("fur", "machado", "Fúria"));
+      if (run.contra) tags.push(tag("contra", "espadas-cruzadas", "Contra-ataque"));
       const rel = run.reliquias.map(id => {
         const r = RELIQUIAS[id];
         return `<button class="reliq-ico r-${A.raridadeReliquia(id)}" data-reliq="${id}" aria-label="${r.nome}: ${r.desc}">${S(A.reliquia(id))}<span class="tip"><b>${r.nome}</b>${r.desc}</span></button>`;
@@ -1480,6 +1688,7 @@
         case "cura":   return { valor: `+${it.cura}`, rotulo: "Vai se curar", calmo: true };
         case "furia":  return { valor: "+20%", rotulo: "Vai se enfurecer" };
         case "sopro":  return { valor: it.dano, rotulo: "Sopro · ignora defesa" };
+        case "atordoado": return { valor: "—", rotulo: "Atordoado: perde o turno", calmo: true };
       }
       return { valor: "?", rotulo: "" };
     }
@@ -1526,12 +1735,19 @@
             ${barra(`ini-${e.nome}-${e.hpMax}`, "inimigo", e.hp, e.hpMax, `${Math.max(0, Math.ceil(e.hp))} / ${e.hpMax}`)}
             <div class="status">${tags.join("")}</div>
           </div>
-          <div class="intencao ${perigo ? "perigo" : ""} ${ii.calmo ? "calmo" : ""} ${e.rank === "chefe" ? "vs-chefe" : ""}" title="${semEmoji(descreverIntencao(it).txt)}">
+          ${e.fala && !e.turnos ? `<div class="fala-dragao">"${e.fala}"</div>` : ""}
+          <div class="intencao ${perigo ? "perigo" : ""} ${ii.calmo ? "calmo" : ""} ${it.tipo === "atordoado" ? "atordoado" : ""} ${e.rank === "chefe" ? "vs-chefe" : ""}" title="${semEmoji(descreverIntencao(it).txt)}">
             <span class="rotulo">Próxima ação</span>${S(A.intencao(it.tipo), "it-ico")}<div><b>${ii.valor}</b><small>${ii.rotulo}</small></div>
           </div>
           <div class="ator ator-inimigo ${e.rank} ${A.voa(id) ? "voa" : ""} ${e.veneno > 0 ? "envenenado" : ""}">
             <div class="corpo idle" style="${atraso(2.6)}">${S(id, "", e.nome)}</div><div class="sombra"></div>
           </div>`;
+      }
+      if (f === "historia") {
+        const h = run.historias[0];
+        if (h.tipo === "dragao") return `<div class="titulo-palco">${h.titulo}</div><div class="dragao-caido">${S(A.inimigo(h.inimigo))}</div>`;
+        if (h.tipo === "capitulo") return `<div class="titulo-palco">${h.titulo}</div>${heroiAtor()}${objeto(h.sprite, "icone")}`;
+        return `<div class="titulo-palco">${h.titulo}</div>${objeto(h.sprite, "icone")}`;
       }
       if (f === "nivel") return `<div class="titulo-palco">Nível ${run.nivel - run.niveisPend + 1}!</div>${heroiAtor("heroi-centro")}`;
       if (f === "reliquia") return `<div class="titulo-palco">Espólios!</div>${objeto("bau-aberto")}`;
@@ -1563,14 +1779,25 @@
         const sug = ocupado ? null : decidirCombate();
         const dis = ocupado ? "disabled" : "";
         const recarga = run.cd > 0 ? `<span class="recarga">${"<i></i>".repeat(run.cd)}</span>` : "";
+        const tipoIt = run.inimigo.intencao.tipo;
+        const interrompe = run.cd === 0 && (tipoIt === "pesado" || tipoIt === "sopro");
         const botao = (id, ico, nome, info, desabilitado, extra = "", classe = "") =>
           `<button class="acao ${classe} ${sug === id && !desabilitado ? "sugerida" : ""}" data-acao="${id}" ${desabilitado ? "disabled" : ""}>${S(ico, "a-ico")}<span class="a-nome">${nome}</span><span class="a-info">${info}</span>${extra}</button>`;
         return `<div class="acoes">
             ${botao("atacar", "espada", "Atacar", `~${danoPrevisto(1)} de dano`, !!dis, "<kbd>1</kbd>")}
             ${botao("defender", "escudo", "Defender", `+${bloq} de bloqueio`, !!dis, "<kbd>2</kbd>")}
-            ${botao("habilidade", "golpe", "Golpe do Caçador", run.cd > 0 ? `recarga: ${run.cd} turno${run.cd > 1 ? "s" : ""}` : `~${danoPrevisto(multH)} de dano`, run.cd > 0 || ocupado, "<kbd>3</kbd>" + recarga, "especial")}
+            ${botao("habilidade", "golpe", "Golpe do Caçador", run.cd > 0 ? `recarga: ${run.cd} turno${run.cd > 1 ? "s" : ""}` : interrompe ? `<b class="a-info interrompe" style="display:inline">~${danoPrevisto(multH)} e INTERROMPE!</b>` : `~${danoPrevisto(multH)} de dano`, run.cd > 0 || ocupado, "<kbd>3</kbd>" + recarga, "especial")}
             ${botao("pocao", "pocao", `Poção (${run.pocoes})`, "não gasta o turno", run.pocoes <= 0 || run.hp >= h.hpMax || ocupado, "<kbd>4</kbd>")}
           </div>${htmlAuto()}`;
+      }
+      if (f === "historia") {
+        const h = run.historias[0];
+        const resto = run.historias.length - 1;
+        return `<div class="historia-texto ${h.tipo === "pagina" || h.tipo === "dragao" ? "citacao" : ""}">
+            <div class="sub-hist">${h.subtitulo || ""}</div>
+            ${h.texto.map(p => `<p>${p}</p>`).join("")}
+          </div>
+          <div class="centralizar"><button class="botao-tocha" data-historia="1">${resto ? "Continuar" : "Seguir"} ➜</button></div>${htmlAuto()}`;
       }
       if (f === "nivel") {
         return `<div class="texto-cena"><p>Escolha uma bênção:</p></div>
@@ -1592,7 +1819,7 @@
       }
       if (f === "loja") {
         return `<div class="texto-cena"><h3>Mercador da Masmorra</h3><p>"Ouro brilhante, mercadoria brilhante, heh heh." Você tem <b>${fmt(run.ouro)}</b> de ouro.</p></div>
-          <div class="cartas c5 cartas-entrada">${run.loja.map((it, i) => {
+          <div class="cartas ${run.loja.length > 5 ? "" : "c5"} cartas-entrada">${run.loja.map((it, i) => {
             const rel = it.id === "reliq";
             const preco = `<span class="preco">${it.estoque <= 0 ? "Esgotado" : `${S("moeda")}${it.preco}`}</span>`;
             return carta(`data-comprar="${i}" ${it.estoque <= 0 || run.ouro < it.preco ? "disabled" : ""}`, rel ? A.reliquia(it.reliq) : A.loja(it.id), rel ? A.raridadeReliquia(it.reliq) : "comum", it.nome, it.desc, preco);
@@ -1622,6 +1849,7 @@
             <dt>Elites derrotados</dt><dd>${run.elites}</dd>
             <dt>Dragões caçados</dt><dd>${run.dragoes}</dd>
             <dt>Nível alcançado</dt><dd>${run.nivel}</dd>
+            ${run.escamasOuro ? `<dt>Ouro trocado por escamas</dt><dd>${fmt(run.escamasOuro)}</dd>` : ""}
             <dt>Escamas ganhas</dt><dd style="color:var(--escama)">${fmt(run.ganho)}</dd>
           </dl>
           <div class="centralizar"><button class="botao-tocha" data-acampamento="1">${S("tocha")}Voltar à Guilda ➜</button></div>${htmlAuto()}`;
@@ -1729,7 +1957,7 @@
         const ref = corpo(f.alvo);
         if (!ref || (ref.isConnected === false)) return;
         let tipo = f.tipo, txt = semEmoji(f.texto), icone = "";
-        if (f.tipo === "miss") { txt = "ESQUIVOU"; reiniciarClasse(ator(f.alvo), "esquiva"); }
+        if (f.tipo === "miss" && /Errou|Esquivou/.test(f.texto)) { txt = "ESQUIVOU"; reiniciarClasse(ator(f.alvo), "esquiva"); }
         if (f.tipo === "bloq" && txt.startsWith("+")) { tipo = "escudo"; icone = "escudo"; }
         if (/☠/u.test(f.texto)) { tipo = "ven"; icone = "gota-veneno"; }
         if (/🌵/u.test(f.texto)) icone = "espinhos";
@@ -1846,7 +2074,7 @@
         if (a === "todas") Object.keys(RELIQUIAS).forEach(id => { if (!tem(id)) ganharReliquia(id, "Um cheat concede"); });
         if (a === "nivel") { ganharXp(xpProx(run.nivel) - run.xp); if (run.fase === "escolha") { $("cheats-fundo").hidden = true; return proxFaseNivel(); } }
         if (a === "matar" && run.fase === "combate" && !ocupado) { run.inimigo.hp = 0; $("cheats-fundo").hidden = true; return vitoria(); }
-        if (a === "pular" && run.fase === "escolha") { descer(); return; }
+        if (a === "pular" && run.fase === "escolha") { $("cheats-fundo").hidden = true; descer(); return; }
       }
       tela(); salvar();
     }
@@ -1863,7 +2091,7 @@
       raiz.setProperty("--bioma", "#b45309");
       raiz.setProperty("--perigo", 0);
       montarFundo(5);
-      const hp = 50 + 10 * nivelG("vigor"), atk = 6 + nivelG("forca"), def = nivelG("armadura");
+      const hp = Math.round((50 + 10 * nivelG("vigor")) * multTrofeus()), atk = Math.round((6 + nivelG("forca")) * multTrofeus()), def = nivelG("armadura");
       const crit = 0.05 + 0.02 * nivelG("precisao"), esq = 0.03 + 0.015 * nivelG("agilidade");
       $("p-heroi").className = "painel";
       $("p-heroi").innerHTML = `
@@ -1879,8 +2107,12 @@
           ${atributo("alvo", "Crítico", pct(crit))}
           ${atributo("vento", "Esquiva", pct(esq))}
         </div>
+        ${meta.trofeus.length ? `<p class="pequeno" style="margin-top:8px;color:var(--tocha-2)">Troféus de dragão: +${Math.round((multTrofeus() - 1) * 100)}% de ataque e vida</p>` : ""}
         <h3 class="sub">${S("pergaminho")} Como jogar</h3>
-        <p class="pequeno fraco">Desça andar por andar escolhendo portas. Em combate, observe a <b>próxima ação</b> do inimigo: defenda-se dos golpes pesados! A cada 10 andares, um dragão guarda o caminho. Quando você cair, as <b>escamas</b> da expedição voltam para a Guilda e compram melhorias permanentes.</p>`;
+        <p class="pequeno fraco">Desça andar por andar escolhendo portas. Em combate, observe a <b>próxima ação</b> do inimigo.</p>
+        <p class="pequeno fraco" style="margin-top:6px"><b>Defesa perfeita:</b> defenda e não perca vida, e o próximo golpe vira um contra-ataque (+50%).</p>
+        <p class="pequeno fraco" style="margin-top:6px"><b>Interromper:</b> use o Golpe do Caçador quando o inimigo preparar um golpe pesado. Ele perde o turno; dragões só perdem metade da força.</p>
+        <p class="pequeno fraco" style="margin-top:6px">A cada 10 andares, um dragão guarda o caminho. Quando você cair, as <b>escamas</b> voltam para a Guilda e compram melhorias permanentes.</p>`;
 
       $("andar-topo").innerHTML = `
         <div><div class="num">Guilda dos Caçadores</div><div class="fraco pequeno">O salão onde toda caçada começa</div></div>
@@ -1922,7 +2154,11 @@
           <dt>Monstros abatidos</dt><dd>${fmt(meta.abates)}</dd>
           <dt>Expedições</dt><dd>${meta.expedicoes}</dd>
           <dt>Escamas totais</dt><dd>${fmt(meta.totalEscamas)}</dd>
+          <dt>Páginas do diário</dt><dd>${meta.paginas.length}/${HISTORIA.paginas.length}</dd>
         </dl>
+        <h3 class="sub">${S("trofeu")} Troféus de dragão <small>${meta.trofeus.length}/${BIOMAS.length}</small></h3>
+        <div class="trofeus">${BIOMAS.map(b => `<span class="t ${meta.trofeus.includes(b.chefe.nome) ? "" : "off"}" title="${meta.trofeus.includes(b.chefe.nome) ? b.chefe.nome : "???"}">${S(A.inimigo(b.chefe.nome))}</span>`).join("")}</div>
+        <div class="centralizar" style="margin-top:12px"><button class="botao-leve" data-cronicas="" style="display:inline-flex;align-items:center;gap:6px"><span style="width:20px;height:20px;display:inline-block">${S("pergaminho")}</span>Ler as Crônicas</button></div>
         <h3 class="sub">${S("pergaminho")} Progresso</h3>
         <p class="pequeno fraco">Tudo é salvo neste navegador automaticamente, até no meio de uma expedição.</p>
         <div class="botoes-save">
@@ -1931,6 +2167,38 @@
           <button data-save="apagar" class="perigo">Apagar tudo</button>
         </div>
         ${registro.length ? `<div style="margin-top:18px">${htmlRegistro()}</div>` : ""}`;
+    }
+
+    // ---- Crônicas: tudo o que já foi descoberto da história ----
+    function entradasCronicas() {
+      const e = [];
+      e.push({ grupo: "Início", id: "prologo", nome: "Prólogo", spr: "espada", ok: meta.prologo, h: HISTORIA.prologo });
+      HISTORIA.capitulos.forEach((c, i) => e.push({ grupo: "Capítulos", id: "cap" + i, nome: `${c.titulo}: ${c.subtitulo}`, spr: c.sprite, ok: meta.capitulos.includes(i), h: c }));
+      BIOMAS.forEach((b, i) => {
+        const d = HISTORIA.dragoes[b.chefe.nome];
+        if (d) e.push({ grupo: "Dragões", id: "dr" + i, nome: b.chefe.nome, spr: A.inimigo(b.chefe.nome), ok: meta.trofeus.includes(b.chefe.nome),
+          h: { titulo: d.selo, subtitulo: b.chefe.nome, texto: [`Ao aparecer: "${d.fala}"`, `Ao cair: "${d.queda}"`] } });
+      });
+      HISTORIA.paginas.forEach((t, i) => e.push({ grupo: "Diário de Aldric", id: "pg" + i, nome: `Página ${i + 1}`, spr: "pergaminho", ok: meta.paginas.includes(i),
+        h: { titulo: `Página ${i + 1}`, subtitulo: "Diário de Aldric", texto: [`"${t}"`] } }));
+      e.push({ grupo: "Fim", id: "epilogo", nome: "Epílogo", spr: "coroa", ok: meta.epilogo, h: HISTORIA.epilogo });
+      return e;
+    }
+    function abrirCronicas(id) {
+      const lista = entradasCronicas();
+      const atual = lista.find(x => x.id === id && x.ok) || lista.find(x => x.ok);
+      let grupo = "", html = "";
+      lista.forEach(x => {
+        if (x.grupo !== grupo) { grupo = x.grupo; html += `<h3>${grupo}</h3>`; }
+        html += `<button class="item-cr ${atual && x.id === atual.id ? "ativo" : ""}" data-cronicas="${x.id}" ${x.ok ? "" : "disabled"}>${S(x.ok ? x.spr : "interrogacao")}${x.ok ? x.nome : "???"}</button>`;
+      });
+      const leitura = atual
+        ? `<h2>${atual.h.titulo}</h2><div class="sub-hist">${atual.h.subtitulo || ""}</div>${atual.h.texto.map(p => `<p>${p}</p>`).join("")}`
+        : `<h2>Crônicas</h2><p class="fraco">Nada descoberto ainda. Desça à masmorra!</p>`;
+      const total = lista.length, achados = lista.filter(x => x.ok).length;
+      $("cronicas").innerHTML = `<div class="lista"><p class="fraco pequeno" style="margin-bottom:8px">${achados} de ${total} descobertos</p>${html}</div>
+        <div class="leitura"><button class="botao-leve fechar" data-fechar-cronicas="1">Fechar</button>${leitura}</div>`;
+      $("cronicas-fundo").hidden = false;
     }
 
     function comprarGuilda(id) {
@@ -1961,6 +2229,9 @@
       else if (d.evento !== undefined) opcaoEvento(+d.evento);
       else if (d.continuar) proxFase();
       else if (d.acampamento) voltarAcampamento();
+      else if (d.historia) continuarHistoria();
+      else if (d.cronicas !== undefined) abrirCronicas(d.cronicas);
+      else if (d.fecharCronicas) $("cronicas-fundo").hidden = true;
       else if (d.partir) novaExpedicao(+d.partir);
       else if (d.upg) {
         const u = GUILDA.find(g => g.id === d.upg);
@@ -1984,9 +2255,16 @@
       tela(); salvar();
     });
     $("cheats-fundo").addEventListener("click", e => { if (e.target.id === "cheats-fundo") e.target.hidden = true; });
+    $("cronicas-fundo").addEventListener("click", e => {
+      if (e.target.id === "cronicas-fundo") { e.target.hidden = true; return; }
+      const b = e.target.closest("button");
+      if (b && b.dataset.cronicas !== undefined) abrirCronicas(b.dataset.cronicas);
+      if (b && b.dataset.fecharCronicas) $("cronicas-fundo").hidden = true;
+    });
 
     document.addEventListener("keydown", e => {
-      if (e.key === "Escape") $("cheats-fundo").hidden = true;
+      if (e.key === "Escape") { $("cheats-fundo").hidden = true; $("cronicas-fundo").hidden = true; }
+      if (run && run.fase === "historia" && (e.key === "Enter" || e.key === " ") && $("cheats-fundo").hidden) { e.preventDefault(); continuarHistoria(); return; }
       // Atalho discreto do painel de debug: Shift + C
       if (e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === "c" && !/input|select|textarea/i.test(e.target.tagName)) {
         const fundo = $("cheats-fundo");
@@ -2012,6 +2290,7 @@
     function decidirCombate() {
       const e = run.inimigo, h = H(), it = e.intencao;
       if (run.pocoes > 0 && run.hp < h.hpMax * 0.35) return "pocao";
+      if ((it.tipo === "pesado" || it.tipo === "sopro") && run.cd === 0) return "habilidade"; // interromper
       const golpes = it.tipo === "multi" ? it.golpes : 1;
       const perigo = it.dano ? (it.tipo === "sopro" ? it.dano : Math.max(1, it.dano - h.def) * golpes) : 0;
       if (perigo >= run.hp * 0.45 || ((it.tipo === "pesado" || it.tipo === "sopro") && perigo > h.hpMax * 0.15)) return "defender";
@@ -2043,11 +2322,12 @@
       else if (f === "reliquia") escolherReliquia(0);
       else if (f === "fogueira") fogueira(run.hp < H().hpMax * 0.65 ? 0 : 1);
       else if (f === "loja") {
-        const i = run.loja.findIndex(it => it.estoque > 0 && run.ouro >= it.preco && (it.id !== "cura" || run.hp < H().hpMax * 0.5));
+        const i = run.loja.findIndex(it => it.estoque > 0 && run.ouro >= it.preco && (it.id !== "cura" || run.hp < H().hpMax * 0.5) && (it.id !== "pocao" || run.pocoes < 4));
         if (i >= 0) comprar(i); else proxFase();
       }
       else if (f === "evento") opcaoEvento(EVENTOS[run.evento].auto());
       else if (f === "resultado") proxFase();
+      else if (f === "historia") continuarHistoria();
       else if (f === "morto" && meta.auto.reiniciar) {
         const inicio = nivelG("mapa") && meta.checkpoint ? meta.checkpoint + 1 : 1;
         novaExpedicao(inicio);
