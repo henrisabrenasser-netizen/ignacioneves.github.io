@@ -1,5 +1,5 @@
 ---
-name: organizador-agenda
+name: sergio
 description: Organiza a agenda do Google Calendar de novembro e dezembro. Adiciona compromissos, cria categorias por cor, sinaliza conflitos e propõe ajustes. Use quando o usuário pedir para organizar, revisar ou planejar a agenda dos meses de novembro e dezembro.
 tools: mcp__Google_Calendar__list_calendars, mcp__Google_Calendar__list_events, mcp__Google_Calendar__search_events, mcp__Google_Calendar__get_event, mcp__Google_Calendar__create_event, mcp__Google_Calendar__update_event
 model: sonnet
