@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Caçador de Dragões — Canivete Suíço</title>
+  <link rel="stylesheet" href="../../style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Alegreya:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="estilo.css">
+</head>
+<body class="masmorra">
+  <header class="topo" id="topo"></header>
+  <script src="../../menu.js"></script>
+
+  <div id="jogo">
+    <div class="barra">
+      <div class="titulo"><span class="ico-titulo"></span>Caçador de Dragões</div>
+      <div class="item esc so-menu"><span class="ico-escama"></span><b id="b-escamas">0</b> escamas</div>
+      <div class="item so-menu"><span class="ico-recorde"></span>Recorde: <b id="b-recorde">1</b></div>
+      <div class="item so-menu"><span class="ico-dragoes"></span>Dragões: <b id="b-dragoes">0</b></div>
+      <button class="btn-debug so-menu" id="btn-cheats" data-cheats-abrir="1" title="Painel de debug (atalho: Shift+C)">debug</button>
+    </div>
+
+    <div class="mesa">
+      <aside class="painel" id="p-heroi"></aside>
+      <main class="painel centro" id="p-centro">
+        <div class="andar-topo" id="andar-topo"></div>
+        <div class="palco" id="palco">
+          <div class="fundo" id="fundo"></div>
+          <div class="nevoa n1"></div>
+          <div class="nevoa n2"></div>
+          <div class="tocha t-esq"></div>
+          <div class="tocha t-dir"></div>
+          <div class="perigo-veu"></div>
+          <div class="camada" id="camada"></div>
+        </div>
+        <div class="inferior" id="inferior"></div>
+      </main>
+      <aside class="painel" id="p-lado"></aside>
+    </div>
+
+    <div class="cronicas-fundo" id="cronicas-fundo" hidden>
+      <div class="cronicas" id="cronicas" role="dialog" aria-label="Crônicas"></div>
+    </div>
+
+    <div class="cheats-fundo" id="cheats-fundo" hidden>
+      <div class="cheats" id="cheats" role="dialog" aria-label="Painel de debug"></div>
+    </div>
+  </div>
+
+  <script src="historia.js"></script>
+  <script src="arte.js"></script>
+
+  <script src="jogo.js"></script>
+</body>
+</html>

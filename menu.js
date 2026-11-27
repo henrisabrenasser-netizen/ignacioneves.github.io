@@ -19,16 +19,27 @@ const FERRAMENTAS = [
   { arquivo: "games.html",    emoji: "🎮", nome: "Games",             descricao: "Joguinhos para passar o tempo." },
 ];
 
-// Descobre em qual página estamos (ex.: "clima.html")
+// Pasta raiz do site, descoberta a partir de onde está este menu.js.
+// Assim o menu funciona tanto na raiz quanto em subpastas (ex.: jogos/reino/).
+const RAIZ_DO_SITE = new URL(".", document.currentScript.src);
+
+// Endereço completo de um arquivo do site (ex.: "clima.html" → ".../clima.html")
+function enderecoDe(arquivo) {
+  return new URL(arquivo, RAIZ_DO_SITE).href;
+}
+
+// Descobre em qual página estamos (ex.: "clima.html" ou "jogos/reino/index.html")
 function paginaAtual() {
-  return location.pathname.split("/").pop() || "index.html";
+  let caminho = decodeURI(location.href.split(/[?#]/)[0]).slice(decodeURI(RAIZ_DO_SITE.href).length);
+  if (caminho === "" || caminho.endsWith("/")) caminho += "index.html";
+  return caminho;
 }
 
 // Botão Surpresa: vai para uma ferramenta aleatória (nunca a página em que você já está)
 function irParaSurpresa() {
   const opcoes = FERRAMENTAS.filter(f => f.arquivo !== paginaAtual());
   const sorteada = opcoes[Math.floor(Math.random() * opcoes.length)];
-  location.href = sorteada.arquivo;
+  location.href = enderecoDe(sorteada.arquivo);
 }
 
 // Monta o menu do topo dentro de <header id="topo">
@@ -37,12 +48,12 @@ function irParaSurpresa() {
   const itens = [{ arquivo: "index.html", nome: "Início" }, ...FERRAMENTAS];
 
   const links = itens.map(f =>
-    `<a href="${f.arquivo}" class="${f.arquivo === atual ? "ativo" : ""}">${f.nome}</a>`
+    `<a href="${enderecoDe(f.arquivo)}" class="${f.arquivo === atual || (f.arquivo === "games.html" && atual.startsWith("jogos/")) ? "ativo" : ""}">${f.nome}</a>`
   ).join("");
 
   document.getElementById("topo").innerHTML = `
     <div class="topo-dentro">
-      <a href="index.html" class="logo">🔧 Canivete Suíço</a>
+      <a href="${enderecoDe("index.html")}" class="logo">🔧 Canivete Suíço</a>
       <nav class="menu">
         ${links}
         <a href="#" class="surpresa" onclick="irParaSurpresa(); return false;">🎁 Surpresa</a>

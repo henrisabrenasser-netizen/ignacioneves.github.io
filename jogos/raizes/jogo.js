@@ -1,5 +1,5 @@
 // ==========================================================
-// raizes-jogo.js — A LÓGICA DO "RAÍZES DE NEON"
+// jogos/raizes/jogo.js — A LÓGICA DO "RAÍZES DE NEON"
 //
 // Um "survivors-like": o sobrevivente anda em direção ao mouse,
 // as armas disparam sozinhas, as plantas vêm em ondas cada vez

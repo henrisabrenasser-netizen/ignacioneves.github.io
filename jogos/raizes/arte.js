@@ -1,5 +1,5 @@
 // ==========================================================
-// raizes-arte.js — TODA A ARTE DO "RAÍZES DE NEON"
+// jogos/raizes/arte.js — TODA A ARTE DO "RAÍZES DE NEON"
 //
 // Nada de imagens externas: cada planta, prop, ícone e o próprio
 // sobrevivente são desenhados aqui com canvas 2D. Os desenhos são

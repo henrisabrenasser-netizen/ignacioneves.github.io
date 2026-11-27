@@ -1,5 +1,5 @@
 // ==========================================================
-// masmorra-arte.js — TODA A ARTE DO "CAÇADOR DE DRAGÕES"
+// jogos/masmorra/arte.js — TODA A ARTE DO "CAÇADOR DE DRAGÕES"
 //
 // Estilo: flat estilizado, contorno escuro, 2–3 tons por objeto,
 // luz quente vinda de cima. Cada sprite é um <symbol> SVG usado

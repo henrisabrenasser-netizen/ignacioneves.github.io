@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Raízes de Neon — Canivete Suíço</title>
+  <link rel="stylesheet" href="../../style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="estilo.css">
+</head>
+<body class="raizes">
+  <header class="topo" id="topo"></header>
+  <script src="../../menu.js"></script>
+
+  <div id="palco">
+    <canvas id="tela"></canvas>
+
+    <!-- HUD da partida -->
+    <div class="hud" id="hud" hidden>
+      <div class="xp"><div class="xp-barra" id="xp-barra"></div><span class="xp-nivel" id="xp-nivel">NV 1</span></div>
+      <div class="hud-linha">
+        <div class="hud-esq">
+          <div class="slots" id="slots-armas"></div>
+          <div class="slots pequenos" id="slots-passivos"></div>
+        </div>
+        <div class="hud-centro">
+          <div class="relogio" id="relogio">00:00</div>
+          <div class="chefe" id="barra-chefe" hidden>
+            <div class="chefe-nome" id="chefe-nome"></div>
+            <div class="chefe-vida"><div id="chefe-vida"></div></div>
+          </div>
+        </div>
+        <div class="hud-dir">
+          <span class="stat" title="Plantas abatidas"><img data-ico="caveira" alt=""><b id="h-abates">0</b></span>
+          <span class="stat" title="Sucata coletada"><img data-ico="sucata" alt=""><b id="h-sucata">0</b></span>
+          <button class="btn-hud" id="btn-som" title="Som (M)">♪</button>
+          <button class="btn-hud" id="btn-tela" title="Tela cheia (F)">⛶</button>
+          <button class="btn-hud" id="btn-pausa" title="Pausar (Esc)">❚❚</button>
+        </div>
+      </div>
+      <div class="faixa" id="faixa"></div>
+    </div>
+
+    <!-- Menu inicial -->
+    <div class="tela-menu" id="menu">
+      <div class="menu-caixa">
+        <div class="logo-jogo">RAÍZES<span class="de">DE</span><span class="rosa">NEON</span></div>
+        <p class="lema">Ano 2097. Uma praga de plantas mutantes engoliu a cidade. Sobreviva à selva por <b>10 minutos</b>, fique mais forte a cada nível e derrube a <b>Árvore-Mãe Ω</b>.</p>
+        <div class="abas" id="abas">
+          <button data-aba="sobrev" class="ativa">Sobreviventes</button>
+          <button data-aba="oficina">Oficina</button>
+          <button data-aba="arsenal">Arsenal</button>
+          <button data-aba="arquivo">Arquivo</button>
+          <button data-aba="como">Como jogar</button>
+        </div>
+        <div class="painel-menu" id="aba-sobrev"><div class="sobrev-grade" id="lista-sobrev"></div></div>
+        <div class="painel-menu" id="aba-oficina" hidden>
+          <p class="sub" style="margin-bottom:12px">Melhorias permanentes, pagas com a sucata que você traz das expedições.</p>
+          <div class="oficina-grade" id="lista-oficina"></div>
+        </div>
+        <div class="painel-menu" id="aba-arsenal" hidden>
+          <div class="arsenal-topo">
+            <div class="equipados" id="equipados"></div>
+            <div class="eq-resumo" id="eq-resumo"></div>
+          </div>
+          <div class="arsenal-barra"><h3 id="inv-titulo">Inventário</h3><button class="comprar" id="btn-caixa-eq"></button></div>
+          <div class="inventario" id="inventario"></div>
+          <div class="detalhe-item" id="detalhe-item"></div>
+        </div>
+        <div class="painel-menu" id="aba-arquivo" hidden>
+          <div class="secao" style="margin-top:0"><h3>Registros</h3><div class="registros" id="registros"></div></div>
+          <div class="secao"><h3>Combinações de evolução</h3><div class="combos" id="combos-menu"></div></div>
+          <div class="secao"><h3>Bestiário</h3><div class="bestiario" id="bestiario"></div></div>
+        </div>
+        <div class="painel-menu" id="aba-como" hidden>
+          <div class="como">
+            <div>🖱️ <b>Mouse:</b> o sobrevivente anda em direção ao cursor. Deixe o cursor em cima dele para parar.</div>
+            <div>📱 <b>Celular:</b> toque e arraste em qualquer lugar da tela, como um joystick.</div>
+            <div>⌨️ <b>Teclado (opcional):</b> WASD ou setas também movem. <b>Esc</b> pausa, <b>1/2/3</b> escolhem cartas, <b>M</b> liga/desliga o som.</div>
+            <div>🔫 <b>As armas disparam sozinhas.</b> Seu trabalho é se posicionar, desviar e coletar as <b>células de energia</b> que as plantas deixam.</div>
+            <div>⬆️ <b>Subiu de nível?</b> Escolha uma arma nova, um módulo passivo ou melhore o que já tem. Você carrega até 6 armas e 6 módulos.</div>
+            <div>✨ <b>Evolução:</b> leve uma arma ao nível máximo, tenha o módulo que combina com ela e abra uma <b>Caixa de Suprimentos</b> (deixada por elites e chefes).</div>
+            <div>📦 Barris laranja escondem kits médicos, ímãs e bombas EMP. Quebre-os!</div>
+            <div>⚠️ <b>Leia os avisos no chão:</b> cardos mostram a linha por onde vão rolar, baobás pisam num círculo laranja e raízes brotam nos círculos vermelhos.</div>
+            <div>💼 <b>Maletas de equipamento</b> caem de elites, chefes e barris. Elas vão para o <b>Arsenal</b> no fim da expedição, onde você equipa capacete, traje, botas e módulo.</div>
+            <div>⚙️ Ao fim de cada expedição você leva <b>sucata</b> para a Oficina, aprimora equipamentos e desbloqueia novos sobreviventes.</div>
+          </div>
+        </div>
+        <div class="menu-rodape">
+          <div class="total-sucata"><img data-ico="sucata" alt=""><span id="m-sucata">0</span> <small>sucata</small></div>
+          <div style="display:flex; gap:10px; align-items:center">
+            <button class="btn-debug" id="btn-debug" title="Painel de debug (Shift+D)">debug</button>
+            <button class="btn-neon" id="btn-iniciar">Iniciar expedição</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Subir de nível -->
+    <div class="modal" id="m-nivel" hidden>
+      <div class="caixa">
+        <div class="titulo-neon">Subiu de nível!</div>
+        <p class="sub" id="nivel-sub">Escolha uma melhoria</p>
+        <div class="cartas" id="cartas"></div>
+        <div class="linha-botoes"><button class="btn-sec" id="btn-reroll">Trocar opções</button></div>
+      </div>
+    </div>
+
+    <!-- Caixa de suprimentos -->
+    <div class="modal" id="m-bau" hidden>
+      <div class="caixa estreita">
+        <div class="titulo-neon" style="--c: var(--n-ouro)" id="bau-titulo">Caixa de suprimentos</div>
+        <div class="bau-palco" id="bau-palco"><img id="bau-img" alt=""></div>
+        <div class="premios" id="premios"></div>
+        <div class="linha-botoes"><button class="btn-neon" id="btn-bau" hidden>Continuar</button></div>
+      </div>
+    </div>
+
+    <!-- Pausa -->
+    <div class="modal" id="m-pausa" hidden>
+      <div class="caixa">
+        <div class="titulo-neon">Pausado</div>
+        <p class="sub" id="pausa-sub"></p>
+        <div class="build">
+          <div><h3>Armas</h3><div class="itens-build" id="pausa-armas"></div></div>
+          <div><h3>Módulos</h3><div class="itens-build" id="pausa-passivos"></div></div>
+        </div>
+        <div class="secao"><h3>Combinações de evolução</h3><div class="combos" id="pausa-combos"></div></div>
+        <div class="secao"><h3>Opções</h3><div class="opcoes" id="opcoes"></div></div>
+        <div class="linha-botoes">
+          <button class="btn-sec" id="btn-desistir">Desistir</button>
+          <button class="btn-neon" id="btn-continuar">Continuar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fim da expedição -->
+    <div class="modal" id="m-fim" hidden>
+      <div class="caixa">
+        <div class="titulo-neon" id="fim-titulo">Você foi enraizado</div>
+        <p class="sub" id="fim-sub"></p>
+        <div class="resumo" id="fim-resumo"></div>
+        <table class="tabela-dano"><thead><tr><th>Arma</th><th>Nível</th><th>Dano total</th><th>Dano/s</th></tr></thead><tbody id="fim-tabela"></tbody></table>
+        <p class="ganho" id="fim-ganho"></p>
+        <div id="fim-achados"></div>
+        <div class="linha-botoes">
+          <button class="btn-sec" id="btn-bunker">Voltar ao bunker</button>
+          <button class="btn-neon" id="btn-denovo">Jogar de novo</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Debug -->
+    <div class="debug" id="debug" hidden>
+      <h4>DEBUG <span style="cursor:pointer" id="debug-fechar">✕</span></h4>
+      <div class="bts" id="debug-bts"></div>
+    </div>
+  </div>
+
+  <script src="arte.js"></script>
+  <script src="jogo.js"></script>
+</body>
+</html>

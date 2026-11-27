@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reino Ocioso: A Coroa Perdida — Canivete Suíço</title>
+  <link rel="stylesheet" href="../../style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="estilo.css">
+</head>
+<body class="medieval">
+  <header class="topo" id="topo"></header>
+  <script src="../../menu.js"></script>
+
+  <div id="jogo">
+    <div class="barra">
+      <div>
+        <div class="ouro-total">🪙 <span id="ouro">0</span></div>
+        <div class="por-seg"><span id="gps">0</span> de ouro por segundo</div>
+      </div>
+      <div class="estacao" id="estacao" title=""></div>
+      <div class="titulo-reino"><span id="rank-barra">Acampamento</span> de <b id="nome-barra">—</b><br><span id="dinastia-barra"></span></div>
+    </div>
+
+    <div class="mesa">
+      <!-- REINO: clique para cobrar impostos -->
+      <section class="painel ativa" id="p-reino">
+        <button class="nome-reino" id="nome-reino" title="Clique para renomear seu reino">—</button>
+        <div class="rank" id="rank">Acampamento</div>
+        <button class="patrono" id="btn-patrono" style="display:none"></button>
+        <button class="moeda" id="moeda" aria-label="Cobrar impostos">👑</button>
+        <div class="fervor" id="fervor">
+          <div class="fervor-barra"><div id="fervor-fill"></div></div>
+          <div class="fervor-txt"><span>🔥 Fervor</span><span id="fervor-mult">×1,00</span></div>
+        </div>
+        <div class="valor-clique">Cobrar impostos: <b>+<span id="valor-clique">1</span></b> por clique
+          <small class="fraco" id="crit-info"></small></div>
+
+        <div class="coletor">
+          <div class="col-linha">
+            <div><b>🧑‍💼 Coletor · Nv <span id="nv-coletor">0</span></b><small id="col-desc"></small></div>
+            <div class="col-botoes">
+              <button class="mini" id="btn-coletor">Treinar</button>
+              <button class="mini leve" id="btn-coletor-max">Máx</button>
+            </div>
+          </div>
+          <div class="col-linha" id="linha-cobr">
+            <div><b>🧾 Cobradores: <span id="qtd-cobr">0</span></b><small id="cobr-desc"></small></div>
+            <div class="col-botoes"><button class="mini" id="btn-cobr">Contratar</button></div>
+          </div>
+        </div>
+
+        <h3>📣 Decretos Reais</h3>
+        <div class="decretos" id="decretos"></div>
+        <div class="efeitos" id="efeitos"></div>
+
+        <h3>📜 Crônicas do Reino</h3>
+        <ul class="cronicas" id="cronicas"></ul>
+      </section>
+
+      <!-- CONSTRUÇÕES -->
+      <section class="painel" id="p-edif">
+        <h2>Construções</h2>
+        <div class="seletor" id="seletor">
+          <button data-qtd="1">×1</button>
+          <button data-qtd="10">×10</button>
+          <button data-qtd="100">×100</button>
+          <button data-qtd="max">Máx</button>
+        </div>
+        <div id="lista-edif"></div>
+      </section>
+
+      <!-- MISSÕES, MELHORIAS E CONQUISTAS -->
+      <section class="painel" id="p-melh">
+        <h2>Conselho</h2>
+        <h3 style="margin-top:0">📋 Missões do Conselho</h3>
+        <div class="missoes" id="missoes"></div>
+        <div class="missoes-info" id="missoes-info"></div>
+        <h3>🗺️ Expedições</h3>
+        <div class="exped" id="expedicoes"></div>
+        <h3 class="h3-linha"><span>🔧 Melhorias</span><button class="leve" id="btn-todas">Comprar todas</button></h3>
+        <div class="melhorias" id="lista-melh"></div>
+        <h3>🏆 Conquistas <span class="fraco" id="conq-cont"></span></h3>
+        <div class="conquistas" id="lista-conq"></div>
+        <div class="conq-info" id="conq-info"><span class="fraco">Toque numa conquista para ver o que ela pede.</span></div>
+      </section>
+
+      <!-- DINASTIA, HISTÓRIA, ESTATÍSTICAS, SAVE -->
+      <section class="painel" id="p-mais">
+        <h2>Dinastia</h2>
+        <div class="coroa-box">
+          <div>Legado: <b id="legado">0</b> 👑 <span class="fraco">(+<span id="legado-bonus">0</span>% de produção)</span></div>
+          <div class="fraco" style="margin-top:4px">Passe a coroa ao seu herdeiro: o reino recomeça do zero, mas você ganha Legado (produção para sempre) e Joias da Coroa para comprar Dons.</div>
+          <div style="margin-top:6px">Ao passar a coroa: <b>+<span id="legado-ganho">0</span></b> de Legado e 💎</div>
+          <div class="fraco" id="legado-prox"></div>
+          <button class="acao" id="btn-coroa" disabled>👑 Passar a coroa</button>
+        </div>
+
+        <h3>💎 Dons da Linhagem · <span id="joias">0</span> Joias</h3>
+        <div class="dons" id="dons"></div>
+
+        <h3>🏺 Relíquias <span class="fraco" id="rel-cont"></span></h3>
+        <div class="conquistas" id="lista-rel"></div>
+        <div class="conq-info" id="rel-info"><span class="fraco">Relíquias vêm das Expedições e duram para sempre, em todas as dinastias.</span></div>
+
+        <h3>📖 A Coroa Perdida</h3>
+        <div class="capitulos" id="capitulos"></div>
+
+        <h3>📊 Estatísticas</h3>
+        <dl class="stats" id="stats"></dl>
+
+        <h3>💾 Progresso</h3>
+        <div class="fraco" style="font-size:.9rem" id="offline-info"></div>
+        <div class="botoes-save">
+          <button class="leve" id="btn-salvar">Salvar agora</button>
+          <button class="leve" id="btn-exportar">Exportar</button>
+          <button class="leve" id="btn-importar">Importar</button>
+          <button class="leve" id="btn-apagar">Apagar tudo</button>
+        </div>
+        <div class="fraco" id="salvo-msg" style="font-size:.85rem;margin-top:6px"></div>
+      </section>
+    </div>
+  </div>
+
+  <nav class="abas" id="abas">
+    <button data-aba="p-reino" class="ativo"><span>🏰</span>Reino</button>
+    <button data-aba="p-edif"><span>🔨</span>Construir</button>
+    <button data-aba="p-melh"><span>📋</span>Conselho</button>
+    <button data-aba="p-mais"><span>👑</span>Dinastia</button>
+  </nav>
+
+  <div class="toasts" id="toasts"></div>
+
+  <div class="modal escondido" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
+    <div class="pergaminho">
+      <div class="p-selo" id="modal-selo">📜</div>
+      <h2 id="modal-titulo"></h2>
+      <div id="modal-texto"></div>
+      <div class="opcoes" id="modal-opcoes"></div>
+      <button class="acao" id="modal-ok">Continuar</button>
+    </div>
+  </div>
+
+  <script src="jogo.js"></script>
+</body>
+</html>

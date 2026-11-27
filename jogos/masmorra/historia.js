@@ -1,5 +1,5 @@
 // ==========================================================
-// masmorra-historia.js — A HISTÓRIA DO "CAÇADOR DE DRAGÕES"
+// jogos/masmorra/historia.js — A HISTÓRIA DO "CAÇADOR DE DRAGÕES"
 //
 // Todo o texto narrativo do jogo mora aqui: prólogo, capítulos
 // de cada bioma, falas dos dragões, páginas do diário do mentor
